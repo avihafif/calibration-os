@@ -105,6 +105,12 @@ def _validate(value: Json, schema: dict[str, Any], pointer: str) -> None:
             raise SchemaError(f"SCHEMA_PATTERN:{pointer}")
 
 
+def validate_document(schema: dict[str, Any], content: Json) -> None:
+    """Validate a closed schema using the supported fail-closed subset."""
+    _check_schema(schema)
+    _validate(content, schema, "")
+
+
 class SchemaRegistry:
     def __init__(self, repository_root: Path) -> None:
         registry = json.loads(

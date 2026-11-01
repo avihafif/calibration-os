@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.calos.example/package-manifest/v1",
+  "title": "Phase 0B verification-only metadata package manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format_version", "package_id", "kind", "key", "schema_version", "content_digest", "tenant_id", "deployment_id", "environment_kind", "publisher_id", "issuer_id", "key_id", "issued_at", "expires_at", "runtime_min", "runtime_max", "provenance_status"],
+  "properties": {
+    "format_version": {"type": "integer", "enum": [1]},
+    "package_id": {"type": "string", "pattern": "[a-z0-9]+(?:-[a-z0-9]+)*", "maxLength": 120},
+    "kind": {"type": "string", "pattern": "[A-Za-z][A-Za-z0-9]*", "maxLength": 80},
+    "key": {"type": "string", "pattern": "[a-z0-9]+(?:-[a-z0-9]+)*", "maxLength": 120},
+    "schema_version": {"type": "integer"},
+    "content_digest": {"type": "string", "pattern": "sha256:[0-9a-f]{64}"},
+    "tenant_id": {"type": "string", "minLength": 1, "maxLength": 120},
+    "deployment_id": {"type": "string", "minLength": 1, "maxLength": 120},
+    "environment_kind": {"type": "string", "enum": ["test", "production_rehearsal"]},
+    "publisher_id": {"type": "string", "minLength": 1, "maxLength": 120},
+    "issuer_id": {"type": "string", "minLength": 1, "maxLength": 120},
+    "key_id": {"type": "string", "minLength": 1, "maxLength": 120},
+    "issued_at": {"type": "string", "minLength": 20, "maxLength": 32},
+    "expires_at": {"type": "string", "minLength": 20, "maxLength": 32},
+    "runtime_min": {"type": "string", "pattern": "[0-9]+\\.[0-9]+\\.[0-9]+"},
+    "runtime_max": {"type": "string", "pattern": "[0-9]+\\.[0-9]+\\.[0-9]+"},
+    "provenance_status": {"type": "string", "enum": ["synthetic_demo", "authored"]}
+  }
+}
