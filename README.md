@@ -1,4 +1,4 @@
-# CalOS Phase 0A walking skeleton
+# CalOS Phase 0A/0B walking skeleton
 
 This repository holds the supplied CalOS specifications and a **non-operational,
 simulation-only** implementation probe. It cannot execute a calibration, talk to
@@ -9,6 +9,16 @@ The 42 supplied specification files were committed unchanged as the baseline.
 See [Phase 0A status](docs/PHASE0A_STATUS.md) for the acceptance checklist and
 unimplemented security checks, and the [file manifest](docs/PHASE0A_MANIFEST.md)
 for a file-by-file change list.
+
+Phase 0B adds a **verification-only** metadata package path with strict schema
+and digest checks, Ed25519 verification, publisher/tenant/deployment binding,
+expiry, revocation-snapshot and runtime-version checks, and an authenticated
+`POST /api/v1/config/packages/verify` route. It creates no drafts, approvals,
+versions, releases or assignments. The route returns `503 VERIFIER_UNAVAILABLE`
+in the supplied Compose projects because no operational trust or token issuer
+is provisioned. In-memory test keys demonstrate the contract; they are never
+trusted deployment keys. See [Phase 0B report](docs/PHASE0B_REPORT.md) and the
+[ADR review matrix](docs/PHASE0B_ADR_REVIEW.md).
 
 ## Windows PowerShell setup
 
@@ -34,6 +44,19 @@ pnpm lint:ts
 pnpm format:ts:check
 pnpm test:ts-boundary
 pnpm build:web
+```
+
+Phase 0B security vectors can also be run separately:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests/security -v
+```
+
+On the initial Windows host, async ASGI tests require permission for local
+event-loop sockets. CI runs the same suite on Windows and Linux.
+
+```powershell
+.\.venv\Scripts\mypy.exe --strict packages/py/calos_domain/calos_domain packages/py/calos_metadata/calos_metadata packages/py/calos_security/calos_security
 ```
 
 The local API and station stub need an explicit Test deployment identity:

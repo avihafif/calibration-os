@@ -140,6 +140,14 @@ Assumption (A-16): the instrument speaks an ASCII SCPI/IEEE-488.2-style protocol
 | 6.20 | Change production policies/thresholds | NC·GOV | Change Requests |
 | 6.21 | Grant privileged roles (safety/approval) | NC·GOV | Admin (dual control, toxic-combination validation) |
 
+**Phase 0B implementation status for row 6.4:** a verification-only, signed
+`Manufacturer` metadata envelope is checked in a protected Test API route when
+test trust material is injected. This does not import a configuration item,
+create a version, approve, release, assign, or provide a graphical workflow.
+The row's NC classification describes the target product capability, not a
+claim that the complete operation is implemented. Trust-root and authentication
+policies remain dependent on Proposed ADR-0004 and ADR-0014.
+
 ## 7. Summary
 
 | Class | Count (this version) | Comment |
