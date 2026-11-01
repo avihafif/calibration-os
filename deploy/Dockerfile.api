@@ -1,9 +1,13 @@
 FROM python:3.12-slim
 WORKDIR /opt/calos
 COPY packages/py/calos_domain packages/py/calos_domain
+COPY packages/py/calos_metadata packages/py/calos_metadata
+COPY packages/py/calos_security packages/py/calos_security
+COPY schemas schemas
+COPY catalog catalog
 COPY apps/api apps/api
 COPY tools/check_postgres.py tools/check_postgres.py
-RUN pip install --no-cache-dir ./packages/py/calos_domain ./apps/api
+RUN pip install --no-cache-dir ./packages/py/calos_domain ./packages/py/calos_metadata ./packages/py/calos_security ./apps/api
 ENV PYTHONDONTWRITEBYTECODE=1
 EXPOSE 8000
 CMD ["uvicorn", "calos_api.main:app", "--host", "0.0.0.0", "--port", "8000"]

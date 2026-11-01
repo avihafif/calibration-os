@@ -25,6 +25,7 @@ class PackageParserTests(unittest.TestCase):
                 "package_id": "synthetic-package",
                 "kind": self.item["kind"],
                 "key": self.item["key"],
+                "item_version": "0.1.0",
                 "schema_version": self.item["schema_version"],
                 "content_digest": content_digest(content),
                 "tenant_id": "synthetic-tenant",

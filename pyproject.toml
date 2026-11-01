@@ -14,7 +14,7 @@ dev = [
 ]
 
 [tool.uv.workspace]
-members = ["apps/api", "apps/station-agent", "packages/py/calos_domain", "packages/py/calos_metadata"]
+members = ["apps/api", "apps/station-agent", "packages/py/calos_domain", "packages/py/calos_metadata", "packages/py/calos_security"]
 
 [tool.ruff]
 target-version = "py312"

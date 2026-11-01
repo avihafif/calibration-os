@@ -11,6 +11,7 @@ COMMANDS = [
     [sys.executable, "tools/check_isolation.py"],
     [sys.executable, "tools/scan_secrets.py"],
     [sys.executable, "-m", "unittest", "discover", "-s", "tests/unit", "-v"],
+    [sys.executable, "-m", "unittest", "discover", "-s", "tests/security", "-v"],
 ]
 
 

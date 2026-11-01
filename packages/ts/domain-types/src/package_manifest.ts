@@ -5,6 +5,7 @@ export interface PackageManifest {
   package_id: string;
   kind: string;
   key: string;
+  item_version: string;
   schema_version: number;
   content_digest: string;
   tenant_id: string;

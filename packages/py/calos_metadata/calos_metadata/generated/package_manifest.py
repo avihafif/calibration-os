@@ -7,6 +7,7 @@ class PackageManifest(TypedDict):
     package_id: str
     kind: str
     key: str
+    item_version: str
     schema_version: int
     content_digest: str
     tenant_id: str

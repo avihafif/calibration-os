@@ -64,7 +64,7 @@ class PackageParser:
             )
         except PackageError:
             raise
-        except (UnicodeError, ValueError) as exc:
+        except (UnicodeError, ValueError, RecursionError) as exc:
             raise PackageError("PACKAGE_MALFORMED") from exc
         if not isinstance(envelope, dict) or set(envelope) != {
             "manifest",
@@ -90,7 +90,7 @@ class PackageParser:
             signed_bytes = canonical_bytes(cast(Json, manifest))
         except SchemaError as exc:
             raise PackageError(exc.code) from exc
-        except ValueError as exc:
+        except (ValueError, RecursionError) as exc:
             raise PackageError("PACKAGE_CANONICAL_INVALID") from exc
         if not hmac.compare_digest(actual, manifest["content_digest"]):
             raise PackageError("PACKAGE_DIGEST_MISMATCH")

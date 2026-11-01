@@ -3,12 +3,14 @@ name = "calos-api"
 version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = [
-  "fastapi>=0.156,<0.157", "uvicorn>=0.38,<1", "calos-domain",
+  "fastapi>=0.156,<0.157", "uvicorn>=0.38,<1", "calos-domain", "calos-metadata", "calos-security",
   "alembic>=1.16,<2", "sqlalchemy>=2,<3", "psycopg[binary]>=3,<4"
 ]
 
 [tool.uv.sources]
 calos-domain = { workspace = true }
+calos-metadata = { workspace = true }
+calos-security = { workspace = true }
 
 [build-system]
 requires = ["hatchling"]
