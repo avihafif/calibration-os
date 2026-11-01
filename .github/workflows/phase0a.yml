@@ -1,0 +1,90 @@
+name: Phase 0A checks
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  python:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install uv
+        run: python -m pip install uv==0.13.6
+      - name: Sync locked workspace
+        run: uv sync --all-packages --frozen
+      - name: Contract and unit checks
+        run: uv run --no-sync python tools/check.py
+      - name: Python lint
+        run: uv run --no-sync ruff check apps packages/py tools tests
+      - name: Python format
+        run: uv run --no-sync ruff format --check apps packages/py tools tests
+      - name: Python typing
+        run: uv run --no-sync mypy --strict packages/py/calos_domain/calos_domain packages/py/calos_metadata/calos_metadata
+      - name: Import boundaries
+        run: uv run --no-sync lint-imports --no-cache
+
+  typescript:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.25.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check:ts
+      - run: pnpm lint:ts
+      - run: pnpm format:ts:check
+      - run: pnpm test:ts-boundary
+      - run: pnpm build:web
+
+  compose-rehearsal:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Generate disposable secrets
+        run: python tools/setup_rehearsal_secrets.py
+      - name: Check static separation and generated credentials
+        run: python tools/check_isolation.py --with-secrets
+      - name: Validate Compose projects
+        run: |
+          docker compose -f deploy/test/compose.yaml config --quiet
+          docker compose -f deploy/prod-rehearsal/compose.yaml config --quiet
+      - name: Start and migrate Test
+        run: |
+          docker compose -f deploy/test/compose.yaml up -d --build db
+          docker compose -f deploy/test/compose.yaml run --rm migrate
+          docker compose -f deploy/test/compose.yaml run --rm migrate python tools/check_postgres.py
+      - name: Start and migrate Production rehearsal
+        run: |
+          docker compose -f deploy/prod-rehearsal/compose.yaml up -d --build db
+          docker compose -f deploy/prod-rehearsal/compose.yaml run --rm migrate
+          docker compose -f deploy/prod-rehearsal/compose.yaml run --rm migrate python tools/check_postgres.py
+      - name: Run non-operational shells
+        run: |
+          docker compose -f deploy/test/compose.yaml up -d --build api station_stub web
+          docker compose -f deploy/prod-rehearsal/compose.yaml up -d --build api station_stub web
+          curl --fail http://127.0.0.1:18080/healthz
+          curl --fail http://127.0.0.1:18081/local/v1/status
+          curl --fail http://127.0.0.1:18082/
+          curl --fail http://127.0.0.1:28080/healthz
+          curl --fail http://127.0.0.1:28081/local/v1/status
+          curl --fail http://127.0.0.1:28082/
+      - name: Stop disposable stacks
+        if: always()
+        run: |
+          docker compose -f deploy/test/compose.yaml down -v --remove-orphans
+          docker compose -f deploy/prod-rehearsal/compose.yaml down -v --remove-orphans

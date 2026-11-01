@@ -90,6 +90,16 @@ docker compose --profile core up   # central services
 ```
 If a target command doesn't exist yet, say so rather than inventing output.
 
+**Phase 0A verified subset (2026-11-02, Windows workspace):** after installing
+dependencies as described in the repository `README.md`, `uv sync --all-packages
+--frozen` (using the workspace-local uv executable), `pnpm install
+--frozen-lockfile --store-dir .pnpm-store`, `python tools/check.py`,
+`pnpm check:ts`, `pnpm lint:ts`, `pnpm format:ts:check`,
+`pnpm test:ts-boundary`, `pnpm build:web`, `ruff check`, `ruff format --check`,
+`mypy --strict` on the two core packages, and `lint-imports --no-cache` have
+been run successfully. The `just` commands, Docker Compose startup, and
+database migration have **not** been verified on this host and remain targets.
+
 ## 7. Style
 - Python ≥ 3.12, `mypy --strict` on core packages, `ruff`; Pydantic v2 models generated from `schemas/` where applicable; no global mutable state in the runtime; time/IDs/random via injected ports.
 - TypeScript `strict`; no `any` in `ui-runtime`/`editor-core`; React function components; state via query cache + editor command stack; all text via i18n; logical CSS properties only.
