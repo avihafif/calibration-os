@@ -10,4 +10,3 @@ class ManufacturerName(TypedDict):
 class Manufacturer(TypedDict):
     name: ManufacturerName
     aliases: list[str]
-

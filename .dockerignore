@@ -1,0 +1,12 @@
+.git
+.venv
+.tooling
+.python-install
+.uv-cache
+.pnpm-store
+node_modules
+**/node_modules
+**/dist
+deploy/*/secrets
+CalOS-specs.zip
+__pycache__

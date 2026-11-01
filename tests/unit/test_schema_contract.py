@@ -24,8 +24,10 @@ class SchemaContractTests(unittest.TestCase):
         item = self._fixture("valid.json")
         self.assertEqual(item["provenance"]["status"], "synthetic_demo")
         self.registry.validate(item["kind"], item["schema_version"], item["content"])
-        reordered = {"aliases": [], "name": {"he": item["content"]["name"]["he"],
-                                            "en": item["content"]["name"]["en"]}}
+        reordered = {
+            "aliases": [],
+            "name": {"he": item["content"]["name"]["he"], "en": item["content"]["name"]["en"]},
+        }
         self.assertEqual(content_digest(item["content"]), content_digest(reordered))
         self.assertEqual(canonical_bytes(item["content"]), canonical_bytes(reordered))
 
@@ -42,7 +44,10 @@ class SchemaContractTests(unittest.TestCase):
     def test_generated_types_are_current(self) -> None:
         result = subprocess.run(
             [sys.executable, str(ROOT / "tools" / "codegen.py"), "--check"],
-            cwd=ROOT, capture_output=True, text=True, check=False,
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
         )
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 

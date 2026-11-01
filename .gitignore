@@ -2,7 +2,16 @@ __pycache__/
 .pytest_cache/
 .venv/
 node_modules/
+.pnpm-store/
+.tooling/
+.python-install/
+.uv-cache/
+.mypy_cache/
+.ruff_cache/
 dist/
 .env
 *.pyc
+deploy/*/secrets/
+*.egg-info/
+CalOS-specs.zip
 

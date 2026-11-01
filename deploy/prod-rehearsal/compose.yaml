@@ -1,0 +1,65 @@
+{
+  "name": "calos-prod-rehearsal",
+  "services": {
+    "db": {
+      "image": "postgres:16",
+      "environment": {
+        "POSTGRES_DB": "calos_prod_rehearsal",
+        "POSTGRES_USER": "calos_rehearsal_admin",
+        "POSTGRES_PASSWORD_FILE": "/run/secrets/postgres_password"
+      },
+      "secrets": ["postgres_password"],
+      "networks": ["rehearsal_internal"],
+      "volumes": ["rehearsal_pgdata:/var/lib/postgresql/data"],
+      "healthcheck": {
+        "test": ["CMD-SHELL", "pg_isready -U calos_rehearsal_admin -d calos_prod_rehearsal"],
+        "interval": "5s", "timeout": "3s", "retries": 10
+      }
+    },
+    "api": {
+      "build": {"context": "../..", "dockerfile": "deploy/Dockerfile.api"},
+      "environment": {
+        "CALOS_DEPLOYMENT_ID": "00000000-0000-4000-8000-0000000000a2",
+        "CALOS_ENVIRONMENT_KIND": "production_rehearsal"
+      },
+      "ports": ["127.0.0.1:28080:8000"],
+      "networks": ["rehearsal_internal"],
+      "depends_on": {"db": {"condition": "service_healthy"}}
+    },
+    "migrate": {
+      "build": {"context": "../..", "dockerfile": "deploy/Dockerfile.api"},
+      "command": ["alembic", "-c", "apps/api/alembic.ini", "upgrade", "head"],
+      "environment": {
+        "CALOS_DB_HOST": "db", "CALOS_DB_NAME": "calos_prod_rehearsal",
+        "CALOS_DB_USER": "calos_rehearsal_admin",
+        "CALOS_DB_PASSWORD_FILE": "/run/secrets/postgres_password",
+        "CALOS_DEPLOYMENT_ID": "00000000-0000-4000-8000-0000000000a2",
+        "CALOS_ENVIRONMENT_KIND": "production_rehearsal"
+      },
+      "secrets": ["postgres_password"],
+      "networks": ["rehearsal_internal"],
+      "depends_on": {"db": {"condition": "service_healthy"}},
+      "profiles": ["migrate"]
+    },
+    "station_stub": {
+      "build": {"context": "../..", "dockerfile": "deploy/Dockerfile.station"},
+      "environment": {
+        "CALOS_DEPLOYMENT_ID": "00000000-0000-4000-8000-0000000000a2",
+        "CALOS_ENVIRONMENT_KIND": "production_rehearsal"
+      },
+      "ports": ["127.0.0.1:28081:8001"],
+      "networks": ["rehearsal_internal"]
+    },
+    "web": {
+      "build": {"context": "../..", "dockerfile": "deploy/Dockerfile.web", "args": {"VITE_ENVIRONMENT_KIND": "production_rehearsal"}},
+      "ports": ["127.0.0.1:28082:4173"],
+      "networks": ["rehearsal_internal"]
+    }
+  },
+  "networks": {"rehearsal_internal": {"name": "calos-prod-rehearsal-internal"}},
+  "volumes": {"rehearsal_pgdata": {"name": "calos-prod-rehearsal-pgdata"}},
+  "secrets": {
+    "postgres_password": {"file": "./secrets/postgres_password"},
+    "prototype_signing_seed": {"file": "./secrets/prototype_signing_seed"}
+  }
+}

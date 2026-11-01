@@ -1,0 +1,65 @@
+{
+  "name": "calos-test",
+  "services": {
+    "db": {
+      "image": "postgres:16",
+      "environment": {
+        "POSTGRES_DB": "calos_test",
+        "POSTGRES_USER": "calos_test_admin",
+        "POSTGRES_PASSWORD_FILE": "/run/secrets/postgres_password"
+      },
+      "secrets": ["postgres_password"],
+      "networks": ["test_internal"],
+      "volumes": ["test_pgdata:/var/lib/postgresql/data"],
+      "healthcheck": {
+        "test": ["CMD-SHELL", "pg_isready -U calos_test_admin -d calos_test"],
+        "interval": "5s", "timeout": "3s", "retries": 10
+      }
+    },
+    "api": {
+      "build": {"context": "../..", "dockerfile": "deploy/Dockerfile.api"},
+      "environment": {
+        "CALOS_DEPLOYMENT_ID": "00000000-0000-4000-8000-0000000000a1",
+        "CALOS_ENVIRONMENT_KIND": "test"
+      },
+      "ports": ["127.0.0.1:18080:8000"],
+      "networks": ["test_internal"],
+      "depends_on": {"db": {"condition": "service_healthy"}}
+    },
+    "migrate": {
+      "build": {"context": "../..", "dockerfile": "deploy/Dockerfile.api"},
+      "command": ["alembic", "-c", "apps/api/alembic.ini", "upgrade", "head"],
+      "environment": {
+        "CALOS_DB_HOST": "db", "CALOS_DB_NAME": "calos_test",
+        "CALOS_DB_USER": "calos_test_admin",
+        "CALOS_DB_PASSWORD_FILE": "/run/secrets/postgres_password",
+        "CALOS_DEPLOYMENT_ID": "00000000-0000-4000-8000-0000000000a1",
+        "CALOS_ENVIRONMENT_KIND": "test"
+      },
+      "secrets": ["postgres_password"],
+      "networks": ["test_internal"],
+      "depends_on": {"db": {"condition": "service_healthy"}},
+      "profiles": ["migrate"]
+    },
+    "station_stub": {
+      "build": {"context": "../..", "dockerfile": "deploy/Dockerfile.station"},
+      "environment": {
+        "CALOS_DEPLOYMENT_ID": "00000000-0000-4000-8000-0000000000a1",
+        "CALOS_ENVIRONMENT_KIND": "test"
+      },
+      "ports": ["127.0.0.1:18081:8001"],
+      "networks": ["test_internal"]
+    },
+    "web": {
+      "build": {"context": "../..", "dockerfile": "deploy/Dockerfile.web", "args": {"VITE_ENVIRONMENT_KIND": "test"}},
+      "ports": ["127.0.0.1:18082:4173"],
+      "networks": ["test_internal"]
+    }
+  },
+  "networks": {"test_internal": {"name": "calos-test-internal"}},
+  "volumes": {"test_pgdata": {"name": "calos-test-pgdata"}},
+  "secrets": {
+    "postgres_password": {"file": "./secrets/postgres_password"},
+    "prototype_signing_seed": {"file": "./secrets/prototype_signing_seed"}
+  }
+}

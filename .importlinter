@@ -1,0 +1,29 @@
+[importlinter]
+root_packages =
+    calos_domain
+    calos_metadata
+    calos_api
+    calos_station_agent
+
+[importlinter:contract:domain-independent]
+name = Domain must not import higher layers
+type = forbidden
+source_modules = calos_domain
+forbidden_modules =
+    calos_metadata
+    calos_api
+    calos_station_agent
+
+[importlinter:contract:metadata-independent]
+name = Metadata must not import composition roots
+type = forbidden
+source_modules = calos_metadata
+forbidden_modules =
+    calos_api
+    calos_station_agent
+
+[importlinter:contract:central-station]
+name = Central API must not import station
+type = forbidden
+source_modules = calos_api
+forbidden_modules = calos_station_agent

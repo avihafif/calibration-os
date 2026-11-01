@@ -51,4 +51,3 @@ def canonical_bytes(value: Json) -> bytes:
 
 def content_digest(value: Json) -> str:
     return "sha256:" + hashlib.sha256(canonical_bytes(value)).hexdigest()
-

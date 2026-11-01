@@ -22,11 +22,26 @@ class SchemaError(ValueError):
         self.code = code
         super().__init__(code)
 
-KEYWORDS = frozenset({
-    "$schema", "$id", "title", "description", "type", "additionalProperties",
-    "required", "properties", "items", "minLength", "maxLength", "maxItems",
-    "minItems", "pattern", "enum",
-})
+
+KEYWORDS = frozenset(
+    {
+        "$schema",
+        "$id",
+        "title",
+        "description",
+        "type",
+        "additionalProperties",
+        "required",
+        "properties",
+        "items",
+        "minLength",
+        "maxLength",
+        "maxItems",
+        "minItems",
+        "pattern",
+        "enum",
+    }
+)
 
 
 def _check_schema(schema: dict[str, Any]) -> None:
@@ -71,14 +86,20 @@ def _validate(value: Json, schema: dict[str, Any], pointer: str) -> None:
         if set(value) - set(properties):
             raise SchemaError(f"SCHEMA_UNKNOWN_PROPERTY:{pointer}")
         for key, child in value.items():
-            _validate(child, properties[key], pointer + "/" + key.replace("~", "~0").replace("/", "~1"))
+            _validate(
+                child, properties[key], pointer + "/" + key.replace("~", "~0").replace("/", "~1")
+            )
     elif isinstance(value, list):
-        if len(value) < schema.get("minItems", 0) or len(value) > schema.get("maxItems", len(value)):
+        if len(value) < schema.get("minItems", 0) or len(value) > schema.get(
+            "maxItems", len(value)
+        ):
             raise SchemaError(f"SCHEMA_ARRAY_LENGTH:{pointer}")
         for index, child in enumerate(value):
             _validate(child, schema["items"], pointer + f"/{index}")
     elif isinstance(value, str):
-        if len(value) < schema.get("minLength", 0) or len(value) > schema.get("maxLength", len(value)):
+        if len(value) < schema.get("minLength", 0) or len(value) > schema.get(
+            "maxLength", len(value)
+        ):
             raise SchemaError(f"SCHEMA_STRING_LENGTH:{pointer}")
         if "pattern" in schema and re.fullmatch(schema["pattern"], value) is None:
             raise SchemaError(f"SCHEMA_PATTERN:{pointer}")
@@ -86,7 +107,9 @@ def _validate(value: Json, schema: dict[str, Any], pointer: str) -> None:
 
 class SchemaRegistry:
     def __init__(self, repository_root: Path) -> None:
-        registry = json.loads((repository_root / "catalog" / "kinds.json").read_text(encoding="utf-8"))
+        registry = json.loads(
+            (repository_root / "catalog" / "kinds.json").read_text(encoding="utf-8")
+        )
         self._schemas: dict[tuple[str, int], dict[str, Any]] = {}
         self._entries: dict[str, dict[str, Any]] = {}
         for entry in registry["kinds"]:
@@ -110,4 +133,3 @@ class SchemaRegistry:
         except KeyError as exc:
             raise SchemaError("SCHEMA_UNKNOWN") from exc
         _validate(content, schema, "")
-

@@ -14,7 +14,9 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = ROOT / "schemas" / "manufacturer" / "v1.schema.json"
-PY_OUT = ROOT / "packages" / "py" / "calos_metadata" / "calos_metadata" / "generated" / "manufacturer.py"
+PY_OUT = (
+    ROOT / "packages" / "py" / "calos_metadata" / "calos_metadata" / "generated" / "manufacturer.py"
+)
 TS_OUT = ROOT / "packages" / "ts" / "domain-types" / "src" / "manufacturer.ts"
 
 
@@ -32,7 +34,9 @@ def _type_of(schema: dict[str, Any], name: str, language: str, classes: list[str
                 raise ValueError("Unsupported property name")
             child_name = name + key[:1].upper() + key[1:]
             child_type = _type_of(child, child_name, language, classes)
-            fields.append(f"    {key}: {child_type}" if language == "py" else f"  {key}: {child_type};")
+            fields.append(
+                f"    {key}: {child_type}" if language == "py" else f"  {key}: {child_type};"
+            )
         if language == "py":
             classes.append(f"class {name}(TypedDict):\n" + "\n".join(fields) + "\n")
         else:
@@ -41,8 +45,10 @@ def _type_of(schema: dict[str, Any], name: str, language: str, classes: list[str
     if kind == "array":
         item = _type_of(schema["items"], name + "Item", language, classes)
         return f"list[{item}]" if language == "py" else f"{item}[]"
-    mapping = {"py": {"string": "str", "integer": "int", "boolean": "bool"},
-               "ts": {"string": "string", "integer": "number", "boolean": "boolean"}}
+    mapping = {
+        "py": {"string": "str", "integer": "int", "boolean": "bool"},
+        "ts": {"string": "string", "integer": "number", "boolean": "boolean"},
+    }
     try:
         return mapping[language][kind]
     except KeyError as exc:
@@ -55,10 +61,15 @@ def generate() -> dict[Path, str]:
     for language, target in (("py", PY_OUT), ("ts", TS_OUT)):
         classes: list[str] = []
         _type_of(schema, "Manufacturer", language, classes)
-        header = ("# Generated from schemas/manufacturer/v1.schema.json; do not edit.\n"
-                  "from typing import TypedDict\n\n\n") if language == "py" else (
-                  "// Generated from schemas/manufacturer/v1.schema.json; do not edit.\n\n")
-        outputs[target] = header + "\n\n".join(classes) + "\n"
+        header = (
+            (
+                "# Generated from schemas/manufacturer/v1.schema.json; do not edit.\n"
+                "from typing import TypedDict\n\n\n"
+            )
+            if language == "py"
+            else ("// Generated from schemas/manufacturer/v1.schema.json; do not edit.\n\n")
+        )
+        outputs[target] = header + "\n\n".join(classes).rstrip() + "\n"
     return outputs
 
 
