@@ -77,12 +77,12 @@ jobs:
         run: |
           docker compose -f deploy/test/compose.yaml up -d --build api station_stub web
           docker compose -f deploy/prod-rehearsal/compose.yaml up -d --build api station_stub web
-          curl --fail http://127.0.0.1:18080/healthz
-          curl --fail http://127.0.0.1:18081/local/v1/status
-          curl --fail http://127.0.0.1:18082/
-          curl --fail http://127.0.0.1:28080/healthz
-          curl --fail http://127.0.0.1:28081/local/v1/status
-          curl --fail http://127.0.0.1:28082/
+          curl --fail --silent --show-error --retry 15 --retry-delay 2 --retry-all-errors http://127.0.0.1:18080/healthz
+          curl --fail --silent --show-error --retry 15 --retry-delay 2 --retry-all-errors http://127.0.0.1:18081/local/v1/status
+          curl --fail --silent --show-error --retry 15 --retry-delay 2 --retry-all-errors http://127.0.0.1:18082/
+          curl --fail --silent --show-error --retry 15 --retry-delay 2 --retry-all-errors http://127.0.0.1:28080/healthz
+          curl --fail --silent --show-error --retry 15 --retry-delay 2 --retry-all-errors http://127.0.0.1:28081/local/v1/status
+          curl --fail --silent --show-error --retry 15 --retry-delay 2 --retry-all-errors http://127.0.0.1:28082/
       - name: Stop disposable stacks
         if: always()
         run: |
