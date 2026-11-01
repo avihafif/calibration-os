@@ -9,7 +9,9 @@ does not amend the supplied architecture or approve an ADR.
 `docs/PRODUCT_REQUIREMENTS.md`, the capability matrix, roadmap, schema, API,
 security, governance, metrology, builder, station and plugin specifications,
 and ADRs were consulted. The 42 supplied files matched the handoff archive
-byte for byte before implementation; baseline commit `bf6843a` records them.
+byte for byte before implementation; local baseline commit `bf6843a` records
+them. The GitHub baseline uses a separate equivalent commit history because the
+connected upload used GitHub's tree and commit API.
 
 Accepted ADRs: 0003, 0022, **0023 (Q-13)**, **0024 (Q-14)**. ADRs 0001–0002,
 0004–0021 remain Proposed in their own status lines. Proposed decisions need
@@ -32,8 +34,8 @@ remain unresolved metrology inputs.
 | Metadata fixture/schema/digest                         | Local pass      | 4 unit tests and `codegen --check`                                                                              |
 | Python and TS lint, format, typing, import boundaries  | Local pass      | Ruff, mypy, import-linter, ESLint, Prettier, negative probes                                                    |
 | Separate Compose definitions and generated credentials | Static pass     | `check_isolation.py --with-secrets` compares names, paths, bytes, ports, DB names/users, networks, volumes, IDs |
-| Clean PostgreSQL migration and RLS                     | CI pending      | No Docker/psql on local host; CI job runs both migrations and RLS probe                                         |
-| Both Compose stacks boot                               | CI pending      | No Docker on local host; GitHub Actions job added                                                               |
+| Clean PostgreSQL migration and RLS                     | CI pass         | Both migrations and RLS probes passed in the Compose job; Docker/psql unavailable on local host                |
+| Both Compose stacks boot                               | CI pass         | Test and Production rehearsal APIs, station stubs and web shells returned HTTP success                         |
 | Signed config/token rejection                          | Not implemented | No token, config import or signature endpoint exists                                                            |
 | Real network isolation                                 | Not proven      | Static declarations only; infrastructure validation remains                                                     |
 | Full secret scanning                                   | Partial         | Limited tracked-source patterns; broader scanning remains                                                       |
@@ -50,8 +52,8 @@ remain unresolved metrology inputs.
   non-operational deployment, never operational Production.
 - P0A-G04: The JSON Schema validator and type generator implement only the
   first closed-object subset. Full Draft 2020-12 conformance is not claimed.
-- P0A-G05: PostgreSQL RLS has a migration and probe, but was not executed on
-  the initial Windows host because Docker was unavailable.
+- P0A-G05: PostgreSQL RLS migration and probe passed in CI for both stacks,
+  but were not executed on the initial Windows host because Docker was unavailable.
 - P0A-G06: Browser accessibility, RTL visual review, Windows service hosting,
   and real isolation tests are not yet done.
 
@@ -62,3 +64,13 @@ decide Q-15 and assign MI-34 role holders. Then implement one authenticated,
 signed, deployment-bound metadata package **verification-only** path with
 tamper and cross-deployment negative tests. Keep it simulator-only and avoid
 application authoring or hardware execution until its gates pass.
+
+## Verification record
+
+The [Phase 0A file manifest](PHASE0A_MANIFEST.md) lists every added or amended
+file. GitHub Actions [run 41358571922](https://github.com/avihafif/calibration-os/actions/runs/41358571922)
+passed all four jobs: Python on Ubuntu and Windows, TypeScript, and the two-stack
+Compose rehearsal. The preceding run failed during the Production rehearsal
+HTTP readiness check after migrations passed; bounded HTTP retries fixed the
+startup race. The rerun has no failed or skipped jobs. CI cleans up both
+disposable stacks and their volumes after the check.

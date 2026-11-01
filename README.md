@@ -7,7 +7,8 @@ an instrument, approve a result, or issue a report. The `prod-rehearsal` stack i
 
 The 42 supplied specification files were committed unchanged as the baseline.
 See [Phase 0A status](docs/PHASE0A_STATUS.md) for the acceptance checklist and
-unimplemented security checks.
+unimplemented security checks, and the [file manifest](docs/PHASE0A_MANIFEST.md)
+for a file-by-file change list.
 
 ## Windows PowerShell setup
 
