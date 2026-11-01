@@ -1,0 +1,11 @@
+{
+  "kind": "Manufacturer",
+  "key": "example-maker",
+  "schema_version": 1,
+  "provenance": {"status": "synthetic_demo", "entered_by": "fixture-author"},
+  "content": {
+    "name": {"en": "Example", "he": "דוגמה"},
+    "aliases": [],
+    "script": "return true"
+  }
+}

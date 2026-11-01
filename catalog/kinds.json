@@ -1,0 +1,12 @@
+{
+  "kinds": [
+    {
+      "kind": "Manufacturer",
+      "schema_version": 1,
+      "schema": "schemas/manufacturer/v1.schema.json",
+      "draft_permission": "config.draft.instrument",
+      "approval_roles": ["config.approve.instrument"],
+      "editor": {"group": "instrument", "label_key": "kind.manufacturer"}
+    }
+  ]
+}
