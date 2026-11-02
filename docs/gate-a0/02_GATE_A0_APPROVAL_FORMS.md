@@ -113,8 +113,6 @@
 
 **Risks.** Accepting on unverifiable evidence weakens the audit trail the project requires for safety-adjacent contracts; delaying is cheap.
 
-**Partial product-owner record:** Product owner **endorses option (b)** (scoped frontend gate split), but **joint architecture approval is still pending**. Do not treat A0-2 as fully closed. See [delegated decision record](06_PRODUCT_OWNER_DECISIONS_2026-11-02.md).
-
 **Sign-off (to be completed by the accountable human — intentionally blank; no approval is recorded by this document)**
 
 | Outcome | ☐ Approved as recommended · ☐ Approved with changes · ☐ Rejected · ☐ Deferred |
