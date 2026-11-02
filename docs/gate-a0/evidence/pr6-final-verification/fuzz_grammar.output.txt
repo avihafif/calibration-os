@@ -1,0 +1,23 @@
+--- named constructs
+rejected '\\d+' - unicode digit shorthand SCHEMA_PATTERN_UNSUPPORTED
+rejected '\\w+' - word shorthand SCHEMA_PATTERN_UNSUPPORTED
+rejected '\\s' - space shorthand SCHEMA_PATTERN_UNSUPPORTED
+rejected '.' - dot SCHEMA_PATTERN_UNSUPPORTED
+rejected '.+' - dot plus SCHEMA_PATTERN_UNSUPPORTED
+rejected '[^a]+' - negated class SCHEMA_PATTERN_UNSUPPORTED
+rejected 'a\\b' - word boundary SCHEMA_PATTERN_UNSUPPORTED
+rejected '[\\d]' - shorthand in class SCHEMA_PATTERN_UNSUPPORTED
+rejected '[a-z]+[a-z]+[a-z]+[a-z]+' - adjacent classes SCHEMA_PATTERN_UNSUPPORTED
+rejected '[a-z]*[a-z]*' - adjacent star classes SCHEMA_PATTERN_UNSUPPORTED
+rejected '(?:-[a-z]+)*(?:-[a-z]+)*' - adjacent groups SCHEMA_PATTERN_UNSUPPORTED
+rejected 'é' - non-ASCII literal SCHEMA_PATTERN_UNSUPPORTED
+rejected '[a-z-]+-[a-z]+' - hyphen in class + separator SCHEMA_PATTERN_UNSUPPORTED
+rejected '[a-z]+a[a-z]+' - alnum literal between classes SCHEMA_PATTERN_UNSUPPORTED
+rejected '(?:a|b)' - alternation SCHEMA_PATTERN_UNSUPPORTED
+rejected '(a)' - capture SCHEMA_PATTERN_UNSUPPORTED
+ACCEPTED '[a-z]+(?:-[a-z]+)*' - segment pattern (existing style)
+ACCEPTED '[0-9]{4}-[0-9]{2}' - fixed digits
+ACCEPTED '[0-z]+' - range across classes
+--- fuzz: tried 60000 accepted unique 804
+python vs node divergences on accepted patterns: 0
+adversarial timing: patterns over 0.25 s: 0 | total 0.1 s
