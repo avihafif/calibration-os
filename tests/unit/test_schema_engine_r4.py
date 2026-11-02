@@ -4,6 +4,7 @@ import copy
 import json
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -69,6 +70,68 @@ class SchemaEngineR4Tests(unittest.TestCase):
             with self.subTest(value=value):
                 self.assertEqual(validate_findings(schema, value)[0].code, "SCHEMA_PATTERN")
 
+    def test_regex_registration_rejects_unicode_and_backtracking_constructs(self) -> None:
+        rejected = (
+            r"\d+",
+            r"\w+",
+            r"\s+",
+            r"\bword",
+            r"\p{L}+",
+            ".+",
+            r"[\d]+",
+            r"[^a]+",
+            r"[a-z]+[a-z]+[a-z]+[a-z]+",
+            r"[a-z]+a[a-z]+",
+            r"[a-z]+(?:-[a-z]+)*(?:-[a-z]+)*",
+            r"(?:-a+)*",
+            r"[a-z]+|[0-9]+",
+        )
+        for inner in rejected:
+            with self.subTest(inner=inner):
+                with self.assertRaises(SchemaError) as caught:
+                    validate_schema({"type": "string", "pattern": f"^(?:{inner})(?![\\s\\S])"})
+                self.assertIn(
+                    caught.exception.reason_code,
+                    ("SCHEMA_PATTERN_UNSUPPORTED", "SCHEMA_PATTERN_INVALID"),
+                )
+
+    def test_registered_patterns_have_adversarial_time_bound(self) -> None:
+        manifest = json.loads(
+            (ROOT / "schemas/package-manifest/v1.schema.json").read_text(encoding="utf-8")
+        )
+        for name, node in manifest["properties"].items():
+            if "pattern" not in node:
+                continue
+            with self.subTest(property=name):
+                started = time.perf_counter()
+                findings = validate_findings(node, "a" * 4_000 + "!")
+                self.assertTrue(findings)
+                self.assertLess(time.perf_counter() - started, 2.0)
+
+    def test_lone_surrogates_fail_before_uniqueness_or_pattern(self) -> None:
+        schema = {"type": "array", "items": {"type": "string"}, "uniqueItems": True}
+        findings = validate_findings(schema, ["\ud800", "\ud800"])
+        self.assertEqual(findings[0].code, "SCHEMA_INVALID_UNICODE")
+        self.assertEqual(findings[0].pointer.value, "/1")
+        self.assertEqual(
+            validate_findings({"type": "string"}, "\udfff")[0].code, "SCHEMA_INVALID_UNICODE"
+        )
+        with self.assertRaises(SchemaError) as caught:
+            validate_schema({"type": "string", "title": "\ud800"})
+        self.assertEqual(caught.exception.reason_code, "SCHEMA_INVALID_UNICODE")
+
+    def test_restricted_editor_hints_reject_unbound_widgets_and_type_mismatch(self) -> None:
+        for hints in (
+            {"version": 1, "widget": "expression"},
+            {"version": 1, "widget": "table"},
+            {"version": 1, "ref_kind": "Unknown"},
+            {"version": 1, "quick_fixes": ["unknown"]},
+            {"version": 1, "widget": "record"},
+        ):
+            with self.subTest(hints=hints):
+                with self.assertRaises(SchemaError):
+                    validate_schema({"type": "string", "x-calos-editor": hints})
+
     def test_cross_language_digest_and_pattern_vectors(self) -> None:
         corpus = json.loads(
             (ROOT / "fixtures/schema-engine/cross-language-vectors.json").read_text(
@@ -81,6 +144,12 @@ class SchemaEngineR4Tests(unittest.TestCase):
         for vector in corpus["digests"]:
             with self.subTest(digest=vector["id"]):
                 self.assertEqual(content_digest(vector["content"]), vector["digest"])
+        for value in corpus["invalid_unicode"]:
+            with self.subTest(invalid_unicode=repr(value)):
+                with self.assertRaises((ValueError, UnicodeError)):
+                    content_digest(value)
+                with self.assertRaises((ValueError, UnicodeError)):
+                    content_digest({value: True})
         for vector in corpus["patterns"]:
             schema = manifest["properties"][vector["property"]]
             for value in vector["accepted"]:
@@ -88,6 +157,15 @@ class SchemaEngineR4Tests(unittest.TestCase):
                     self.assertEqual(validate_findings(schema, value), ())
             for value in vector["rejected"]:
                 with self.subTest(property=vector["property"], value=value):
+                    self.assertEqual(validate_findings(schema, value)[0].code, "SCHEMA_PATTERN")
+        for vector in corpus["safe_patterns"]:
+            schema = {"type": "string", "pattern": vector["pattern"]}
+            validate_schema(schema)
+            for value in vector["accepted"]:
+                with self.subTest(pattern=vector["pattern"], value=value):
+                    self.assertEqual(validate_findings(schema, value), ())
+            for value in vector["rejected"]:
+                with self.subTest(pattern=vector["pattern"], value=value):
                     self.assertEqual(validate_findings(schema, value)[0].code, "SCHEMA_PATTERN")
 
     def test_registration_rejects_unsupported_or_malformed_schema(self) -> None:

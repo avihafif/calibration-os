@@ -44,28 +44,13 @@ _BY_TYPE = {
     "integer": frozenset({"minimum", "maximum"}),
     "boolean": frozenset(),
 }
-_WIDGETS = frozenset(
-    {
-        "text",
-        "localized",
-        "integer",
-        "decimal-string",
-        "quantity",
-        "interval",
-        "enum",
-        "bool",
-        "reference",
-        "expression",
-        "provenance",
-        "list",
-        "record",
-        "table",
-        "union",
-        "hazard",
-        "media",
-        "code-readonly",
-    }
-)
+_WIDGET_TYPES = {
+    "text": frozenset({"string"}),
+    "localized": frozenset({"object"}),
+    "enum": frozenset({"string", "integer"}),
+    "bool": frozenset({"boolean"}),
+    "record": frozenset({"object"}),
+}
 _HINT_KEYS = frozenset(
     {
         "version",
@@ -76,12 +61,7 @@ _HINT_KEYS = frozenset(
         "placeholder",
         "explain",
         "widget",
-        "unit_dimension",
-        "ref_kind",
         "no_default",
-        "derived",
-        "provenance",
-        "quick_fixes",
     }
 )
 
@@ -166,7 +146,7 @@ def _check_hints(hints: Any, pointer: str) -> None:
         raise _schema_error("SCHEMA_HINT_UNSUPPORTED", pointer)
     if type(hints.get("version")) is not int or hints["version"] != 1:
         raise _schema_error("SCHEMA_HINT_VERSION", _pointer(pointer, "version"))
-    for name in ("group", "unit_dimension", "ref_kind"):
+    for name in ("group",):
         if name in hints:
             value = hints[name]
             if not isinstance(value, str) or not _HINT_ID.fullmatch(value) or len(value) > 120:
@@ -177,26 +157,37 @@ def _check_hints(hints: Any, pointer: str) -> None:
         if name in hints:
             _check_localized(hints[name], _pointer(pointer, name))
     if "widget" in hints and (
-        not isinstance(hints["widget"], str) or hints["widget"] not in _WIDGETS
+        not isinstance(hints["widget"], str) or hints["widget"] not in _WIDGET_TYPES
     ):
         raise _schema_error("SCHEMA_HINT_INVALID", _pointer(pointer, "widget"))
-    for name in ("no_default", "derived"):
+    for name in ("no_default",):
         if name in hints and type(hints[name]) is not bool:
             raise _schema_error("SCHEMA_HINT_INVALID", _pointer(pointer, name))
-    if "provenance" in hints and (
-        not isinstance(hints["provenance"], str)
-        or hints["provenance"] not in ("required", "optional", "none")
-    ):
-        raise _schema_error("SCHEMA_HINT_INVALID", _pointer(pointer, "provenance"))
-    if "quick_fixes" in hints:
-        values = hints["quick_fixes"]
-        if not isinstance(values, list) or len(values) > 32:
-            raise _schema_error("SCHEMA_HINT_INVALID", _pointer(pointer, "quick_fixes"))
-        if any(
-            not isinstance(value, str) or not _HINT_ID.fullmatch(value) or len(value) > 120
-            for value in values
-        ) or len(set(values)) != len(values):
-            raise _schema_error("SCHEMA_HINT_INVALID", _pointer(pointer, "quick_fixes"))
+
+
+_CLASS_ATOM = re.compile(r"\[([A-Za-z0-9-]+)\](\+|\*|\{[0-9]+(?:,[0-9]+)?\})?")
+_CLASS_PART = re.compile(r"([A-Za-z0-9])(?:-([A-Za-z0-9]))?")
+
+
+def _class_token(source: str, pos: int, pointer: str) -> tuple[int, bool]:
+    match = _CLASS_ATOM.match(source, pos)
+    if match is None:
+        raise _schema_error("SCHEMA_PATTERN_UNSUPPORTED", pointer)
+    contents = match.group(1)
+    index = 0
+    while index < len(contents):
+        part = _CLASS_PART.match(contents, index)
+        if part is None or (part.group(2) is not None and part.group(1) > part.group(2)):
+            raise _schema_error("SCHEMA_PATTERN_UNSUPPORTED", pointer)
+        index = part.end()
+    quantifier = match.group(2)
+    if quantifier and quantifier.startswith("{"):
+        bounds = quantifier[1:-1].split(",")
+        lower = int(bounds[0])
+        upper = int(bounds[-1])
+        if lower < 1 or upper < lower or upper > MAX_STRING_LENGTH:
+            raise _schema_error("SCHEMA_PATTERN_UNSUPPORTED", pointer)
+    return match.end(), quantifier in ("+", "*") or bool(quantifier and "," in quantifier)
 
 
 def _check_pattern(pattern: Any, pointer: str) -> None:
@@ -207,29 +198,59 @@ def _check_pattern(pattern: Any, pointer: str) -> None:
         or not pattern.endswith(_PATTERN_SUFFIX)
     ):
         raise _schema_error("SCHEMA_PATTERN_INVALID", pointer)
-    inner = pattern[len(_PATTERN_PREFIX) : -len(_PATTERN_SUFFIX)]
-    if "|" in inner or re.search(r"\\[1-9]", inner):
-        raise _schema_error("SCHEMA_PATTERN_UNSUPPORTED", pointer)
-    groups = tuple(re.finditer(r"\(\?:([^()]*)\)", inner))
-    remainder = re.sub(r"\(\?:[^()]*\)", "", inner)
-    if "(" in remainder or ")" in remainder:
-        raise _schema_error("SCHEMA_PATTERN_UNSUPPORTED", pointer)
-    for group in groups:
-        body = group.group(1)
-        next_character = inner[group.end() : group.end() + 1]
-        if (
-            next_character in ("+", "*", "{")
-            and ("+" in body or "*" in body)
-            and not body.startswith(("-", r"\."))
-        ):
-            raise _schema_error("SCHEMA_PATTERN_UNSUPPORTED", pointer)
-    for lower, upper in re.findall(r"\{([0-9]+)(?:,([0-9]+))?\}", inner):
-        if int(lower) > MAX_STRING_LENGTH or (upper and int(upper) > MAX_STRING_LENGTH):
-            raise _schema_error("SCHEMA_PATTERN_UNSUPPORTED", pointer)
     try:
         re.compile(pattern)
     except re.error as exc:
         raise _schema_error("SCHEMA_PATTERN_INVALID", pointer) from exc
+    inner = pattern[len(_PATTERN_PREFIX) : -len(_PATTERN_SUFFIX)]
+    # A bounded ASCII grammar: explicit positive classes and mandatory literal
+    # separators between variable-width classes. Repeated groups must consume
+    # a separator first. This admits the existing manifest patterns but excludes
+    # ambiguous adjacent repetitions and Python/ECMAScript Unicode shorthands.
+    if not inner or not inner.isascii():
+        raise _schema_error("SCHEMA_PATTERN_UNSUPPORTED", pointer)
+    pos = 0
+    needs_separator = False
+    last_was_group = False
+    while pos < len(inner):
+        if inner.startswith("(?:", pos):
+            if last_was_group:
+                raise _schema_error("SCHEMA_PATTERN_UNSUPPORTED", pointer)
+            end = inner.find(")", pos + 3)
+            if end < 0 or end + 1 >= len(inner) or inner[end + 1] not in "*?":
+                raise _schema_error("SCHEMA_PATTERN_UNSUPPORTED", pointer)
+            body = inner[pos + 3 : end]
+            if body.startswith(r"\."):
+                class_start = 2
+            elif body.startswith("-"):
+                class_start = 1
+            else:
+                raise _schema_error("SCHEMA_PATTERN_UNSUPPORTED", pointer)
+            atom_end, _ = _class_token(body, class_start, pointer)
+            if atom_end != len(body) or body[atom_end - 1] == "*":
+                raise _schema_error("SCHEMA_PATTERN_UNSUPPORTED", pointer)
+            pos = end + 2
+            needs_separator = True
+            last_was_group = True
+        elif inner[pos] == "[":
+            if needs_separator:
+                raise _schema_error("SCHEMA_PATTERN_UNSUPPORTED", pointer)
+            pos, needs_separator = _class_token(inner, pos, pointer)
+            last_was_group = False
+        elif inner.startswith(r"\.", pos):
+            pos += 2
+            needs_separator = False
+            last_was_group = False
+        elif inner[pos] in "-:":
+            pos += 1
+            needs_separator = False
+            last_was_group = False
+        elif inner[pos] in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_":
+            pos += 1
+            last_was_group = False
+            # Alphanumeric literals do not separate overlapping classes.
+        else:
+            raise _schema_error("SCHEMA_PATTERN_UNSUPPORTED", pointer)
 
 
 def _check_schema(schema: dict[str, Any]) -> None:
@@ -249,6 +270,7 @@ def _check_schema(schema: dict[str, Any]) -> None:
 
     count = 0
     graph: dict[str, set[str]] = {}
+    hinted_widgets: list[tuple[str, str, dict[str, Any]]] = []
     for def_name, def_schema in [("", schema), *definitions.items()]:
         refs: set[str] = set()
         start = "" if not def_name else _pointer("/$defs", def_name)
@@ -262,6 +284,9 @@ def _check_schema(schema: dict[str, Any]) -> None:
                 raise _schema_error("SCHEMA_INVALID", pointer)
             if "x-calos-editor" in node:
                 _check_hints(node["x-calos-editor"], _pointer(pointer, "x-calos-editor"))
+                widget = node["x-calos-editor"].get("widget")
+                if widget is not None:
+                    hinted_widgets.append((widget, pointer, node))
             if "$ref" in node:
                 allowed = _COMMON | {"$ref"} | (_ROOT if is_root else frozenset())
                 if set(node) - allowed:
@@ -397,6 +422,18 @@ def _check_schema(schema: dict[str, Any]) -> None:
 
     for name in graph:
         visit(name, 0)
+    for widget, pointer, hinted_node in hinted_widgets:
+        target = hinted_node
+        while "$ref" in target:
+            match = _REF.fullmatch(target["$ref"])
+            assert match is not None
+            target = definitions[match.group(1)]
+        if target.get("type") not in _WIDGET_TYPES[widget]:
+            raise _schema_error("SCHEMA_HINT_INVALID", _pointer(pointer, "x-calos-editor"))
+    try:
+        canonical_bytes(cast(Json, schema))
+    except (ValueError, UnicodeError, RecursionError) as exc:
+        raise _schema_error("SCHEMA_INVALID_UNICODE") from exc
 
 
 def validate_schema(schema: dict[str, Any]) -> None:
@@ -412,14 +449,19 @@ def _content_limit(content: Any) -> SchemaError | None:
         count += 1
         if count > MAX_CONTENT_NODES or depth > MAX_CONTENT_DEPTH:
             return SchemaError("SCHEMA_RESOURCE_LIMIT", pointer)
-        if isinstance(value, str) and len(value) > MAX_STRING_LENGTH:
-            return SchemaError("SCHEMA_RESOURCE_LIMIT", pointer)
+        if isinstance(value, str):
+            if len(value) > MAX_STRING_LENGTH:
+                return SchemaError("SCHEMA_RESOURCE_LIMIT", pointer)
+            if any(0xD800 <= ord(character) <= 0xDFFF for character in value):
+                return SchemaError("SCHEMA_INVALID_UNICODE", pointer)
         if isinstance(value, dict):
             if count + len(stack) + len(value) > MAX_CONTENT_NODES:
                 return SchemaError("SCHEMA_RESOURCE_LIMIT", pointer)
             for key, child in value.items():
                 if not isinstance(key, str) or len(key) > MAX_STRING_LENGTH:
                     return SchemaError("SCHEMA_RESOURCE_LIMIT", pointer)
+                if any(0xD800 <= ord(character) <= 0xDFFF for character in key):
+                    return SchemaError("SCHEMA_INVALID_UNICODE", _pointer(pointer, key))
                 stack.append((child, _pointer(pointer, key), depth + 1))
         elif isinstance(value, list):
             if count + len(stack) + len(value) > MAX_CONTENT_NODES:
@@ -494,6 +536,7 @@ def _validate(
                 try:
                     digest = canonical_bytes(cast(Json, item))
                 except (ValueError, UnicodeError):
+                    findings.append(_finding("SCHEMA_INVALID_UNICODE", _pointer(pointer, index)))
                     continue
                 if digest in seen:
                     findings.append(_finding("SCHEMA_UNIQUE_ITEMS", _pointer(pointer, index)))

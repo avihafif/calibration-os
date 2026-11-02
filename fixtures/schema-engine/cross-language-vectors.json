@@ -39,6 +39,7 @@
       "digest": "sha256:ae8ef5e4a8562387249e2efc553a1aa6cbf599a72aa3befcff4e8a645d39a40c"
     }
   ],
+  "invalid_unicode": ["\ud800", "\udfff"],
   "patterns": [
     {
       "property": "package_id",
@@ -48,8 +49,11 @@
       ],
       "rejected": [
         "synthetic-package\n",
+        "synthetic-package\r",
+        "synthetic-package\u2028",
         "x synthetic-package",
-        "חבילה"
+        "חבילה",
+        "١٢٣"
       ]
     },
     {
@@ -60,7 +64,9 @@
       "rejected": [
         "v1.2.3",
         "1.2.3\n",
-        "1.2"
+        "1.2",
+        "١.٢.٣",
+        "1.2.3\u2028"
       ]
     },
     {
@@ -70,8 +76,21 @@
       ],
       "rejected": [
         "x2026-11-02T00:00:00Z",
-        "2026-11-02T00:00:00Z\n"
+        "2026-11-02T00:00:00Z\n",
+        "2026-11-02T00:00:00Z\r"
       ]
+    }
+  ],
+  "safe_patterns": [
+    {
+      "pattern": "^(?:[A-Za-z][A-Za-z0-9]*)(?![\\s\\S])",
+      "accepted": ["A", "Ab9"],
+      "rejected": ["é", "ד", "A\u2028", "A\r", "A🧪"]
+    },
+    {
+      "pattern": "^(?:[0-9]+\\.[0-9]+(?:\\.[0-9]{1,6})?)(?![\\s\\S])",
+      "accepted": ["1.2", "1.2.345"],
+      "rejected": ["١.٢", "1.2.1234567", "1.2\u2028", "1.2\r"]
     }
   ]
 }

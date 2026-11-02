@@ -19,12 +19,25 @@ const manifest = JSON.parse(
   ),
 );
 
+function assertUnicodeScalarString(value) {
+  for (let index = 0; index < value.length; index += 1) {
+    const code = value.charCodeAt(index);
+    if (code >= 0xd800 && code <= 0xdbff) {
+      const next = value.charCodeAt(index + 1);
+      assert(next >= 0xdc00 && next <= 0xdfff, "unpaired high surrogate");
+      index += 1;
+    } else {
+      assert(!(code >= 0xdc00 && code <= 0xdfff), "unpaired low surrogate");
+    }
+  }
+}
+
 function canonical(value) {
-  if (
-    value === null ||
-    typeof value === "boolean" ||
-    typeof value === "string"
-  ) {
+  if (typeof value === "string") {
+    assertUnicodeScalarString(value);
+    return JSON.stringify(value);
+  }
+  if (value === null || typeof value === "boolean") {
     return JSON.stringify(value);
   }
   if (typeof value === "number") {
@@ -40,13 +53,20 @@ function canonical(value) {
   assert.equal(typeof value, "object");
   return `{${Object.keys(value)
     .sort()
-    .map((key) => `${JSON.stringify(key)}:${canonical(value[key])}`)
+    .map((key) => {
+      assertUnicodeScalarString(key);
+      return `${JSON.stringify(key)}:${canonical(value[key])}`;
+    })
     .join(",")}}`;
 }
 
 for (const vector of vectors.digests) {
   const actual = `sha256:${createHash("sha256").update(canonical(vector.content), "utf8").digest("hex")}`;
   assert.equal(actual, vector.digest, vector.id);
+}
+for (const value of vectors.invalid_unicode) {
+  assert.throws(() => canonical(value), /unpaired .* surrogate/);
+  assert.throws(() => canonical({ [value]: true }), /unpaired .* surrogate/);
 }
 assert.equal(
   vectors.digests[0].digest,
@@ -69,7 +89,22 @@ for (const vector of vectors.patterns) {
     );
   }
 }
+for (const vector of vectors.safe_patterns) {
+  const pattern = new RegExp(vector.pattern);
+  for (const value of vector.accepted) {
+    assert(
+      pattern.test(value),
+      `safe pattern should accept ${JSON.stringify(value)}`,
+    );
+  }
+  for (const value of vector.rejected) {
+    assert(
+      !pattern.test(value),
+      `safe pattern should reject ${JSON.stringify(value)}`,
+    );
+  }
+}
 
 console.log(
-  `R-4 cross-language vectors passed: ${vectors.digests.length} digests, ${vectors.patterns.length} pattern groups.`,
+  `R-4 cross-language vectors passed: ${vectors.digests.length} digests, ${vectors.patterns.length} manifest groups, ${vectors.safe_patterns.length} safe grammar groups.`,
 );
