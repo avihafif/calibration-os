@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Proposal. Refines `ARCHITECTURE §6` and `NO_CODE_ARCHITECTURE §10, §12` for Phase 1. Interface sketches are **documentation**, not source files. |
+| Status | Phase 1 component proposal, aligned with accepted ADR-0001 A1–A4 and ADR-0015 B1–B6 for the scoped WP-1A-1 foundation. Interface sketches are **documentation**, not source files. H-2/GA0-16 remains undecided. |
 | Constraint | AGENTS §3: `ui-runtime`, `editor-core`, `designers` use injected host ports, never `api-client` directly; no `any` in `ui-runtime`/`editor-core`; logical CSS only; all text via i18n. Weakening a boundary contract requires an ADR. |
 
 ## 1. Package map and responsibilities
@@ -14,9 +14,9 @@ packages/ts/
   i18n/              ICU messages, locale/RTL utils, bidi isolates, pseudo-locales   S0
   ui-kit/            tokens, primitives, chips/banners, data grid, QuantityInput…   S0
   expr-presentation/ TS presentation-subset evaluator + conformance runner          S2
-  editor-core/       document model, command stack, patch ops, lease client, autosave S1
-  designers/
-    inspector/       schema-driven property inspector (shared by every designer)    S1
+  editor-core/       document model, command stack, patch ops, inspector model       S1
+  designers/        ONE workspace package; folders below are internal boundaries
+    inspector/       React property inspector (shared by every designer)            S1
     instrument/      model + identification editors                                  S1/S3
     driver/          Driver Designer + command builder + parser tester               S3
     metrology/       spec-table grid, limits policy, calculation, expression editor  S2
@@ -30,8 +30,18 @@ packages/ts/
 apps/web/            composition root: routes, shells, host-port implementations     S0→
 ```
 
-**Dependency direction (enforced by eslint-plugin-boundaries):**
-`domain-types` ← `i18n` ← `ui-kit` ← `editor-core` ← `designers/*`; `ui-runtime` depends on `ui-kit`, `i18n`, `expr-presentation`; `apps/web` wires everything and is the only importer of `api-client`. `designers/*` never import each other (shared things live in `designers/inspector` or `ui-kit`).
+**Dependency direction (ADR-0001 A1; enforced by eslint-plugin-boundaries):**
+`i18n` and `domain-types` have no repository-package imports;
+`expr-presentation` → `domain-types`; `ui-kit` → `i18n`;
+`editor-core` → `domain-types`, `expr-presentation` (no React or `ui-kit`);
+`designers` → `editor-core`, `ui-kit`, `i18n`, `domain-types`,
+`expr-presentation`; `ui-runtime` → `ui-kit`, `i18n`, `domain-types`,
+`expr-presentation`. `apps/web` is the composition root and the sole product
+importer of `api-client`; generated-client tests are the only exception.
+No package imports `apps/web`. Internal `designers` folder edges use path
+patterns rather than separate workspace packages. Each new package element
+and forbidden edge must gain a CI negative probe. Production packages never import or
+bundle `design/` (ADR-0001 A4); prototype checks run in separate design CI.
 
 ## 2. Host ports (dependency injection)
 
@@ -73,7 +83,7 @@ Every component ships with: states (default, hover, focus, active, disabled-with
 
 ## 4. Schema-driven property inspector
 
-**Idea.** One engine renders the inspector for every kind from `{JSON Schema, x-calos-editor hints, permissions, document}`. Rich designers are *specialised views over the same document model*; they embed the inspector for the selected node/item.
+**Idea.** One engine renders the inspector for every kind from `{JSON Schema, x-calos-editor hints, permissions, document}`. The framework-neutral `InspectorModel` builder (hint interpretation, field tree, validation binding) lives in `editor-core`; React rendering and the widget registry live in `designers/inspector`, with primitives in `ui-kit` (ADR-0001 A2). Rich designers are *specialised views over the same document model*; they embed the inspector for the selected node/item. The authoritative hint vocabulary remains blocked on H-2/GA0-16.
 
 ```
 Schema (kind@schema_version) ──► InspectorModel (sections, fields, widgets, visibility rules)
@@ -170,7 +180,7 @@ Cross-item edits (e.g., rename an identifier in procedure + UI + report) are com
 
 | Concern | Approach |
 |---|---|
-| Server state | Query cache keyed by resource + params (AGENTS: "state via query cache + editor command stack"); mutations invalidate by resource key; cursor pagination (`next_cursor`) |
+| Server state | A future API host may use a query cache keyed by resource + params. The scoped in-memory WP-1A-1 foundation has no server state, network or query-cache dependency; `@tanstack/react-query` is deferred by ADR-0026. |
 | Editor state | `editor-core` store (not React component state); selectors per designer |
 | UI state | Local component state or a small context; no global mutable singletons in runtime packages |
 | Errors | Port layer maps problem+json → `AppError{code,title,detail,errors[]}`; UI shows localized `title/detail` from `Accept-Language` plus the stable `code`; no raw stack traces |
@@ -181,20 +191,23 @@ Cross-item edits (e.g., rename an identifier in procedure + UI + report) are com
 
 ## 9. Dependencies requiring approval
 
-AGENTS §8 requires asking before adding dependencies outside ADR-0022 and checking licences. **None of the following is adopted by this proposal.** Each needs an ADR addendum or product-owner approval; licence status below is "to be verified" because this review did not check it.
+ADR-0026 approves an exact, bounded WP-1A-1 dependency set and requires the
+licence, vulnerability, CSP and SBOM evidence to be re-run at installation.
+The broader candidates below are **not** approvals; do not install a package
+outside ADR-0026 without a new decision. WP-1A-1 uses system fonts only.
 
 | Need | Candidate class (examples — not decisions) | Evaluation criteria | Needed by |
 |---|---|---|---|
-| Server-state cache | TanStack Query (AGENTS mentions "query cache") | Licence, bundle, devtools in prod disabled | S0 |
-| Routing | A mature React router | Typed routes, RTL-neutral | S0 |
-| ICU messages | formatjs / `Intl.MessageFormat` polyfill | CLDR plural rules for Hebrew, bundle size | S0 |
-| Build/test | Vite (already used), Vitest, Playwright, axe-core | Already implied by roadmap §6.2 | S0 |
-| Component docs | Storybook-class tool or an in-repo catalogue | Licence, a11y addon, RTL/dark knobs | S0 |
+| Server-state cache | `@tanstack/react-query` **deferred** by ADR-0026 | Reassess for the later API host; none in WP-1A-1 | Later |
+| Routing | `react-router@8.5.0` approved, library mode only | Forbidden storage/network router APIs in ADR-0026 | WP-1A-1 later slice |
+| ICU messages | `react-intl@12.1.5` approved | Hebrew CLDR plurals; compiled system bundles only in Phase 1A | WP-1A-1a |
+| Build/test | Existing Vite; exact Vitest, jsdom, Testing Library, Playwright and axe versions in ADR-0026 | Re-run dependency evidence and enforce dev-only tools | WP-1A-1 |
+| Component docs | In-repo catalogue; Storybook-class tool **not approved** | No added dependency | WP-1A-1 |
 | Virtualised grid/tree | Headless table/virtualisation library or in-house | Keyboard grid semantics, RTL, bundle | S0/S2 |
 | Canvas | Node-graph library vs custom SVG | See §6.1 criteria | S4 (after spike) |
 | Resizable panes | Small headless utility or in-house | Keyboard resize, RTL | S0 |
 | PDF viewer | Browser-native vs library | Offline station, a11y, licence | S5 |
-| Fonts | Inter, Heebo, JetBrains Mono (SIL OFL) bundled | Licence confirmation, glyph coverage (µ, Ω) | S0 (D-13) |
+| Fonts | System stack in WP-1A-1; no font files | Bundling Inter/Heebo/JetBrains Mono awaits GA0-06b legal sign-off | Later |
 | Schema → forms | **None** — in-house inspector engine (§4) | No generic form library that executes arbitrary logic | S1 |
 | Syntax highlighting | In-house tokenizer for the expression grammar | Grammar is small and closed | S2 |
 
@@ -205,8 +218,8 @@ Selection rules: permissive licence; no runtime `eval`/`new Function`; CSP-compa
 | Layer | Tests |
 |---|---|
 | `ui-kit` | Component tests (Vitest + Testing Library) in LTR/RTL × light/dark × density; axe per story; visual-regression snapshots; protected-set override tests |
-| `editor-core` | Property tests: command ∘ inverse = identity; patch round-trip; rebase of non-overlapping ops; lease state machine; fast-check generators over schemas |
-| `designers/inspector` | Schema → InspectorModel golden tests; every `x-calos-editor` hint has a fixture; unknown hint → error placeholder |
+| `editor-core` | Property tests: command ∘ inverse = identity; patch round-trip; rebase of non-overlapping ops; lease state machine; in-house schema generators until a property-test dependency is approved; `InspectorModel` golden tests after GA0-16 |
+| `designers/inspector` | React rendering tests against the `editor-core` model; every approved hint has a fixture; unknown widget → visible error placeholder |
 | `procedure-canvas` | Round-trip: tree → view-model → tree identity (AC-PD-03, property-based); keyboard-only script (AC-PD-08); axe on canvas+outline; large-procedure performance test (budget from baseline) |
 | `driver` | Token editor ↔ template string round-trip; injection examples rejected; wire-preview parity with Python formatter via shared vectors |
 | `metrology` | Expression editor against shared conformance vectors (`expr-presentation` vs server); decimal-string integrity (no float coercion) |

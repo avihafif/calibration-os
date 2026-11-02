@@ -1,9 +1,10 @@
 # Phase 1A work packages — visual Builder on a Synthetic Host
 
-Status: conditional proposal, 2026-11-02. No Phase 1A implementation starts
-until Phase 0B PR #1 is reviewed and merged, Claude's Phase 1 architecture and
-UX design is approved and integrated, and conflicts with the normative
-No-Code architecture are resolved. This plan does not ratify any Proposed ADR.
+Status: historical conditional plan, updated for the accepted scoped WP-1A-1
+Path B decision. PRs #1–#9 are merged; ADR-0001 A1–A4, ADR-0015 B1–B6 and
+ADR-0026 are accepted. A reviewed architecture-spec alignment PR remains the
+entry condition for WP-1A-1a. Full Gate A0 and H-2/GA0-16 remain closed for
+later Builder work. This plan does not ratify any other Proposed ADR.
 
 ## Narrow outcome
 
@@ -18,9 +19,9 @@ Production rehearsal has no Builder entry point or Synthetic Host bundle.
 
 The design follows `NO_CODE_ARCHITECTURE.md` B-1…B-7,
 `VISUAL_APPLICATION_BUILDER_SPEC.md` §§1–4, 12 and `UI_UX_SPEC.md` §§1–6.
-The current Builder and UX documents are Draft, and ADR-0015/0020 are Proposed;
-their detailed rendering and localization choices need formal review before
-they become product contracts.
+ADR-0015's accepted B1–B6 amendments govern scoped localization; ADR-0020
+remains Proposed. Detailed Builder rendering and the H-2 vocabulary need
+their separate approvals before later work packages.
 Claude's [Phase 1A plan in PR #2](https://github.com/avihafif/calibration-os/blob/feature/phase-1-design/docs/phase1/13_PHASE1A_PLAN.md)
 is the detailed work-package reference, subject to [Gate A0](PHASE1A_GATE_A0.md).
 
@@ -33,14 +34,14 @@ is the detailed work-package reference, subject to [Gate A0](PHASE1A_GATE_A0.md)
 | `catalog/kinds.json` | Register the model kind, schema version, permission metadata and generic editor hints. Keep labels as localization keys. |
 | `fixtures/instrument-model/{valid,invalid-*}.json` | Synthetic positive and negative corpus; missing metrology inputs use `MI-nn` markers only if the approved schema includes those fields. |
 | `tools/codegen.py`, `packages/ts/domain-types/src/`, `packages/py/calos_metadata/calos_metadata/generated/` | Generate types from the approved schemas and fail CI on drift; extend the generator only for schema keywords actually needed. |
-| `packages/ts/editor-core/src/` | Pure draft commands, undo/redo, validation findings, revision snapshots and structural diff over typed metadata; injected host ports, no API client import. |
-| `packages/ts/designers/inspector/`, `packages/ts/ui-runtime/src/` | Generic inspector model, widget registry and schema-driven field renderer with typed props; reject unsupported hints/keywords and unknown fields. No executable authored content or kind-specific screen. |
-| `packages/ts/i18n/`, `packages/ts/ui-kit/` | ICU-keyed en/he and pseudo-locales; reusable enterprise tokens, protected badges, inputs, validation/diff/data views, keyboard-accessible controls. Dependencies and fonts require D-12/D-13. |
+| `packages/ts/editor-core/src/` | Pure draft commands, undo/redo, validation findings, revision snapshots, structural diff and framework-neutral `InspectorModel` (hint interpretation, field tree, validation binding); injected host ports, no React, `ui-kit` or API client import. |
+| `packages/ts/designers/inspector/`, `packages/ts/ui-runtime/src/` | React inspector renderer and widget registry in the `inspector/` folder of the **single** `designers` package; `ui-runtime` remains the operator-screen renderer. Hints need H-2/GA0-16 first. No executable authored content or kind-specific screen. |
+| `packages/ts/i18n/`, `packages/ts/ui-kit/` | Compiled ICU en/he system bundles, pseudo-locales, Hebrew plurals, bidi helpers and a future bundle-provider port; reusable enterprise tokens and controls. Use only exact ADR-0026 dependencies after refreshed evidence and system fonts until GA0-06b. |
 | `apps/web/src/builder/` | Test-only workspace, dynamic form host, validation summary, local revision preview and change comparison. All controls come from registered kind/schema/editor metadata. |
 | `apps/web/src/dev/synthetic-host/`, `packages/ts/host-conformance/` | In-memory host-port implementation and reusable contract tests; synthetic persona/SoD and immutable-version demo, reset on reload. No localStorage, IndexedDB, credentials, network writes or real authority. |
 | `apps/web/src/i18n/`, `apps/web/src/style.css` | System UI message keys, English/Hebrew resources, `dir` and logical CSS, visible simulation/deployment badges, focus and responsive tokens. Authored content translation policy remains gated by Q-15. |
 | `apps/web/src/App.tsx` | Mount the Builder only in the Test shell after the approved design is integrated; preserve the existing non-operational shell and Production rehearsal exclusion. Client gating is presentation only; no authoring API exists. |
-| `tests/frontend/`, `apps/web/src/**/*.test.tsx` | UI, validation, command-stack, localization, Playwright, axe, visual regression and production-bundle exclusion tests. Runner/dependencies require D-12/D-26 review before installation. |
+| `tests/frontend/`, `apps/web/src/**/*.test.tsx` | UI, validation, command-stack, localization, Playwright, axe, visual regression and production-bundle exclusion tests. Exact runner dependencies are approved in ADR-0026; re-run vulnerability, licence, CSP and SBOM checks at installation. |
 | `.github/workflows/phase0a.yml`, `docs/NO_CODE_CAPABILITY_MATRIX.md`, `README.md` | Add frontend test and codegen gates; describe precisely which local draft operations exist and which governance capabilities do not. |
 
 No Phase 0B verifier, trust snapshot, token validator, Compose identity, or

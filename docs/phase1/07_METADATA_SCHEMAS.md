@@ -57,6 +57,11 @@ Not kinds: `HardwareLimitsPack` (own signed channel), `Release`, `ChangeRequest`
 
 ## 2. Editor hint vocabulary (`x-calos-editor`)
 
+**Decision gate:** the vocabulary below remains a proposal. R-4 merged only a
+provisional fail-closed subset; H-2/GA0-16 must select one authoritative
+versioned vocabulary before WP-1A-2/3 registers these hints or the Builder
+renders them. ADR-0015 B3 does not decide the finding-key namespace here.
+
 A **closed, versioned** set of annotations on JSON Schema nodes that drives the inspector (06 §4). Adding a hint is a reviewed change with a fixture and an inspector implementation (R-19). Unknown hints are a schema-lint error; unknown *widgets* render a visible placeholder.
 
 | Hint | Type | Meaning |

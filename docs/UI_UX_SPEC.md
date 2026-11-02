@@ -53,6 +53,16 @@ Contrast: text ≥ 4.5:1, large text/UI components ≥ 3:1; theme editor enforce
 
 ## 5. Localization and RTL (he / en)
 
+For scoped Phase 1A, accepted ADR-0015 B1–B6 requires compiled en/he ICU
+**system bundles** and a bundle-provider port, without a runtime
+`TranslationBundle` loader. All Hebrew strings remain `needs_review` pending
+MI-31; no glossary approval is implied. Product CI must check `en-XA`/`he-XB`
+pseudo-locales, Hebrew CLDR plurals, hard-coded user-visible strings, logical
+CSS and bidi islands. Message keys use `<area>.<id>`; finding-key details
+remain undecided at H-2/GA0-16. WP-1A-1 uses system fonts only; no font file
+is bundled before GA0-06b legal sign-off. These Phase 1A constraints do not
+change later approved `TranslationBundle` or report-font requirements.
+
 | Topic | Rule |
 |---|---|
 | Direction | `dir` from locale; mirrored layout via CSS logical properties; icons with direction (arrows, chevrons) mirrored; media controls and charts' time axes are *not* mirrored when semantics are temporal-left-to-right — each chart type documents its choice |
@@ -64,8 +74,8 @@ Contrast: text ≥ 4.5:1, large text/UI components ≥ 3:1; theme editor enforce
 | Content | Authored content is localized by key with fallback (`he→en`) flagged visibly; required locales per lab policy |
 | Search & sort | Locale-aware collation |
 | Mixed-direction strings | Always composed via ICU placeholders with isolates, never string concatenation |
-| Fonts | Approved set with Hebrew coverage, embedded in PDFs |
-| QA | Pseudo-locale + RTL screenshot tests (CI), manual native-speaker review for terminology |
+| Fonts | WP-1A-1 uses system fonts with Hebrew and unit-glyph fallback; self-hosted fonts and report embedding await GA0-06b legal sign-off and the later report work package |
+| QA | `en-XA`/`he-XB` pseudo-locale and RTL screenshot tests (CI), hard-coded-string lint, manual native-speaker review for terminology |
 
 ### 5.1 Proposed Hebrew metrology glossary (**UNREVIEWED — MI-31**)
 For translators' starting point only; must be reviewed by a Hebrew-speaking metrologist before use.

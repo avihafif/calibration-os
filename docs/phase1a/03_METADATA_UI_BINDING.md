@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Final proposal. Extends [phase1/06 §4](../phase1/06_COMPONENT_ARCHITECTURE.md#4-schema-driven-property-inspector) and [phase1/07 §2](../phase1/07_METADATA_SCHEMAS.md#2-editor-hint-vocabulary-x-calos-editor) with what the prototype proved. These are **requirements for the production inspector**; the prototype ([`js/ui.js`](../../design/phase1a-prototype/js/ui.js), [`js/data.js`](../../design/phase1a-prototype/js/data.js)) is the executable reference. |
+| Status | Design proposal for the production inspector, subject to **H-2/GA0-16**. Its hint/widget vocabulary is not approved by the R-4 merge; do not implement it until one authoritative closed vocabulary is decided. The prototype ([`js/ui.js`](../../design/phase1a-prototype/js/ui.js), [`js/data.js`](../../design/phase1a-prototype/js/data.js)) is a non-shipping behavioral reference, not production code. |
 | Mandate | NO_CODE_ARCHITECTURE B-1…B-7, §12: designers are *views over one document model*; per-kind screens are a defect. This is enforced in the prototype by a test (*no kind names in the renderer*), and must be enforced by lint in the product (P1A-AC-46). |
 
 ## 1. Contract
@@ -12,14 +12,21 @@
         │                                        ┌── document (JSON content, pointers)
         ▼                                        │
   InspectorModel  ◄── policy (required locales) ─┤── permissions (read-only / disabled-with-reason)
+  (editor-core: framework-neutral)                │
   (sections → fields → widget + props)           └── lookup/reference port (candidates, status)
         │
         ▼
-  one widget registry → controls → commands (set/add/remove/move) → editor-core → draft patch
+  designers/inspector React registry → controls → commands → editor-core → draft patch
         ▲                                   │
         └──── findings (code, severity, JSON pointer, stage) ◄── validators (local + server)
 ```
 **Invariants:** (1) the renderer receives *only* schema, hints, document, policy, permissions and ports; (2) it never branches on `kind`; (3) values are written only through commands; (4) unknown widget ⇒ visible error placeholder (never skipped); (5) unknown hint ⇒ registration failure; (6) metrological values are decimal **strings**, absent values are `{"$input":"MI-nn"}`, references are `{"$ref":{"kind","key"}}`, localized text is `{ "<bcp47>": "text" }`.
+
+ADR-0001 A2–A3 places hint interpretation, field-tree construction and
+validation binding in framework-neutral `editor-core`; React rendering lives
+in the `inspector/` folder of the single `designers` workspace package, with
+primitives in `ui-kit`. The mappings below are proposals pending H-2/GA0-16,
+not extensions of the provisional R-4 registry vocabulary.
 
 ## 2. Schema → widget mapping
 
@@ -124,9 +131,9 @@ Golden `InspectorModel` per kind; widget-registry exhaustiveness test (every `wi
 | Prototype | Product home (phase1/06) | Notes |
 |---|---|---|
 | `engine.js` `h`, `SHA`, `canon`, `diff`, `classify`, validator | *not copied* — product uses audited implementations: `calos_metadata` canonical JSON + digest vectors (S1), `editor-core` diff, server validators | Prototype SHA is synchronous for convenience only |
-| `ui.js` form engine | `designers/inspector` + `ui-kit` | Same algorithm; typed props; no `any` |
+| `ui.js` form engine | `editor-core` framework-neutral `InspectorModel`; React renderer in `designers/inspector`; primitives in `ui-kit` | Reimplement the behavior with typed ports; no prototype import or `any` |
 | `ui.js` components | `ui-kit` | Re-implemented to the design-system spec |
 | `data.js` kinds | `schemas/*`, `catalog/kinds.json`, hints | Real schemas, generated types |
 | `views.js` | `apps/web/src/builder/*` routes composing designers | Uses host ports, not globals |
-| `i18n.js` | `packages/ts/i18n` + message catalogs (ICU) | Hebrew reviewed (Q-15) |
+| `i18n.js` | `packages/ts/i18n` + compiled system message bundles (ICU) | Hebrew stays `needs_review` pending Q-15/MI-31; no runtime `TranslationBundle` loader in 1A |
 | `Store` | `SyntheticHost` (1A) → API host (1B) behind `DraftPort`… | Conformance suite shared |

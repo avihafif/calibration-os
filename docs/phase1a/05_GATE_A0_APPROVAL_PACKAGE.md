@@ -1,5 +1,14 @@
 # 05 — Gate A0 decision and approval package
 
+> **Historical approval packet:** the tables below record their original
+> proposal state. Current scoped WP-1A-1 outcomes are in
+> [Gate A0 record 13](../gate-a0/13_DELEGATED_ARCHITECTURE_SECURITY_LEGAL_RECORD_2026-11-02.md)
+> and [readiness 10](../gate-a0/10_WP-1A-1_SCOPED_READINESS_AND_APPROVALS.md).
+> PR #6 is merged; ADR-0001 A1–A4, ADR-0015 B1–B6 and ADR-0026 are
+> accepted. A2 puts the inspector model in `editor-core` and its React view
+> in the single `designers` package. No query-cache or font files are
+> approved for WP-1A-1; H-2/GA0-16 and full Gate A0 remain open.
+
 | | |
 |---|---|
 | Purpose | Let the right humans approve, in one sitting, what must be true before Codex starts **Phase 1A implementation** (the schema-driven Builder on synthetic data). Concise by design: each decision is a card with options, recommendation, justification, risks and implementation impact. |

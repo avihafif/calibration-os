@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Proposal. Extends `UI_UX_SPEC` (does not replace it). Palette, typography and component sizing are **design proposals** pending brand decision D-13; they carry no metrological meaning. |
+| Status | Design proposal extending `UI_UX_SPEC`. The product owner provisionally approved palette/tokens under D-13; font bundling still needs GA0-06b legal sign-off. Scoped WP-1A-1 uses system fonts. These visual choices carry no metrological meaning. |
 | Audience | Design, frontend, QA |
 | Visual reference | [design/phase1-design-reference.html](design/phase1-design-reference.html) (static, non-functional) |
 
@@ -131,7 +131,11 @@ All colours are CSS custom properties generated from `UiTheme`; the system theme
 | Monospace | JetBrains Mono (Latin only) | Wire text, SCPI templates, hashes, IDs, expressions — always `dir="ltr"` |
 | Reports (PDF) | Embedded from the same families (Hebrew coverage verified by the PDF spike) | MI-31 glossary applies to terms |
 
-All fonts are open-licence (SIL OFL) **and must be self-hosted/bundled** (air-gapped stations; no CDN). Licences to be confirmed by the owner (AGENTS §8, D-13). `µ` and `Ω` glyph coverage is a font acceptance test.
+The families above are **later candidates**, not WP-1A-1 assets. WP-1A-1
+uses a system font stack with Hebrew, Greek/unit-symbol and monospace
+fallback; no font file is added. Any future font bundling must be self-hosted
+for offline use and awaits GA0-06b legal sign-off (ADR-0015 B4). `µ` and `Ω`
+glyph coverage remains a font acceptance test.
 
 Scale (rem, 16 px root): `xs 0.75 · sm 0.8125 · base 0.875 (compact) / 1 (comfortable) · md 1 · lg 1.125 · xl 1.25 · 2xl 1.5 · 3xl 1.875`. Line-height 1.45 body, 1.25 headings. Hebrew line-height +0.05 to prevent clipped niqqud/ascenders.
 

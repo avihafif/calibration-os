@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Final proposal. **Do not start before gate A0 is signed** ([05](05_GATE_A0_APPROVAL_PACKAGE.md)). Supersedes nothing: it *amends* [phase1/13](../phase1/13_PHASE1A_PLAN.md) and [phase1/12 §7](../phase1/12_CODEX_IMPLEMENTATION_PROMPT.md) as listed in §2.3, and aligns with Codex's conditional plan on PR #1's branch (`docs/PHASE1A_IMPLEMENTATION_PLAN.md`). |
+| Status | Implementation handoff aligned with accepted ADR-0001 A1–A4, ADR-0015 B1–B6 and ADR-0026. Scoped WP-1A-1 Path B is recorded in [Gate A0 record 13](../gate-a0/13_DELEGATED_ARCHITECTURE_SECURITY_LEGAL_RECORD_2026-11-02.md), subject to a reviewed architecture-spec alignment PR and implementation-time dependency evidence. Full Gate A0 remains closed; later Builder packages remain gated. |
 | Reading order | [05](05_GATE_A0_APPROVAL_PACKAGE.md) (what is approved) → [02](02_BUILDER_UX_SPEC.md) (screens) → [01](01_DESIGN_SYSTEM.md) (tokens/components) → [03](03_METADATA_UI_BINDING.md) (generic editor) → [06](06_TEST_AND_USABILITY_CHECKLIST.md) (tests) → this file. |
 | Precedence | `AGENTS.md` and NO_CODE_ARCHITECTURE override everything here. Where this handoff and an approved ADR disagree, **stop and ask** (12 §6). |
 
@@ -19,14 +19,19 @@ A professional, bilingual (en/he, RTL-correct), light/dark, keyboard- and screen
 | Not in 1A | everything in phase1/13 §2.2 | — |
 
 ### 2.2 Gates (do not skip)
-A0 signed (05 §5) · R-4 and R-7 from phase1/14 merged · ADR-0001/0015 ratified · D-12 dependency list recorded · fonts licence confirmed (D-13).
+For WP-1A-1 only, the scoped Path B decision is recorded; R-4 and R-7 are
+merged; ADR-0001 A1–A4 and ADR-0015 B1–B6 are accepted; ADR-0026 approves
+exact dependency versions. The architecture-spec alignment PR must be reviewed
+and merged before sub-PR 1a; dependency evidence is re-run when packages are
+installed. Use system fonts: GA0-06b font bundling remains unapproved. Full
+Gate A0 and H-2/GA0-16 remain closed for dependent Builder work.
 
-### 2.3 Amendments to phase1/13 (apply when the owner approves 05)
+### 2.3 Amendments to phase1/13 (apply only within recorded gates)
 1. Persistence per **D-27**: WP-1A-4 is memory-only; `localDraftStore` is WP-1A-4b (namespaced, version-stamped, size-bounded, explicit *Reset*).
 2. Add acceptance **P1A-AC-53…64** ([06 §4](06_TEST_AND_USABILITY_CHECKLIST.md#4-additional-acceptance-criteria-extend-phase113-5)).
 3. WP-1A-5 gains: inline **+ New** in reference pickers, **Review summary**, 3-step publish, *Initial version* class, disabled-with-reason everywhere, `DigestText`.
-4. WP-1A-2/3 hint vocabulary gains the **bold** hints in [03 §3](03_METADATA_UI_BINDING.md#3-hint-vocabulary-final-closed-and-versioned) (incl. `wizard_step`, `initial`, registry `wizard` flag, `title`, `item_title`, `unique_by`, …).
-5. Package naming: inspector in `packages/ts/designers/inspector`; i18n in `packages/ts/i18n`; app code under `apps/web/src/builder/` (reconcile Codex plan's `ui-runtime` mention in the first PR; `ui-runtime` remains the operator-screen renderer).
+4. WP-1A-2/3 hint additions in [03 §3](03_METADATA_UI_BINDING.md#3-hint-vocabulary-final-closed-and-versioned) are **proposals only** until H-2/GA0-16 approves one authoritative vocabulary. Do not register or render them under the provisional R-4 subset.
+5. Package ownership (ADR-0001 A2–A3): the framework-neutral `InspectorModel` builder, hint interpretation, field tree and validation binding live in `packages/ts/editor-core`; React rendering and widget registry live in the `inspector/` folder of the **single** `packages/ts/designers` workspace package; reusable controls live in `ui-kit`. `apps/web/src/builder/` composes them; `ui-runtime` remains the operator-screen renderer.
 
 ## 3. Screens to implement (final)
 
@@ -76,7 +81,17 @@ Loading · empty · filtered-empty · error (stable code + retry) · read-only (
 | 360 px | No horizontal page scroll for Dashboard, lists, Review, Compare, Settings; editing is supported but optimised ≥ 1024 px |
 
 ### 5.4 Localization requirements
-All text through ICU keys with en + he, `needs_review` flag on Hebrew until Q-15; `lang`/`dir` on `<html>` **and** on each localized input; natural-language data via `dir=auto`, identifiers/hashes/paths/codes LTR + monospace; no string concatenation (use ICU placeholders with isolates); pseudo-locales `en-XA`/`he-XB` in CI; locale-aware collation; Western digits; dates via `Intl` with UTC shown; locale fallback chip when text falls back; required locales are **policy** (warning `I18N-001`), never schema.
+Phase 1A platform text uses compiled en/he ICU **system bundles**; the i18n
+package exposes a bundle-provider port but no `TranslationBundle` config
+loader (ADR-0015 B1). Every key follows `<area>.<id>`; the finding-key detail
+is still subject to H-2/GA0-16. All Hebrew text is marked `needs_review` until
+qualified MI-31 review. `lang`/`dir` appear on `<html>` and each localized
+input; natural-language data uses `dir=auto`, while measurement values, units,
+identifiers, hashes, versions and expressions use `<bdi>`/LTR islands. Use ICU
+placeholders (never string concatenation), CLDR Hebrew plurals,
+`en-XA`/`he-XB` in CI, locale-aware collation and Western digits; required
+locales are policy, not schema. CSS uses logical properties only and the
+product CI rejects hard-coded user-visible strings (ADR-0015 B2–B6).
 
 ### 5.5 Error and validation behaviour
 | Situation | Behaviour |
@@ -94,10 +109,10 @@ All text through ICU keys with en + he, `needs_review` flag on Hebrew until Q-15
 | API errors (1B) | Problem+json → localized title/detail + stable code; no stack traces |
 
 ## 6. What not to copy from the prototype
-* **Not production code:** `engine.js` (sync SHA, in-memory store, hand-rolled validator/diff), `ui.js`, `views.js`, global state, the hash router, inline persona logic, text-glyph icons, system-font stack.
+* **Not production code:** `engine.js` (sync SHA, in-memory store, hand-rolled validator/diff), `ui.js`, `views.js`, global state, the hash router, inline persona logic and text-glyph icons. `design/` is never imported or bundled into production (ADR-0001 A4). A system-font stack is the approved WP-1A-1 fallback.
 * **Never ship:** persona switcher, "Prototype controls", Guided demo, the audit chain simulation presented as real, "simulated step-up" wording in a real deployment, the seed data, the synthetic capability list.
-* **Re-implement properly:** canonical JSON/digests (use `calos_metadata` vectors and the TS twin), JSON Schema validation (the approved subset in `calos_metadata` + TS), accessibility (axe + manual), icons (approved set), fonts (bundled).
-* **Keep (as behaviour, not code):** every rule in [02](02_BUILDER_UX_SPEC.md) and [03](03_METADATA_UI_BINDING.md); the token values; the protected-indicator rules; disabled-with-reason; the findings contract.
+* **Re-implement properly:** canonical JSON/digests (use `calos_metadata` vectors and the TS twin), JSON Schema validation (the approved subset in `calos_metadata` + TS), accessibility (axe + manual), icons as in-house SVG components. No font files until GA0-06b legal sign-off; use system fonts in WP-1A-1.
+* **Keep (as behaviour, not code):** the approved rules in [02](02_BUILDER_UX_SPEC.md) and [03](03_METADATA_UI_BINDING.md); the token values; the protected-indicator rules; disabled-with-reason; the findings contract. The proposed H-2 vocabulary is not approved behavior until GA0-16.
 
 ## 7. Test scenarios and acceptance
 Scenarios S-01…S-18 and negative cases: [06 §2](06_TEST_AND_USABILITY_CHECKLIST.md). Acceptance: phase1/13 P1A-AC-01…52 + **P1A-AC-53…64**. CI additions: contrast test, no-kind-names lint on the renderer, widget-exhaustiveness test, i18n completeness test (en+he, placeholder parity), production-bundle exclusion test, no-network/no-storage Playwright guard. These already exist as dependency-free checks in [`design/phase1a-prototype/tests/prototype.test.js`](../../design/phase1a-prototype/tests/prototype.test.js) — port the *rules*, not the file.
@@ -106,10 +121,10 @@ Scenarios S-01…S-18 and negative cases: [06 §2](06_TEST_AND_USABILITY_CHECKLI
 | Need | Status |
 |---|---|
 | Prototype runtime dependencies | **None** (vanilla JS) — nothing here approves any library |
-| Product frontend libraries (router, query cache, ICU, Vitest, Playwright, axe, grid virtualisation, catalogue tool) | Candidate classes in phase1/06 §9; **each needs D-12 approval + ADR-0022 addendum**; none adopted |
+| Product frontend libraries | Only exact versions in accepted ADR-0026 are approved. Re-run vulnerability, licence, CSP and SBOM evidence at installation; query cache, grid virtualisation and catalogue libraries are not approved. |
 | Backend | R-4 validator subset; R-7 lifecycle ports; codegen emitting definitions/unions to TS; RFC 8785 Python↔TS vectors (WP-1A-0) |
 | ADRs | 0001, 0015 ratified; **not** 0004/0008/0014/0016 for 1A |
-| Fonts | Inter, Heebo, JetBrains Mono (SIL OFL) bundled after licence confirmation |
+| Fonts | System font stack in WP-1A-1; Inter, Heebo and JetBrains Mono files remain gated by GA0-06b legal sign-off |
 
 ## 9. Residual risks and assumptions
 | ID | Item | Owner | Slice |
@@ -145,4 +160,4 @@ Scenarios S-01…S-18 and negative cases: [06 §2](06_TEST_AND_USABILITY_CHECKLI
 | AGENTS §2.13/§13 (Test/Production separation) | Production-bundle exclusion (S-17) |
 
 ## 11. Implementation prompt for Codex (Phase 1A, after gate A0)
-> Implement **Phase 1A** per `docs/phase1/13_PHASE1A_PLAN.md` **as amended by** `docs/phase1a/07_CODEX_HANDOFF.md §2.3`, one work package per PR, cut from `main` after PR #1 and the Gate A0 conditions are merged/recorded. The visual and interaction baseline is `docs/phase1a/01…03` and the prototype in `design/phase1a-prototype/` (reference only — do not import or copy its code). Obey every rule in `AGENTS.md` and `docs/phase1/12 §3`. Build the generic renderer first; add kinds by schema + hints + strings + fixtures only; fail the build if the renderer names a kind. Keep all synthetic-mode guardrails (banner, persona chip, no network, storage per D-27, production-bundle exclusion). Stop and ask on: any metrological value, role/permission change, new dependency, ADR gap, weakened contract, or any request to authenticate, persist beyond D-27, sign, import, export or publish operationally. Report per `docs/phase1/12 §8`, listing P1A-AC rows with test names, CI links, and what is not verified.
+> Implement scoped **WP-1A-1** only after the reviewed architecture-spec alignment PR merges; cut a fresh branch from `main`, then deliver one work package per PR. Full Gate A0 remains closed for later Builder work. The visual and interaction baseline is `docs/phase1a/01…03`; the prototype in `design/phase1a-prototype/` is reference only — never import, bundle or copy its code. Obey `AGENTS.md`, accepted ADR-0001 A1–A4, ADR-0015 B1–B6 and the exact dependency approvals in ADR-0026. Start with reusable i18n and enforced package boundaries; add the generic inspector only after H-2/GA0-16. Keep all synthetic-mode guardrails (banner, persona chip, no network, memory-only storage per D-27, production-bundle exclusion). Stop and ask on any metrological value, role/permission change, unapproved dependency or font, ADR gap, weakened contract, or request to authenticate, persist beyond D-27, sign, import, export or publish operationally. Report per `docs/phase1/12 §8`, listing P1A-AC rows with test names, CI links and unverified items.
