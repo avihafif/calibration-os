@@ -153,6 +153,14 @@ runtime verification controls, not authored application behavior or a new
 configuration kind. The [Phase 0C proposal](PHASE0C_PROPOSAL.md) keeps the
 future GUI and lifecycle work gated by the relevant ADRs.
 
+**R-4 schema engine status (pre-merge):** the generic validator and type
+generator now understand a bounded closed-object subset with local definitions,
+exactly-one unions, constants, integer bounds, unique arrays, and inert
+versioned editor hints. This is platform **DEV** work under row 6.14; it does
+not create a new configuration kind or make rows 1.1/4.1 operationally No-Code.
+The test-only proof schema is not in the kind registry. Editor rendering,
+governed drafts, and Production publication remain unimplemented.
+
 ## 7. Summary
 
 | Class | Count (this version) | Comment |

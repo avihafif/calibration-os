@@ -241,7 +241,13 @@ class VerificationTests(unittest.TestCase):
         envelope["manifest"]["unexpected"] = "field"
         self.assert_rejected("SCHEMA_UNKNOWN_PROPERTY:", envelope)
         self.assert_rejected("SCHEMA_TYPE:/schema_version", self.envelope(schema_version="1"))
-        for value in ("synthetic-packagе", "ｓynthetic-package", "חבילה"):
+        for value in (
+            "synthetic-packagе",
+            "ｓynthetic-package",
+            "חבילה",
+            "synthetic-package\n",
+            "prefix synthetic-package",
+        ):
             with self.subTest(package_id=value):
                 self.assert_rejected("SCHEMA_PATTERN:/package_id", self.envelope(package_id=value))
         envelope = self.envelope()

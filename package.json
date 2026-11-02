@@ -6,9 +6,10 @@
     "check:ts": "pnpm --filter @calos/domain-types check && pnpm --filter @calos/web check",
     "build:web": "pnpm --filter @calos/web build",
     "lint:ts": "eslint apps/web/src packages/ts/domain-types/src",
-    "format:ts": "prettier --write apps/web/src packages/ts/domain-types/src",
-    "format:ts:check": "prettier --check apps/web/src packages/ts/domain-types/src",
-    "test:ts-boundary": "node tools/check_ts_boundary.mjs"
+    "format:ts": "prettier --write apps/web/src packages/ts/domain-types/src tests/typing/schema_proof.ts tools/check_schema_vectors.mjs",
+    "format:ts:check": "prettier --check apps/web/src packages/ts/domain-types/src tests/typing/schema_proof.ts tools/check_schema_vectors.mjs",
+    "test:ts-boundary": "node tools/check_ts_boundary.mjs",
+    "test:schema-vectors": "node tools/check_schema_vectors.mjs"
   },
   "devDependencies": {
     "eslint": "10.14.0",

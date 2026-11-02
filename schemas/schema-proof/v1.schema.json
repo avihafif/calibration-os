@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.calos.example/schema-proof/v1",
+  "title": "R-4 structural conformance proof (not a configuration kind)",
+  "$defs": {
+    "Label": {"type": "string", "minLength": 1, "maxLength": 80},
+    "LocalizedKey": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["$t"],
+      "properties": {"$t": {"type": "string", "minLength": 1, "maxLength": 80}}
+    },
+    "TextEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tag", "value"],
+      "properties": {
+        "tag": {"type": "string", "const": "text"},
+        "value": {"$ref": "#/$defs/Label"}
+      }
+    },
+    "CountEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tag", "value"],
+      "properties": {
+        "tag": {"type": "string", "const": "count"},
+        "value": {"type": "integer", "minimum": 0, "maximum": 20}
+      }
+    }
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["name", "entries", "mode"],
+  "properties": {
+    "name": {
+      "$ref": "#/$defs/Label",
+      "x-calos-editor": {
+        "version": 1,
+        "group": "identity",
+        "order": 10,
+        "label": {"$t": "schema.proof.name"},
+        "widget": "text"
+      }
+    },
+    "entries": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "uniqueItems": true,
+      "items": {
+        "oneOf": [
+          {"$ref": "#/$defs/TextEntry"},
+          {"$ref": "#/$defs/CountEntry"}
+        ]
+      }
+    },
+    "mode": {"type": "string", "const": "preview"},
+    "note": {"type": "string", "maxLength": 80},
+    "label": {"$ref": "#/$defs/LocalizedKey"}
+  }
+}

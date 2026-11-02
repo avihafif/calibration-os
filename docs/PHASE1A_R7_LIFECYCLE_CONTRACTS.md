@@ -1,8 +1,8 @@
 # R-7 metadata lifecycle contract alignment
 
-Status: contract-only feature branch, stacked on Phase 0B PR #1. This document
+Status: contract-only PR #4 merged after Phase 0B PR #1. This document
 records an implementation interface, not approval of a lifecycle or of the
-proposed Phase 1 documents in PR #2. Gate A0 remains **not green**.
+merged Phase 1 design proposals in PR #2. Gate A0 remains **not green**.
 
 ## Contract surface
 
@@ -61,8 +61,8 @@ Before any implementation of writes or publication: ratify ADR-0016
 (configuration lifecycle), ADR-0008 (tenant RLS), ADR-0014 (identity policy)
 and ADR-0021 (distribution); resolve ADR-0004 for trust/replay where packages
 are involved, D-25 for environment vocabulary, and MI-30/MI-34 for approval
-matrix and named role holders. PR #1 and PR #2 remain unmerged; R-4 schema
-validation and other Gate A0 decisions remain separate prerequisites. No
+matrix and named role holders. PRs #1/#2/#4 have merged; R-4 PR #6 and other
+Gate A0 decisions remain separate prerequisites. No
 decision is accepted by this contract PR.
 
 Recommended next independent backend prerequisite: R-4 schema validator
