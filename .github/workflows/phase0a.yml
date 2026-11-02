@@ -28,7 +28,7 @@ jobs:
       - name: Python format
         run: uv run --no-sync ruff format --check apps packages/py tools tests
       - name: Python typing
-        run: uv run --no-sync mypy --strict packages/py/calos_domain/calos_domain packages/py/calos_metadata/calos_metadata packages/py/calos_security/calos_security apps/api/calos_api
+        run: uv run --no-sync mypy --strict packages/py/calos_domain/calos_domain packages/py/calos_metadata/calos_metadata packages/py/calos_security/calos_security apps/api/calos_api tests/typing/lifecycle_required.py
       - name: Import boundaries
         run: uv run --no-sync lint-imports --no-cache
 
