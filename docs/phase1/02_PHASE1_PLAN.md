@@ -33,7 +33,7 @@
 
 | # | Condition | Evidence | Owner |
 |---|---|---|---|
-| G0-1 | Phase 0B merged to `main`; CI green (Python Linux+Windows, TypeScript, two-stack Compose, security vectors). | PR link, CI run | Codex / reviewer |
+| G0-1 | Phase 0B ([PR #1](https://github.com/avihafif/calibration-os/pull/1)) merged to `main` by its owner; CI green (Python Linux+Windows, TypeScript, two-stack Compose, security vectors). Review findings in [14](14_PHASE0B_SECURITY_REVIEW.md) triaged: items R-1…R-3 before merge, R-4…R-9 before 1A, R-10…R-12 before any verifier use outside tests. | PR link, CI run | Owner / Codex |
 | G0-2 | Human decisions **D-01** (Phase 1 shape), **D-02** (identity pulled into P1), **D-03** (library scope) recorded. | [11](11_DECISIONS_REQUIRED.md) signed | Product owner |
 | G0-3 | ADR-0001, 0008, 0014, 0015 ratified (needed by S0). Remaining ADRs ratified before their slice (§3 column "ADRs"). Accepted ADRs are never edited — supersede. | ADR status lines | Named owners |
 | G0-4 | Q-15 decided; MI-34 role holders and deputies named (no names invented here). | Register entries | Lab management |
@@ -42,6 +42,8 @@
 | G0-7 | Frontend dependency approvals for S0 ([06 §9](06_COMPONENT_ARCHITECTURE.md#9-dependencies-requiring-approval)). | ADR-0022 addendum or new ADR | Architecture |
 
 ## 3. Slices
+
+> **Phase 1A ([13](13_PHASE1A_PLAN.md))** is the first visible milestone and cuts across S0 and S1: it delivers their *frontend halves* (UI foundation, `editor-core`, schema-driven inspector, Builder shell for manufacturers/families/models) against a labelled in-memory Synthetic Host. The server-backed halves (identity, persistence, signed import) are **Phase 1B** and keep the ADR gates below. 1A needs decision D-23.
 
 Legend: **Req** = requirement IDs; **AC** = existing acceptance IDs satisfied or advanced; **P1-AC** = new IDs in [10](10_ACCEPTANCE_TESTS.md).
 

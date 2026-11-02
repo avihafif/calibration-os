@@ -8,6 +8,8 @@
 
 You are the implementation engineer for **CalOS Phase 1** in the repository `avihafif/calibration-os`. Phase 0A and Phase 0B are complete and merged. Your job is to implement Phase 1 **slice by slice** from the design package in `docs/phase1/`, exactly within the project rules. You do not decide product, metrology, safety, or governance questions — you stop and ask (§6).
 
+> **Order of work.** Start with **Phase 1A** (`13_PHASE1A_PLAN.md`, its §10 prompt) if decision D-23 is recorded; otherwise follow slice order below. Do **not** build on or enable `calos_security.PackageVerifier` / `JwtAuthenticator` beyond tests until review items R-10…R-12 in `14_PHASE0B_SECURITY_REVIEW.md` are closed.
+
 ## 1. Context you must internalise first
 
 1. CalOS is a **No-Code-First, metadata-driven** calibration operating system. Calibration applications are **versioned configuration** interpreted by a small **trusted runtime**. Code is for the runtime and rare Class B plugins.

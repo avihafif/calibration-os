@@ -6,6 +6,8 @@
 | Convention | Each test carries `@req` tags for the FR/NFR/AC IDs it covers (AGENTS §5). A criterion is *done* only when automated in CI (or explicitly marked **[M]** manual with a recorded session). No criterion is satisfied by a mock that bypasses the property under test. |
 | Metrology | Expected values in tests that encode metrology are supplied by the metrologist (MI-17/32) or are `synthetic_demo`-labelled fixtures; engineering does not generate "expected" metrological numbers. |
 
+> Phase 1A has its own criteria (`P1A-AC-01…52`) in [13 §5](13_PHASE1A_PLAN.md#5-phase-1a-acceptance-criteria); they are a subset-in-spirit of the P1-AC rows below and are re-run unchanged against the real host in Phase 1B.
+
 ## 1. Status tracking
 
 Implementers keep this table current (only this table and §2 "Status" columns may be edited by implementers; everything else is design-lane owned).

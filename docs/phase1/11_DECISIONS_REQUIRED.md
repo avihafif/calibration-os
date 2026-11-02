@@ -30,6 +30,10 @@
 | **D-19** | Canvas library (spike result) | Node-graph library vs custom SVG | Decide from spike report against 06 §6.1 criteria | Architecture | Before S4 | F-08 | |
 | **D-20** | Error code housekeeping: deprecate `ENVIRONMENT_MISMATCH`; add `VERIFIER_UNAVAILABLE` and new codes (08 §4) | Accept | Accept | Backend lead | Before S0 | F-20 | |
 | **D-21** | Lease/heartbeat/offline-buffer defaults (06 §5.4) | Accept / change | Accept as configuration defaults | Architecture | Before S1 | F-25 | |
+| **D-23** | Approve Phase 1A: UI-first on a labelled in-memory Synthetic Host before server-side identity/persistence | (a) approve [13](13_PHASE1A_PLAN.md); (b) keep S0/S1 backend first (slower first visible milestone); (c) build 1A with a throw-away server | **(a)** — nothing in 1A is throw-away; guardrails in 13 §6 | Product owner | Before 1A starts | 13, F-01 | |
+| **D-24** | Owner and design for signed, versioned trust metadata (root/targets/snapshot/timestamp, rollback protection) — ADR-0004 ratification | Ratify as written / revise | Name a security owner; ratify or revise ADR-0004 with the monotonic-version and revocation rules in 14 SR-H3 | Security owner | Before any verifier use outside tests | 14 SR-H2/H3/M4/M5 | |
+| **D-25** | `environment_kind` vocabulary: keep `{test, production}` with rehearsal as an attribute, or amend ADR-0024 to add `production_rehearsal` | (a) keep spec, add attribute; (b) supersede ADR-0024 wording | **(a)** | Architecture + security | Before 1A schemas that embed it | 14 SR-M3 | |
+| **D-26** | ADR-0022 addendum recording PyJWT and `cryptography` (and later frontend libraries) with licence/CVE review; CI dependency audit + SBOM | Approve / choose alternatives | Approve after review; add CI jobs | Architecture + security | Before merge of further dependencies | 14 SR-M10 | |
 | **D-22** | Phase 1 duration baseline | Team re-baselines from slice sizes | Do after G0; do not use roadmap totals | Engineering lead | After G0 | F-07 | |
 
 ## 2. Human inputs this package could not and did not supply
@@ -51,10 +55,22 @@ These remain open in the existing registers; the Phase 1 plan proceeds around th
 | **ADR ratification** | ADR-0001, 0004, 0006, 0007, 0008, 0010, 0011, 0012, 0013, 0014, 0015, 0016, 0017, 0018, 0019, 0020, 0021 are Proposed (Accepted: 0003, 0022, 0023, 0024; 0002/0005/0009 not needed for P1 start) | Each slice starts only after its ADRs are ratified (02 §3) |
 | **Q-10** | Hosted vs on-prem launch scope | No effect on P1 build; affects Phase 5 packaging |
 
+## 2a. Consolidated approvals and blockers (by gate)
+
+| Gate | Needs | Blocked items |
+|---|---|---|
+| **Merge PR #1** (owner's call) | Owner accepts it as *verification-only*; review items R-1…R-3 (14 §6) done or knowingly deferred | Nothing else is blocked by the merge itself |
+| **Phase 1 design PR** | Owner/reviewer reads [01](01_SPEC_REVIEW.md), [11](11_DECISIONS_REQUIRED.md); records D-01…D-03 | Phase 1 planning baseline |
+| **Gate A0 (start 1A)** | D-23, D-11, D-12, D-13, D-18, D-21; ADR-0001, 0015 ratified; review items R-4, R-7 merged | All 1A work |
+| **Start S0 backend (1B)** | D-02, D-20; ADR-0008, 0014 ratified; MI-34 named for realistic approver fixtures | Accounts, RBAC, enrolment |
+| **Start S1 backend (1B)** | ADR-0016, 0019, 0004 ratified; D-07, D-09; D-14, D-25 | Drafts, approvals, publish, `.calapp` |
+| **Enable verifier / any import** | D-24 (ADR-0004), ADR-0014; review items R-10…R-12 | Release import, Production |
+| **Real content (later phases)** | MI-01…04, 14, 26, 30, 31, 33, 35, 36; Q-15; legal answer Q-08 | Real instruments, real limits, real Hebrew terminology |
+
 ## 3. Things deliberately *not* done by this package (so no one assumes they were)
 
 * No existing specification, ADR, schema, catalog, or code file was edited. Recommended edits are listed in 01 §4 only.
 * No ADR was ratified or drafted as Accepted; no dependency was adopted; no permission or role was created in code.
 * No instrument, vendor, trademark or documentation material was used; no metrological value or safety limit appears.
-* Nothing was committed to `main` or pushed; the files are uncommitted in the working tree of branch `feature/phase-1-design` pending the owner's go-ahead.
+* Nothing was committed to `main`; Phase 1 documents live on branch `feature/phase-1-design` and reach `main` only through a pull request that the owner merges. PR #1 (Codex) was reviewed read-only and not modified or commented on.
 * The visual design reference is static and non-functional; it is not a prototype of any trusted behaviour.
