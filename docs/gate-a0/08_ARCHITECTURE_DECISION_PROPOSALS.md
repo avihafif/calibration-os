@@ -4,10 +4,10 @@
 
 | | |
 |---|---|
-| Status | **Proposals with recommended outcomes for the authorized architecture owner. No architecture, security or legal sign-off is recorded.** The product-owner record ([06](06_PRODUCT_OWNER_DECISIONS_2026-11-02.md), PR #8) is the only recorded approval relevant here and explicitly leaves these four items to others. |
+| Status | Historical architecture proposals. Subsequent delegated outcomes are recorded in [13](13_DELEGATED_ARCHITECTURE_SECURITY_LEGAL_RECORD_2026-11-02.md): scoped Path B, D-12, ADR-0001 A1–A4 (A5 pending), ADR-0015 B1–B6 and ADR-0026. **The approvals are not independent security or qualified legal reviews.** PR #6 is now merged; full Gate A0 remains closed. |
 | Builds on | [02 forms](02_GATE_A0_APPROVAL_FORMS.md), [03 ADR reviews](03_ADR_REVIEWS.md), [04 evidence](04_DEPENDENCY_AND_FONT_EVIDENCE.md), [07 PR #6 verdict](07_PR6_FINAL_REVIEW_VERDICT.md), [09 D-12 matrix](09_D12_DEPENDENCY_APPROVAL_MATRIX.md) |
 | What changed since 02/03 | PR #8 recorded product-owner outcomes (D-23, palette-only D-13, string coordination, D-27–D-29, D-32 as reference, D-01); PR #6 was corrected (7); `pnpm`-based dependency verification and SBOM generation were confirmed (09). Recommendations below are reconciled with these. |
-| Roles | No Architecture Owner, Security reviewer or Legal approver is named in the repository (MI-34). The product owner must designate them or record that they hold the role. |
+| Roles | Avi Hafif designated for the scoped frontend roles in [11](11_ROLE_DESIGNATION_RECORD.md); this concentrates roles and does not imply independent security or legal verification. Other safety/metrology/quality roles remain unassigned. |
 
 ## 1. GA0-02 (architecture half) — scoped Path B
 **Decision requested.** The architecture owner jointly records, with the product owner's endorsement (PR #8), that **WP-1A-1 only** may be authorized independently of R-4, without opening the full Gate A0.
