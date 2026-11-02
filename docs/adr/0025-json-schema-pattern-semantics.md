@@ -1,7 +1,9 @@
 # ADR-0025: JSON Schema pattern semantics for the metadata engine
 
-Status: **Accepted** (product owner decision in the CalOS R-4 task thread,
-2026-11-02) · Decider: product owner
+Status: **Proposed — pending verifiable owner confirmation.** A task-thread
+reply selected standard semantics, but this repository has no named owner,
+role, date and review record establishing architectural ratification. This
+corrects a premature status claim before PR #6 merges.
 
 ## Context
 
@@ -19,9 +21,10 @@ ECMAScript `RegExp.test`. Platform-authored schemas in this bounded subset
 must write exact-match patterns as `^(?:...)(?![\s\S])`. The final negative
 lookahead is an absolute end assertion in both runtimes; a bare `$` could
 match before a final newline. Registration rejects unanchored patterns,
-invalid regular expressions, capturing groups, alternation, backreferences
-and obvious nested unbounded repetition in this initial subset. All existing
-manifest patterns are wrapped
+invalid regular expressions, non-ASCII and shorthand character classes,
+captures, alternation, backreferences, and ambiguous adjacent repetitions.
+Only explicit ASCII classes, ASCII literals, bounded class repetition and
+separator-prefixed repeated groups are accepted. All existing manifest patterns are wrapped
 without changing their inner expression. Python and Node run the same
 positive/negative vectors before accepting the change.
 
@@ -34,7 +37,7 @@ authorize user-authored regex or arbitrary schema registration through an API.
   emulate it. Rejected because the schema advertises Draft 2020-12.
 - Use search semantics without anchoring existing patterns. Rejected because
   it broadens signed manifest acceptance.
-- Use search semantics and explicit cross-language absolute anchors. Chosen.
+- Use search semantics and explicit cross-language absolute anchors. Proposed.
 
 ## Consequences (positive / negative / risks)
 

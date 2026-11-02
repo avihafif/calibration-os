@@ -1,20 +1,19 @@
 # Gate A0 readiness — Phase 1A Synthetic Host Builder
 
-Status: **not green**. Prepared against [PR #2's Phase 1A plan](https://github.com/avihafif/calibration-os/blob/feature/phase-1-design/docs/phase1/13_PHASE1A_PLAN.md)
-and [decision register](https://github.com/avihafif/calibration-os/blob/feature/phase-1-design/docs/phase1/11_DECISIONS_REQUIRED.md).
-Those documents are on an open, documentation-only PR and call themselves
-proposals; the user's description does not record the named human outcomes.
-Neither PR may be merged automatically. This checklist does not approve them.
+Status: **not green**. Prepared against the merged [Phase 1A plan](phase1/13_PHASE1A_PLAN.md)
+and [decision register](phase1/11_DECISIONS_REQUIRED.md). PRs #1–#5 have
+merged; their design proposals are not approvals. PR #6 remains under review.
+This checklist does not approve any decision or authorize Builder work.
 
 | Gate | Required evidence | Current state |
 | --- | --- | --- |
-| A0-1 | Phase 0B PR #1 owner-reviewed and merged, or written agreement to branch from its head | PR #1 open; no written alternative recorded |
-| A0-2 / R-4 | Extended fail-closed schema validator and codegen with conformance tests; `pattern` dialect decided | R-4 worktree/PR under review. Pattern choice accepted in [ADR-0025](adr/0025-json-schema-pattern-semantics.md); merge and remaining Gate A0 evidence pending |
-| A0-2 / R-7 | Lifecycle Protocols aligned with `API_CONTRACT §2.3` and Findings contract; no write implementation | Contract-only work on `feature/phase1a-r7-lifecycle-contracts`; pending review/merge. See [R-7 contract report](PHASE1A_R7_LIFECYCLE_CONTRACTS.md) |
+| A0-1 | Phase 0B PR #1 owner-reviewed and merged, or written agreement to branch from its head | PR #1 merged |
+| A0-2 / R-4 | Extended fail-closed schema validator and codegen with conformance tests; `pattern` dialect decided | PR #6 open. ADR-0025 is [Proposed](adr/0025-json-schema-pattern-semantics.md) pending verifiable owner confirmation; H-1/M-1/M-3/M-5 corrections and CI require review |
+| A0-2 / R-7 | Lifecycle Protocols aligned with `API_CONTRACT §2.3` and Findings contract; no write implementation | PR #4 merged. See [R-7 contract report](PHASE1A_R7_LIFECYCLE_CONTRACTS.md) |
 | A0-3 | Named outcomes for D-23, D-11, D-12, D-13, D-18, D-21 | All blank in PR #2's register |
 | A0-4 | ADR-0001 and ADR-0015 ratified or superseded by named owners | Both Proposed |
 | A0-5 | Owner acknowledges he/en string ownership and `needs_review` markers while Q-15/MI-31 remain open | No named acknowledgement recorded |
-| Design integration | PR #2 reviewed and integrated; conflicts with `NO_CODE_ARCHITECTURE`/`ARCHITECTURE` resolved | PR #2 open, proposal only |
+| Design integration | PRs #2/#3/#5 integrated; conflicts with `NO_CODE_ARCHITECTURE`/`ARCHITECTURE` resolved | PRs #2/#3/#5 merged as design proposals; Gate A0 approvals and H-2 vocabulary reconciliation remain open |
 
 **Sequencing correction required:** `13_PHASE1A_PLAN.md §3` requires R-4 to
 be merged *before* A0, while §4 assigns R-4 to WP-1A-0 *after* A0. The owner
