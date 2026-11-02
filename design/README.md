@@ -11,6 +11,7 @@ Everything under `design/` is **documentation-grade, throw-away-safe prototype c
 |---|---|
 | [`phase1a-prototype/`](phase1a-prototype/index.html) | Interactive Phase 1A No-Code Application Builder prototype (vanilla HTML/CSS/JS, no dependencies, no build step) |
 | `phase1a-prototype/tests/prototype.test.js` | Dependency-free design-rule checks (`node design/phase1a-prototype/tests/prototype.test.js`) |
+| [`procedure-designer-prototype/`](procedure-designer-prototype/index.html) | Visual Procedure Designer + Simulation Lab prototype (synthetic, non-operational; spec in `docs/procedure-designer/`; checks: `node design/procedure-designer-prototype/tests/pd.test.js`) |
 
 ## Running the Phase 1A prototype
 
