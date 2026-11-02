@@ -20,5 +20,7 @@ strict mypy (18 files), four import boundaries, TypeScript type/lint/format,
 TS boundary and web build pass. Python/Node vectors pass (3 digests, 3
 manifest groups, 2 safe-grammar groups, invalid Unicode). Merged prototype
 checks pass (12 Builder, 69 Procedure Designer, 13 consistency and i18n).
-GitHub Actions results for the correction head must be attached to PR #6
-after the pushed commit completes; no remote pass is claimed here.
+The merged-main correction head `e4540f8` passed all four product jobs in
+[Actions run #53](https://github.com/avihafif/calibration-os/actions/runs/41505707623)
+and both non-product design jobs in
+[run #22](https://github.com/avihafif/calibration-os/actions/runs/41505707664).

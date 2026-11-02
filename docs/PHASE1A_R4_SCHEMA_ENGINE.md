@@ -48,8 +48,10 @@ and cross-language vector checks passed. The TypeScript formatter passed after
 normalizing checkout-only CRLF in unchanged source files; those files have no
 committed content diff. Docker startup and migrations were not run on this
 Windows worktree; their GitHub Actions results must be reviewed separately.
-The prior PR head passed four GitHub Actions jobs; the merged-main correction
-head requires a fresh CI run before merge.
+The merged-main correction head `e4540f8` passed all four product jobs in
+[Actions run #53](https://github.com/avihafif/calibration-os/actions/runs/41505707623)
+and both non-product design jobs in
+[run #22](https://github.com/avihafif/calibration-os/actions/runs/41505707664).
 
 No external reference-validator differential result is claimed. Adding that
 tool is held for the D-12/D-26 dependency and licence review. The TypeScript
