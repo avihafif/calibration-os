@@ -37,6 +37,8 @@ Fonts: system stack throughout; no font file enters the repository.
 A bilingual (en/he, RTL), light/dark, keyboard-operable web shell in the Test deployment whose every route shows the non-removable `TEST` and synthetic-sandbox frame, built from approved `ui-kit` components, with axe (zero critical/serious), keyboard-only and visual-baseline tests in CI; **no** schema, kind, persistence, network, authentication, font bundling or operational capability.
 
 ## 4. Approvals still required from authorized humans (none recorded)
+> Update: the product owner has since designated himself for the architecture, security and legal roles ([11](11_ROLE_DESIGNATION_RECORD.md)); signature-ready packets are in [12](12_SIGNATURE_READY_PACKETS.md). Designation is not approval, and it does not provide independent review.
+
 | # | Authority | Needs to record | Evidence expected |
 |---|---|---|---|
 | 1 | **Architecture owner** (to be named) | GA0-02 scoped gate; GA0-09 ADR-0001 (with/without A1–A5); GA0-10 ADR-0015 (with/without B1–B6); GA0-05 rows and policy; acceptance of ADR-0026; H-2 deferral disposition on PR #6 (C1 in 07) | status change in the ADR files / approving review in a reviewed PR |

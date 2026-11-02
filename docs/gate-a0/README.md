@@ -14,6 +14,8 @@ Status: **preparation for human decisions. No approval is recorded; every sign-o
 | [08_ARCHITECTURE_DECISION_PROPOSALS.md](08_ARCHITECTURE_DECISION_PROPOSALS.md) | Recommended outcomes for GA0-02 (architecture half), GA0-05, GA0-09, GA0-10 |
 | [09_D12_DEPENDENCY_APPROVAL_MATRIX.md](09_D12_DEPENDENCY_APPROVAL_MATRIX.md) | Exact D-12 dependency approval matrix (pins, licence, vulnerability, CSP, SBOM) with blank approval record |
 | [10_WP-1A-1_SCOPED_READINESS_AND_APPROVALS.md](10_WP-1A-1_SCOPED_READINESS_AND_APPROVALS.md) | Scoped readiness checklist, staged start, approvals still required |
+| [11_ROLE_DESIGNATION_RECORD.md](11_ROLE_DESIGNATION_RECORD.md) | Owner-stated designation of Avi Hafif as Architecture owner, Security reviewer and Legal approver (scope, limits, no approval) |
+| [12_SIGNATURE_READY_PACKETS.md](12_SIGNATURE_READY_PACKETS.md) | Eight signature-ready packets with recommended outcomes and exact status changes; every box blank |
 | `evidence/` | Reproducible artefacts: PR #6 probes, dependency evaluation (pins, lock, CSV, results), font licences and checksums |
 
 **Form ids** (`GA0-nn`) identify these forms only; `D-nn`, `PD-DEC-nnn`, `A0-n` and ADR numbers keep their meaning and status. The decision-identifier check (`design/tools/check_decision_ids.py`) continues to pass.
