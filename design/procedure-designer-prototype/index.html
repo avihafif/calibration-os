@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en" dir="ltr" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="robots" content="noindex">
+<title>CalOS Procedure Designer — design prototype</title>
+<link rel="stylesheet" href="../phase1a-prototype/css/app.css">
+<link rel="stylesheet" href="css/designer.css">
+</head>
+<body>
+<a class="skip" id="skip" href="#main">Skip to content</a>
+<div id="app">
+  <div id="proto-banner" class="proto-banner" role="note"></div>
+  <header id="topbar" class="topbar" role="banner"></header>
+  <nav id="wsnav" class="wsnav" aria-label="Workspaces"></nav>
+  <main id="main" tabindex="-1"></main>
+  <footer id="statusbar" class="statusbar" role="contentinfo"></footer>
+</div>
+<div id="toasts" aria-live="polite" aria-atomic="false"></div>
+<div id="sr-live" class="sr-only" aria-live="polite"></div>
+<noscript>This design prototype requires JavaScript. It runs entirely in the browser with synthetic data and makes no network requests.</noscript>
+<script src="../phase1a-prototype/js/engine.js"></script>
+<script src="../phase1a-prototype/js/data.js"></script>
+<script src="../phase1a-prototype/js/i18n.js"></script>
+<script src="../phase1a-prototype/js/ui.js"></script>
+<script src="js/pd-core.js"></script>
+<script src="js/pd-data.js"></script>
+<script src="js/pd-logic.js"></script>
+<script src="js/pd-sim.js"></script>
+<script src="js/pd-strings.js"></script>
+<script src="js/pd-strings-b.js"></script>
+<script src="js/pd-strings-c.js"></script>
+<script src="js/pd-ui-designer.js"></script>
+<script src="js/pd-ui-dock.js"></script>
+<script src="js/pd-ui-driver.js"></script>
+<script src="js/pd-ui-metrology.js"></script>
+<script src="js/pd-ui-safety.js"></script>
+<script src="js/pd-ui-sim.js"></script>
+<script src="js/pd-app.js"></script>
+</body>
+</html>
