@@ -10,7 +10,7 @@ Neither PR may be merged automatically. This checklist does not approve them.
 | --- | --- | --- |
 | A0-1 | Phase 0B PR #1 owner-reviewed and merged, or written agreement to branch from its head | PR #1 open; no written alternative recorded |
 | A0-2 / R-4 | Extended fail-closed schema validator and codegen with conformance tests; `pattern` dialect decided | Current subset lacks Phase 1 keywords; dialect decision open |
-| A0-2 / R-7 | Lifecycle Protocols aligned with `API_CONTRACT §2.3` and Findings contract; no write implementation | Current Phase 0B ports are intentionally incomplete |
+| A0-2 / R-7 | Lifecycle Protocols aligned with `API_CONTRACT §2.3` and Findings contract; no write implementation | Contract-only work on `feature/phase1a-r7-lifecycle-contracts`; pending review/merge. See [R-7 contract report](PHASE1A_R7_LIFECYCLE_CONTRACTS.md) |
 | A0-3 | Named outcomes for D-23, D-11, D-12, D-13, D-18, D-21 | All blank in PR #2's register |
 | A0-4 | ADR-0001 and ADR-0015 ratified or superseded by named owners | Both Proposed |
 | A0-5 | Owner acknowledges he/en string ownership and `needs_review` markers while Q-15/MI-31 remain open | No named acknowledgement recorded |
