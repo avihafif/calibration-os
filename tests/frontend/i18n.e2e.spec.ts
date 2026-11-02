@@ -44,11 +44,7 @@ test("English and Hebrew demonstration is keyboard-accessible and network-isolat
     fullPage: true,
   });
   const englishAxe = await new AxeBuilder({ page }).analyze();
-  expect(
-    englishAxe.violations.filter((entry) =>
-      ["critical", "serious"].includes(entry.impact ?? ""),
-    ),
-  ).toEqual([]);
+  expect(englishAxe.violations).toEqual([]);
 
   await page.keyboard.press("Tab");
   await expect(
@@ -70,10 +66,6 @@ test("English and Hebrew demonstration is keyboard-accessible and network-isolat
     fullPage: true,
   });
   const hebrewAxe = await new AxeBuilder({ page }).analyze();
-  expect(
-    hebrewAxe.violations.filter((entry) =>
-      ["critical", "serious"].includes(entry.impact ?? ""),
-    ),
-  ).toEqual([]);
+  expect(hebrewAxe.violations).toEqual([]);
   expect(violations).toEqual([]);
 });
