@@ -8,23 +8,31 @@ Every entry: `type_id@major.minor`, `group`, `glyph`, `lanes` (where placeable),
 | Group | Types | Notes |
 |---|---|---|
 | Instrument | `driver.call`, `source.apply` (H2), `source.off` (H1) | named op + typed args only |
-| Standard | `standard.require` | **proposal** — no catalogue entry in existing docs (gap G-1) |
+| Standard | `standard.require` | **proposal** — no catalogue entry in existing docs (gap PD-GAP-1) |
 | Measurement | `measure.acquire` (H0) | count, aggregate, store_as |
 | Calculation / results | `compute.set`, `evaluate.limits`, `record.result` | limit check ≠ conformity decision |
 | Flow | `flow.if`, `flow.foreach`, `flow.repeat_until`, `flow.delay`, `flow.wait_until`, `flow.try` | every loop/wait **bounded** |
 | Operator | `operator.instruct`, `operator.confirm`, `operator.input` | not allowed in the safe state |
 
-Required building blocks **not** in the prototype: identification as a first-class step (done via `driver.call identify`, G-2), reference-standard *selection* (prototype only requires a role, G-3), report data collection beyond `record.result` (G-4), uncertainty and decision-rule steps (Phase 2, G-5).
+Required building blocks **not** in the prototype: identification as a first-class step (done via `driver.call identify`, PD-GAP-2), reference-standard *selection* (prototype only requires a role, PD-GAP-3), report data collection beyond `record.result` (PD-GAP-4), uncertainty and decision-rule steps (Phase 2, PD-GAP-5).
+
+| ID | Missing building block / gap | Status |
+|---|---|---|
+| PD-GAP-1 | Catalogue entry for reference-standard requirement (`standard.require` is only a proposal) | open |
+| PD-GAP-2 | Identification as a first-class step (prototype uses `driver.call identify`) | open |
+| PD-GAP-3 | Reference-standard *selection* (prototype requires only a role) | open |
+| PD-GAP-4 | Report data collection beyond `record.result` | open |
+| PD-GAP-5 | Uncertainty and decision-rule steps (Phase 2) | open |
 
 ## Hints/widgets required
 `expression`(+`expect` dimension), `select-from`(`options`: roles, standard_roles, ops, query_ops, tables), `op-args`, `duration`, `integer`, `bound`, `error-policy`, `resume-policy`, plus existing `localized`, `enum`, `quantity-or-input`. Tabs via hint `tab`. Unknown widget → visible placeholder.
 
 ## Expression language (closed, total, deterministic)
-Operators `+ - * /`, comparisons, `and or not`; functions `abs min max deviation mean count`; refs `var.x`, `item.<name>.<field>`; unit literals. No loops, recursion, I/O, clock, randomness, locale. Decimal-exact (BigInt+scale); dimension-checked; AST ≤ 200 nodes; unresolved `Input required` can never be evaluated. Python evaluator authoritative; TS subset must pass shared vectors. Statistical functions start `pending_review` (**D-11**: the prototype's `mean` has 12-digit division precision, which is **not** a metrological rounding rule).
+Operators `+ - * /`, comparisons, `and or not`; functions `abs min max deviation mean count`; refs `var.x`, `item.<name>.<field>`; unit literals. No loops, recursion, I/O, clock, randomness, locale. Decimal-exact (BigInt+scale); dimension-checked; AST ≤ 200 nodes; unresolved `Input required` can never be evaluated. Python evaluator authoritative; TS subset must pass shared vectors. Statistical functions start `pending_review` (**PD-DEC-005**: the prototype's `mean` has 12-digit division precision, which is **not** a metrological rounding rule).
 
 ## Proposed lint codes (to be registered in the lint namespace)
 Used in the prototype: PR-001 schema/placement · 002 refs · 003 bounds · 004 unassigned var · 005 constant condition · 006 expression type/dimension/syntax · 007 retry on hazardous/non-repeatable · 008 resume weaker than derived · 009 operation/arguments · 010 no covering Safety Profile · 013 unresolved MI input · 014 synthetic data · 015 inclusivity not explicit · 018 no teardown/safe-state for hazardous · 019 non-safe op in safe state / hazardous in `finally` · 021 raw/script-like content · 023 bound wider than envelope / no AHL · 024 simulation-only · I18N-001.
-**New/proposed:** DRV-001…DRV-014 (see 02). **Contradiction flagged:** the PR-003 wording in earlier specs covers only loops; the prototype also uses it for wait/retry bounds (**D-12**).
+**New/proposed:** DRV-001…DRV-014 (see 02). **Contradiction flagged:** the PR-003 wording in earlier specs covers only loops; the prototype also uses it for wait/retry bounds (**PD-DEC-006**).
 
 ## Hazard and resume
 Hazard H0–H4 (H3/H4 reserved). Derived minimum resume policy by hazard; author may only strengthen. Retry forbidden for H2+ and non-repeatable.

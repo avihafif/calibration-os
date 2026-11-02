@@ -7,7 +7,7 @@ const WS = [['design', 'pd.ws.design', '▤', renderDesigner], ['driver', 'pd.ws
 const PERSONA_KEYS = ['engineer', 'hazauth', 'lsma', 'approver', 'safety', 'quality', 'viewer'];
 PPERMS.quality = ['publish', 'safety.coapprove'];
 function banner(cls, text, ...extra) { return h('div', { class: 'note ' + cls, role: 'status' }, text, ...extra); }
-function applyLocale() { document.documentElement.lang = UI.locale; document.documentElement.dir = UI.locale === 'he' ? 'rtl' : 'ltr'; document.title = t('pd.app.title'); }
+function applyLocale() { document.documentElement.lang = UI.locale; document.documentElement.dir = UI.locale === 'he' ? 'rtl' : 'ltr'; document.title = t('pd.app.title'); const sk = document.getElementById('skip'); if (sk) sk.textContent = t('a.skip'); }
 function applyTheme() { document.documentElement.setAttribute('data-theme', UI.theme); }
 function go(ws) { if (location.hash === '#/' + ws) route(false); else location.hash = '#/' + ws; }
 
@@ -15,7 +15,7 @@ function initState() {
   PD.driver = MKDRV(); PD.tables = [MKTABLE()]; PD.profile = MKPROFILE(); PD.profileCandidate = null;
   const pub = MKPROC(); PD.versions = [{ version: '1.0.0', proc: pub, digest: digestOf(pub), cls: 'none' }];
   PD.draft = { proc: MKDRAFT(), state: 'draft', rev: 0, base: '1.0.0', approvals: [], log: [] }; PD.undo = []; PD.redo = []; PD.sel = null; PD.compare = { a: 'v1.0.0', b: 'draft', overlay: false };
-  stopTimer(); PD.sim.run = null; PD.sim.faults = []; PD.sim.breakpoints = new Set(); PD.sim.evSel = null; PD.drvBox = null; PD.drvTest = {}; validateNow();
+  stopTimer(); PD.sim.run = null; PD.sim.faults = []; PD.sim.breakpoints = new Set(); PD.sim.evSel = null; PD.sim.tab = 'trace'; PD.sim.filter = ''; PD.sim.hideNoise = true; PD.drvTab = null; PD.metTab = 'points'; PD.dock = 'validation'; PD.centre = 'canvas'; PD.pane = undefined; PD.sevFilter = 'all'; PD.selTab = 'main'; PD.drvBox = null; PD.drvTest = {}; validateNow();
 }
 function blankProcedure(titleEn, titleHe) {
   return { key: 'new-synthetic-procedure', title: { en: titleEn, ...(titleHe ? { he: titleHe } : {}) }, roles: [{ id: 'uut', kind: 'instrument', title: { en: 'Instrument under test', he: 'מכשיר נבדק' } }, { id: 'ref', kind: 'standard', title: { en: 'Reference source', he: 'מקור ייחוס' } }], tables: [{ id: 'points', key: 'synthetic-points' }], intended_modes: ['simulation'], lifecycle: { setup: [], phases: [{ id: 'as_found', kind: 'as_found', body: [] }], teardown: [], safe_state: [] } };
@@ -31,7 +31,7 @@ function newProcedureDialog() {
       validateNow(); PD.sel = null; toast(t('pd.new.done')); go('design'); renderDesigner(); }, 'primary')] });
 }
 function shortcutsDialog() {
-  const rows = [['Tab / Shift+Tab', 'pd.sc.tab'], ['Enter / Space', 'pd.sc.select'], ['↑ ↓', 'pd.sc.arrows'], ['Alt+↑ Alt+↓', 'pd.sc.reorder'], ['Alt+← Alt+→', 'pd.sc.nest'], ['Insert / +', 'pd.sc.insert'], ['Delete', 'pd.sc.delete'], ['Ctrl+D', 'pd.sc.dup'], ['B', 'pd.sc.bp'], ['Ctrl+Z / Ctrl+Y', 'pd.sc.undo'], ['?', 'pd.sc.help'], ['Esc', 'pd.sc.esc']];
+  const rows = [['Ctrl+K', 'pd.sc.palette'], ['Tab / Shift+Tab', 'pd.sc.tab'], ['Enter / Space', 'pd.sc.select'], ['↑ ↓', 'pd.sc.arrows'], ['Alt+↑ Alt+↓', 'pd.sc.reorder'], ['Alt+← Alt+→', 'pd.sc.nest'], ['Insert / +', 'pd.sc.insert'], ['Delete', 'pd.sc.delete'], ['Ctrl+D', 'pd.sc.dup'], ['B', 'pd.sc.bp'], ['Ctrl+Z / Ctrl+Y', 'pd.sc.undo'], ['?', 'pd.sc.help'], ['Esc', 'pd.sc.esc']];
   openDialog({ title: t('pd.sc.title'), body: [h('table', { class: 'tbl' }, h('tbody', null, rows.map(([k, v]) => h('tr', null, h('th', { scope: 'row' }, h('kbd', null, k)), h('td', null, t(v)))))), h('p', { class: 'help' }, t('pd.sc.note'))] });
 }
 function controlsDialog() {
@@ -39,9 +39,21 @@ function controlsDialog() {
   const dlg = openDialog({ title: t('pd.ctl.title'), body: [banner('info', t('pd.ctl.note')), h('div', { class: 'field' }, h('label', { class: 'lbl', for: 'ctl-loc' }, t('pd.ctl.locales')), loc), h('div', { class: 'row-wrap' }, btn(t('pd.ctl.reset'), () => { dlg.close(); initState(); toast(t('pd.ctl.reset_done')); route(true); }, 'danger ghost'), btn(t('pd.ctl.new'), () => { dlg.close(); newProcedureDialog(); }, 'ghost')), h('p', { class: 'help' }, t('pd.ctl.reset_help')), h('p', { class: 'help' }, t('pd.ctl.missing', { n: String(MISSING.size) }))] });
 }
 
+
+/* command palette (Ctrl+K) — same behaviour and strings as the Phase 1A shell: go to a workspace, switch language/theme */
+function openPalette() {
+  const cmds = [...WS.map(([id, key]) => [t('pal.go') + ': ' + t(key), () => go(id)]), [t('pd.new.btn'), newProcedureDialog], [t('pd.sc.title'), shortcutsDialog], [t('pal.lang'), () => { UI.locale = UI.locale === 'en' ? 'he' : 'en'; applyLocale(); route(true); }], [t('pal.theme'), () => { UI.theme = UI.theme === 'light' ? 'dark' : 'light'; applyTheme(); route(true); }]];
+  const input = h('input', { class: 'input', type: 'search', 'aria-label': t('a.search'), placeholder: t('a.search') + '…', autofocus: true }); const list = h('ul', { class: 'pal-list', role: 'listbox' }); let shown = [], sel = 0;
+  const paint = () => { const q = input.value.toLowerCase(); shown = cmds.filter(([l]) => l.toLowerCase().includes(q)); sel = Math.min(sel, Math.max(0, shown.length - 1)); list.replaceChildren(...shown.map(([l], i) => h('li', { role: 'option', 'aria-selected': String(i === sel), class: i === sel ? 'sel' : '', onclick: () => run(i) }, l))); };
+  const run = (i) => { const c = shown[i]; if (!c) return; dlg.close(); c[1](); };
+  input.addEventListener('input', () => { sel = 0; paint(); });
+  input.addEventListener('keydown', (e) => { if (e.key === 'ArrowDown') { e.preventDefault(); sel = Math.min(sel + 1, shown.length - 1); paint(); } else if (e.key === 'ArrowUp') { e.preventDefault(); sel = Math.max(sel - 1, 0); paint(); } else if (e.key === 'Enter') { e.preventDefault(); run(sel); } });
+  const dlg = openDialog({ title: t('a.search'), body: [input, list] }); paint();
+}
 function buildChrome() {
-  $('proto-banner').replaceChildren(h('strong', null, '◈ ' + t('pd.banner.title')), ' ', t('pd.banner.body'));
+  $('proto-banner').replaceChildren(h('strong', null, '◈ ' + t('banner.title')), ' ', t('banner.body'), ' ', t('pd.banner.body'));
   $('topbar').replaceChildren(h('span', { class: 'brand' }, 'CalOS ', h('span', { class: 'brand-sub' }, t('pd.app.name'))), h('span', { class: 'frame-badge test', title: t('badge.test_help') }, '◆ TEST'), h('span', { class: 'frame-badge sim', title: t('pd.banner.body') }, '◈ ' + t('pd.mode_sim')), h('span', { class: 'spacer' }),
+    h('button', { class: 'btn ghost search', type: 'button', onclick: openPalette, 'aria-label': t('a.search') + ' (Ctrl+K)' }, h('span', { 'aria-hidden': 'true' }, '⌕'), h('span', { class: 'hide-sm' }, ' ' + t('a.search')), h('kbd', { class: 'hide-sm' }, 'Ctrl K')),
     h('label', { class: 'persona', title: t('persona.help') }, h('span', { class: 'sr-only' }, t('persona.label')), h('span', { class: 'chip sim sm', 'aria-hidden': 'true' }, t('persona.chip')), h('select', { class: 'input sm', id: 'persona-sel', onchange: (e) => { PD.persona = e.target.value; toast(t('pd.persona_toast', { p: t('pd.persona.' + PD.persona) })); route(true); } }, PERSONA_KEYS.map((k) => h('option', { value: k, selected: PD.persona === k ? true : null }, t('pd.persona.' + k))))),
     btn(UI.locale === 'en' ? 'עברית' : 'English', () => { UI.locale = UI.locale === 'en' ? 'he' : 'en'; applyLocale(); route(true); }, 'ghost', { lang: UI.locale === 'en' ? 'he' : 'en', 'aria-label': UI.locale === 'en' ? 'עברית' : 'English' }),
     btn(UI.theme === 'light' ? t('a.dark') : t('a.light'), () => { UI.theme = UI.theme === 'light' ? 'dark' : 'light'; applyTheme(); route(true); }, 'ghost', { 'aria-pressed': String(UI.theme === 'dark') }),
@@ -49,7 +61,7 @@ function buildChrome() {
   $('wsnav').replaceChildren(...WS.map(([id, key, g]) => h('a', { href: '#/' + id, class: 'wslink', 'data-ws': id }, h('span', { 'aria-hidden': 'true' }, g + ' '), t(key))));
   buildStatus();
 }
-function buildStatus() { const c = countSev(PD.findings); $('statusbar').replaceChildren(h('span', null, t('pd.status.proto')), h('span', { class: 'spacer' }), h('span', { id: 'sr-status', role: 'status' }, t('n_errors', { n: c.error }) + ' · ' + t('n_warnings', { n: c.warning })), PD.sim.run ? chip('sim sm', '◈', PD.sim.run.id + ' · ' + t('pd.sim.state.' + PD.sim.run.state)) : null, h('span', { class: 'muted' }, t('pd.status.note'))); }
+function buildStatus() { const c = countSev(PD.findings); $('statusbar').replaceChildren(h('span', null, t('status.proto')), h('span', { class: 'spacer' }), h('span', { id: 'sr-status', role: 'status' }, t('n_errors', { n: c.error }) + ' · ' + t('n_warnings', { n: c.warning })), PD.sim.run ? chip('sim sm', '◈', PD.sim.run.id + ' · ' + t('pd.sim.state.' + PD.sim.run.state)) : null, h('span', { class: 'muted' }, t('pd.status.note'))); }
 
 function route(rebuild) {
   if (rebuild) buildChrome();
@@ -64,6 +76,7 @@ document.addEventListener('keydown', (e) => {
   if (typing) return;
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && PD.ws === 'design') { e.preventDefault(); e.shiftKey ? redo() : undo(); }
   else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y' && PD.ws === 'design') { e.preventDefault(); redo(); }
+  else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); if (!document.querySelector('.backdrop')) openPalette(); }
   else if (e.key === '?' && !document.querySelector('.backdrop')) { e.preventDefault(); shortcutsDialog(); }
 });
 window.addEventListener('hashchange', () => route(false));

@@ -34,4 +34,4 @@ Platform libraries are read-only and locked; **Copy to local** creates an editab
 Choose operation → typed arguments (expression language: `2 su`, `"level"`) → *Call operation*. Shows state, sent/not-sent, wire text, reply, parsed value, stable error code. Preconditions and envelope refusals are demonstrable (call `read_value` before `set_function`; call `set_source_level` with `9 su`).
 
 ## Open decisions
-D-06 (role), D-07 (verification gate before use in a simulation vs production), D-08 (driver library lineage/versioning), Q-08 (vendor documentation use).
+D-06 (role), PD-DEC-001 (verification gate before use in a simulation vs production), PD-DEC-002 (driver library lineage/versioning), Q-08 (vendor documentation use).

@@ -6,17 +6,17 @@
 - **Inspection**: Trace (filter, hide low-level events, event detail with chained hash), Variables (typed values + safe **watch expression**, cannot mutate), Wire log (command text, reply, status, `NOT SENT` for blocked), Results (limit-check labels), Report preview.
 - **Scenarios & faults**: seeded scenarios (nominal/marginal/failing); fault injection: timeout, garbled reply, instrument error entry, disconnect, unsafe level request; one-shot or persistent; can be added while paused.
 - **Operator prompts** block until answered; stepping never answers them.
-- **Recovery**: "Simulate crash" → resume panel with the plan (verify same instrument, safe source, re-establish state, step policy). Non-repeatable steps require an explicit operator decision. *Prototype simplification*: instrument state is restored from the last checkpoint rather than re-asserted through the Broker (D-13).
+- **Recovery**: "Simulate crash" → resume panel with the plan (verify same instrument, safe source, re-establish state, step policy). Non-repeatable steps require an explicit operator decision. *Prototype simplification*: instrument state is restored from the last checkpoint rather than re-asserted through the Broker (PD-DEC-007).
 - **Failure explanation**: code, plain language, node link, step error policy, attempts, safe-state result, fixes (Metrology / Safety / node).
 - **Report preview**: permanent watermark, uncertainty and conformity "not evaluated", partial marker, disabled approve/issue/remove-watermark.
 
 ## Safety UX
 - **Absolute Hardware Limits**: read-only card (pack, signer, scope, target, limit); the "Edit hardware limits" control exists only as a disabled-with-reason explanation. Simulator-scope pack is synthetic (deep-frozen in the prototype; test asserts nothing writes it).
-- **Safety Profile**: governed lifecycle — LSMA proposes (value > AHL refused with PR-023), Safety Officer approves, Quality Manager co-approves a *widening*; author ≠ approver; withdrawal by Safety Officer makes every hazardous step blocked (fail closed). Procedure side shows the pinned profile (selection is a governed decision, not a free setting — D-14).
+- **Safety Profile**: governed lifecycle — LSMA proposes (value > AHL refused with PR-023), Safety Officer approves, Quality Manager co-approves a *widening*; author ≠ approver; withdrawal by Safety Officer makes every hazardous step blocked (fail closed). Procedure side shows the pinned profile (selection is a governed decision, not a free setting — PD-DEC-008).
 - **Effective envelope** = AHL ∩ profile ∩ step bound, drawn plus table; test points outside are marked.
 - **Hazard warnings**: hazard path, coverage, PR-010/018/019/023 findings; Broker order shown: hazard permission → envelope → state → write.
 - **Blocked operations** list from the last run (value, limit, source).
-- **Permissions matrix** shown to users (proposal pending D-15).
+- **Permissions matrix** shown to users (proposal pending PD-DEC-009).
 
 ## Governance UX
 Version compare (id-aware, class suggestion, overlay), review workflow with reasons and digests, separation of duties, Production release blocked with explanation. Step-up is **simulated** (real enforcement server-side).

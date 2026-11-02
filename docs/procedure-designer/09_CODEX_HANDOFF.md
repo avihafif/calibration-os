@@ -9,7 +9,7 @@
 No invented metrology (use `{"$input":"MI-nn"}`); simulation never represented as calibration and never approvable; no instrument/model-specific logic in runtime; Class A content has no code; safety outside editable content (AHL read-only, profiles narrow only, fail closed); no free-form SCPI from procedures/UI/operators; central never talks to instruments; immutable published versions and audit; Decimal + units; deterministic expressions; Test/Production separation; no role bypass.
 
 ## Suggested slices (each independently shippable, behind Test deployment only)
-1. **Schemas + catalogue**: step types, hints, closed schemas, registry, fixtures (valid+invalid) → regenerate Pydantic/TS. Add missing blocks G-1…G-4 only after D-decisions.
+1. **Schemas + catalogue**: step types, hints, closed schemas, registry, fixtures (valid+invalid) → regenerate Pydantic/TS. Add missing blocks PD-GAP-1…4 only after PD-DEC / D- decisions.
 2. **Validation service**: PR-/DRV- codes with stable params; shared with UI preview; golden fixtures from `tests/pd.test.js`.
 3. **Designer UI (React)**: view-model → canvas + outline; command stack; palette; inspector widgets; dock panels. Acceptance: the 38 flows in `tests/flows-in-page.js` re-expressed as Playwright (he/en, RTL, light/dark).
 4. **Command Builder**: driver config kind, library lineage, operation lint, sandbox via Broker **simulator transport only**.

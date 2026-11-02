@@ -185,6 +185,13 @@
   await T('persona gating: viewer sees a read-only designer (no palette dragging, inputs disabled)', async () => {
     await reset('viewer'); await nav('design'); select('delay_1'); await wait(30); const drag = $$('.pal-item').every((e) => e.getAttribute('draggable') === 'false'); const dis = $$('#pd-right input.input,#pd-right select.input,#pd-right textarea').every((e) => e.disabled); return { ok: drag && dis && /view this procedure/.test($q('.note').textContent), detail: 'palette locked=' + drag + ' inspector disabled=' + dis };
   });
+  await T('shared shell conventions: Ctrl+K opens the command palette and navigates; "?" opens the shortcut sheet; skip link and banner use the shared (localised) strings', async () => {
+    await reset(); document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true })); await wait(40); const input = $q('.dialog input[type=search]'); if (!input) throw new Error('palette did not open');
+    type(input, 'Safety'); await wait(20); key(input, 'Enter'); await wait(120); const nav = PD.ws === 'safety' && !$q('.dialog');
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: '?', bubbles: true })); await wait(40); const sheet = !!$q('.dialog table kbd'); click(byText('.dialog button', 'Close') || $q('.dialog .btn.icon')); await wait(30);
+    UI.locale = 'he'; applyLocale(); route(true); const skipHe = $q('#skip').textContent === t('a.skip') && /[֐-׿]/.test($q('#skip').textContent); const banner = $q('#proto-banner').textContent.includes(t('banner.title')); UI.locale = 'en'; applyLocale(); route(true);
+    return { ok: nav && sheet && skipHe && banner, detail: 'nav=' + nav + ' sheet=' + sheet + ' skipHe=' + skipHe + ' banner=' + banner };
+  });
   /* ===== i18n / RTL ===== */
   await T('Hebrew switches to RTL, titles and chrome translate, and nothing renders the literal word "null" or a raw key', async () => {
     await reset(); UI.locale = 'he'; applyLocale(); route(true); await wait(60); const txt = document.body.innerText; const rtl = document.documentElement.dir === 'rtl' && document.documentElement.lang === 'he'; const nulls = $$('*').filter((e) => [...e.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim() === 'null')).length; const rawKeys = (txt.match(/\bpd\.[a-z_]+\.[a-z_.]+/g) || []).length;

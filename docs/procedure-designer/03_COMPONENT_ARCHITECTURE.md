@@ -18,7 +18,7 @@ The prototype is **not** the production structure; this describes how the produc
 `ProcedureStore` (load/save drafts, versions), `ValidationPort` (authoritative validation; the client may preview), `CatalogPort` (step catalogue, schemas, hints), `DriverLibraryPort`, `MetrologyPort`, `SafetyPort` (read-only AHL, profile lifecycle), `ReviewPort` (workflow, step-up), `SimulationPort` (start/step/pause/inject/resume/stream events), `I18nPort`, `PermissionPort`.
 
 ## Authoritative vs presentation
-Validation, hazard/coverage/effective-limit, diff classification and all simulation run **server-side or in the engine**; the UI shows results and never decides safety. The prototype computes them client-side only because it has no backend (**D-10**: where simulation runs — central vs station — is open; central must not talk to instruments, simulator only).
+Validation, hazard/coverage/effective-limit, diff classification and all simulation run **server-side or in the engine**; the UI shows results and never decides safety. The prototype computes them client-side only because it has no backend (**PD-DEC-004**: where simulation runs — central vs station — is open; central must not talk to instruments, simulator only).
 
 ## Editor state
 Command stack with merge window for typing (prototype: 900 ms); every structural op is one command; selection and focus restored after re-render; live-region announcements are part of the command result.

@@ -10,7 +10,7 @@ function parseHash() {
   const [path, qs] = (location.hash.replace(/^#\/?/, '') || 'dashboard').split('?');
   const q = Object.fromEntries(new URLSearchParams(qs || '')); return { seg: path.split('/').map(decodeURIComponent), q };
 }
-function applyLocale() { document.documentElement.lang = UI.locale; document.documentElement.dir = UI.locale === 'he' ? 'rtl' : 'ltr'; document.title = t('app.title'); }
+function applyLocale() { document.documentElement.lang = UI.locale; document.documentElement.dir = UI.locale === 'he' ? 'rtl' : 'ltr'; document.title = t('app.title'); const sk = document.getElementById('skip'); if (sk) sk.textContent = t('a.skip'); }
 function applyTheme() { document.documentElement.setAttribute('data-theme', UI.theme); document.documentElement.style.removeProperty('--primary'); }
 
 function buildChrome() {

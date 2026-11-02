@@ -1,26 +1,29 @@
 # 10 — Decisions, dependencies, contradictions, unresolved inputs
 
-IDs continue the Phase 1/1A registers; **D-06…D-17 below are new to this package** (earlier IDs not repeated). Nothing here is approved; "Owner" is a role, not a named person.
+**Identifier namespace.** Decisions new to this package use **`PD-DEC-nnn`** so they cannot collide with the Phase 1 register ([`docs/phase1/11_DECISIONS_REQUIRED.md`](../phase1/11_DECISIONS_REQUIRED.md), `D-01…D-26`). An earlier revision of this file wrongly reused `D-06…D-17`; those were renumbered (old → new: D-07→PD-DEC-001, D-08→002, D-09→003, D-10→004, D-11→005, D-12→006, D-13→007, D-14→008, D-15→009, D-16→010, D-17→011). The old D-06 was **not** a new decision: it is the existing **D-06** (who may author H2 commands), whose status is unchanged (open); it is only cross-referenced below. A CI check (`design/tools/check_decision_ids.py`, workflow `.github/workflows/design-prototype.yml`) now enforces uniqueness.
+
+Nothing here is approved; "Owner" is a role, not a named person. Recommendations live in [`docs/integration/03_GATE_A0_APPROVAL_MATRIX.md`](../integration/03_GATE_A0_APPROVAL_MATRIX.md).
 
 ## Decisions needed
 | ID | Decision | Why it matters | Owner | Blocks |
 |---|---|---|---|---|
-| D-06 | Introduce a **Hazardous Driver Author** role (H2 authoring) separate from engineers? | prototype assumes yes | Safety Officer + Quality Manager | Command Builder slice |
-| D-07 | Must an operation be `verified_by_reviewer` before use outside simulation? | driver trust model | LSMA / Quality | driver kind |
-| D-08 | Driver library lineage/versioning semantics (local copy of platform op) | updates & provenance | Architecture | driver kind |
-| D-09 | Accept the structured block tree (ADR-0006, *Proposed*) as the Workflow IR for the Designer | whole canvas model | Architecture | all Designer work |
-| D-10 | Where does the simulation run (central service vs station), and how is "central never talks to instruments" kept | architecture | Architecture | Simulation slice |
-| D-11 | Numeric functions/aggregations (`mean`, division precision) and **rounding/display rules** | metrology (MI) — prototype shows 12-digit quotients, not a rule | Metrologist | expression catalogue |
-| D-12 | PR-003 semantics (loops only vs loops, waits and retries); register DRV-001…014 | lint namespace | Architecture | validation |
-| D-13 | Resume semantics: re-assert state through Broker vs restore from snapshot | engine correctness | Engine owner | recovery |
-| D-14 | How a procedure selects/pins a Safety Profile (explicit pin vs scope-based) | safety governance | Safety Officer | safety UI |
-| D-15 | Approval matrix: author/approver/co-approver for profiles and for safety-affecting procedure changes; whether simulation evidence gates review | governance | Quality Manager | review UI |
-| D-16 | Remappable keyboard shortcuts (Alt+Arrow collisions) | accessibility | UX | Designer |
-| D-17 | Supported device classes for authoring vs review | responsive scope | Product | Designer |
+| *D-06 (existing, open — cross-reference only)* | Who may author H2 commands (the prototype **assumes** option (a): a separate Hazardous Driver Author role; not approved) | see Phase 1 register | per register | Command Builder slice |
+| PD-DEC-001 | Must an operation be `verified_by_reviewer` before use outside simulation? | driver trust model | LSMA / Quality | driver kind |
+| PD-DEC-002 | Driver library lineage/versioning semantics (local copy of platform op) | updates & provenance | Architecture | driver kind |
+| PD-DEC-003 | Accept the structured block tree (ADR-0006, *Proposed*) as the Workflow IR for the Designer | whole canvas model | Architecture | all Designer work |
+| PD-DEC-004 | Where does the simulation run (central service vs station), and how is "central never talks to instruments" kept | architecture | Architecture | Simulation slice |
+| PD-DEC-005 | Numeric functions/aggregations (`mean`, division precision) and **rounding/display rules** | metrology (MI) — prototype shows 12-digit quotients, not a rule | Metrologist | expression catalogue |
+| PD-DEC-006 | PR-003 semantics (loops only vs loops, waits and retries); register DRV-001…014 | lint namespace | Architecture | validation |
+| PD-DEC-007 | Resume semantics: re-assert state through Broker vs restore from snapshot | engine correctness | Engine owner | recovery |
+| PD-DEC-008 | How a procedure selects/pins a Safety Profile (explicit pin vs scope-based) | safety governance | Safety Officer | safety UI |
+| PD-DEC-009 | Approval matrix: author/approver/co-approver for profiles and for safety-affecting procedure changes; whether simulation evidence gates review | governance | Quality Manager | review UI |
+| PD-DEC-010 | Remappable keyboard shortcuts (Alt+Arrow collisions) | accessibility | UX | Designer |
+| PD-DEC-011 | Supported device classes for authoring vs review | responsive scope | Product | Designer |
+| PD-DEC-012 | Schedule of the Procedure Designer + Simulation Lab relative to Phase 1A/1B (roadmap M1.6 includes a minimal Simulation Lab, but phase1/13 §2.2 excludes procedures/engine/simulator from Phase 1A) | sequencing; avoids building on Proposed ADR-0006 | Product owner | all Designer implementation |
 | Q-08 / MI-01 | Use of vendor documentation, logos, trademarks | licensing | Legal | real drivers |
 
 ## Contradictions / gaps found (not silently resolved)
-1. **Missing catalogue entries** for reference-standard selection and identification (G-1…G-3); the prototype marks `standard.require` as *Proposed*.
+1. **Missing catalogue entries** for reference-standard selection and identification (PD-GAP-1…PD-GAP-3); the prototype marks `standard.require` as *Proposed*.
 2. **Uncertainty/decision-rule editors** are Phase 2 in the roadmap but the mission requires their UX: the prototype shows locked, not-evaluated placeholders.
 3. **ADR-0006 is Proposed** while the Phase 1 handoff already assumes it.
 4. **Codex `PHASE1A_GATE_A0.md`** overlaps with `docs/phase1a/05_GATE_A0_APPROVAL_PACKAGE.md` (carried from Phase 1A); unchanged here.
