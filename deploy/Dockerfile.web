@@ -1,12 +1,14 @@
 FROM node:22-alpine
 WORKDIR /opt/calos
 RUN corepack enable
-COPY package.json pnpm-workspace.yaml ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY apps/web/package.json apps/web/package.json
 COPY packages/ts/domain-types/package.json packages/ts/domain-types/package.json
-RUN pnpm install --no-frozen-lockfile
+COPY packages/ts/i18n/package.json packages/ts/i18n/package.json
+RUN pnpm install --frozen-lockfile --ignore-scripts
 COPY apps/web apps/web
 COPY packages/ts/domain-types packages/ts/domain-types
+COPY packages/ts/i18n packages/ts/i18n
 COPY fixtures/manufacturer fixtures/manufacturer
 ARG VITE_ENVIRONMENT_KIND=test
 ENV VITE_ENVIRONMENT_KIND=${VITE_ENVIRONMENT_KIND}
