@@ -5,12 +5,13 @@ from __future__ import annotations
 import base64
 import binascii
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Callable
+from typing import Callable, Literal
 
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 
 from calos_domain import DeploymentIdentity
 from calos_metadata import PackageError, PackageParser
@@ -35,6 +36,19 @@ class TrustedMetadataKey:
     valid_from: datetime
     valid_until: datetime
 
+    def __post_init__(self) -> None:
+        if (
+            not self.key_id
+            or not self.issuer_id
+            or not self.publisher_id
+            or not self.tenant_id
+            or not isinstance(self.public_key, Ed25519PublicKey)
+            or self.valid_from.tzinfo is None
+            or self.valid_until.tzinfo is None
+            or self.valid_from >= self.valid_until
+        ):
+            raise VerificationError("PACKAGE_TRUST_INVALID")
+
 
 @dataclass(frozen=True)
 class PackageTrustSnapshot:
@@ -43,6 +57,20 @@ class PackageTrustSnapshot:
     expires_at: datetime
     revoked_key_ids: frozenset[str] = frozenset()
     revoked_package_ids: frozenset[str] = frozenset()
+
+    def __post_init__(self) -> None:
+        keys = tuple(self.keys)
+        ids = [key.key_id for key in keys]
+        if (
+            self.expires_at.tzinfo is None
+            or not keys
+            or len(ids) != len(set(ids))
+            or any(key.deployment != self.deployment for key in keys)
+        ):
+            raise VerificationError("PACKAGE_TRUST_INVALID")
+        object.__setattr__(self, "keys", keys)
+        object.__setattr__(self, "revoked_key_ids", frozenset(self.revoked_key_ids))
+        object.__setattr__(self, "revoked_package_ids", frozenset(self.revoked_package_ids))
 
 
 @dataclass(frozen=True)
@@ -58,16 +86,22 @@ class VerificationReceipt:
     issuer_id: str
     deployment_id: str
     environment_kind: str
-    simulated: bool = True
-    non_operational: bool = True
+    simulated: Literal[True] = field(default=True, init=False)
+    non_operational: Literal[True] = field(default=True, init=False)
 
 
 def _timestamp(value: str) -> datetime:
-    if not value.endswith("Z"):
+    if (
+        re.fullmatch(
+            r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]{1,6})?Z",
+            value,
+        )
+        is None
+    ):
         raise VerificationError("PACKAGE_TIME_INVALID")
     try:
         parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
-    except (ValueError, binascii.Error) as exc:
+    except ValueError as exc:
         raise VerificationError("PACKAGE_TIME_INVALID") from exc
     if parsed.tzinfo is None:
         raise VerificationError("PACKAGE_TIME_INVALID")
@@ -86,7 +120,7 @@ def _signature(value: str) -> bytes:
         raise VerificationError("PACKAGE_SIGNATURE_INVALID")
     try:
         decoded = base64.urlsafe_b64decode(value + "==")
-    except ValueError as exc:
+    except (ValueError, binascii.Error) as exc:
         raise VerificationError("PACKAGE_SIGNATURE_INVALID") from exc
     if len(decoded) != 64 or base64.urlsafe_b64encode(decoded).decode().rstrip("=") != value:
         raise VerificationError("PACKAGE_SIGNATURE_INVALID")
@@ -105,6 +139,12 @@ class PackageVerifier:
     ) -> None:
         if trust.deployment != deployment:
             raise VerificationError("DEPLOYMENT_MISMATCH")
+        auth_key_bytes = authenticator.trusted_public_key_bytes()
+        if any(
+            key.public_key.public_bytes(Encoding.Raw, PublicFormat.Raw) in auth_key_bytes
+            for key in trust.keys
+        ):
+            raise VerificationError("TRUST_ROLE_CONFLICT")
         self._deployment = deployment
         self._parser = parser
         self._authenticator = authenticator
@@ -112,11 +152,17 @@ class PackageVerifier:
         self._runtime = _version(runtime_version)
         self._clock = clock
 
+    @property
+    def deployment(self) -> DeploymentIdentity:
+        return self._deployment
+
     def verify(self, raw: bytes, authorization: str | None) -> VerificationReceipt:
         try:
             principal = self._authenticator.authenticate(authorization)
         except AuthError as exc:
             raise VerificationError(exc.code) from exc
+        if principal.deployment != self._deployment:
+            raise VerificationError("DEPLOYMENT_MISMATCH")
         if self._deployment.environment_kind != "test":
             raise VerificationError("PRODUCTION_CHANGE_CONTROL")
         if "package.import" not in principal.permissions:

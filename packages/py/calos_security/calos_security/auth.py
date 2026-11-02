@@ -12,6 +12,7 @@ from typing import Callable, Mapping
 
 import jwt
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 
 from calos_domain import DeploymentIdentity
 
@@ -32,7 +33,19 @@ class AuthTrustSnapshot:
     revoked_key_ids: frozenset[str] = frozenset()
 
     def __post_init__(self) -> None:
+        if (
+            not self.issuer
+            or not self.audience
+            or self.expires_at.tzinfo is None
+            or not self.public_keys
+            or any(
+                not isinstance(kid, str) or not kid or not isinstance(key, Ed25519PublicKey)
+                for kid, key in self.public_keys.items()
+            )
+        ):
+            raise AuthError("AUTH_TRUST_INVALID")
         object.__setattr__(self, "public_keys", MappingProxyType(dict(self.public_keys)))
+        object.__setattr__(self, "revoked_key_ids", frozenset(self.revoked_key_ids))
 
 
 @dataclass(frozen=True)
@@ -55,6 +68,12 @@ class JwtAuthenticator:
         self._deployment = deployment
         self._trust = trust
         self._clock = clock
+
+    def trusted_public_key_bytes(self) -> frozenset[bytes]:
+        return frozenset(
+            key.public_bytes(Encoding.Raw, PublicFormat.Raw)
+            for key in self._trust.public_keys.values()
+        )
 
     def authenticate(self, authorization: str | None) -> Principal:
         now = self._clock()
@@ -108,6 +127,12 @@ class JwtAuthenticator:
         except (jwt.PyJWTError, ValueError, TypeError) as exc:
             raise AuthError("UNAUTHENTICATED") from exc
         if claims.get("principal_type") != "user":
+            raise AuthError("UNAUTHENTICATED")
+        for claim in ("exp", "iat", "nbf"):
+            if isinstance(claims.get(claim), bool) or not isinstance(claims.get(claim), int):
+                raise AuthError("UNAUTHENTICATED")
+        instant = now.timestamp()
+        if claims["exp"] <= instant or claims["iat"] > instant or claims["nbf"] > instant:
             raise AuthError("UNAUTHENTICATED")
         subject = claims.get("sub")
         tenant_id = claims.get("tenant_id")

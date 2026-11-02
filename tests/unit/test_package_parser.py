@@ -5,6 +5,7 @@ import unittest
 from pathlib import Path
 
 from calos_metadata import PackageError, PackageParser, content_digest
+from calos_metadata.package import MAX_PACKAGE_BYTES
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -70,6 +71,14 @@ class PackageParserTests(unittest.TestCase):
         with self.assertRaises(PackageError) as caught:
             self.parser.parse(raw_float.encode())
         self.assertEqual(caught.exception.code, "PACKAGE_NUMBER_UNSUPPORTED")
+
+    def test_oversize_and_deep_json_rejected(self) -> None:
+        with self.assertRaises(PackageError) as caught:
+            self.parser.parse(b" " * (MAX_PACKAGE_BYTES + 1))
+        self.assertEqual(caught.exception.code, "PACKAGE_TOO_LARGE")
+        with self.assertRaises(PackageError) as caught:
+            self.parser.parse(b"[" * 70 + b"0" + b"]" * 70)
+        self.assertEqual(caught.exception.code, "PACKAGE_COMPLEXITY_LIMIT")
 
 
 if __name__ == "__main__":

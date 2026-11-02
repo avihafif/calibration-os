@@ -112,6 +112,12 @@ ratification before operational use. No production trust root or private signing
 key has been configured. The Phase 0A Compose migrations and shells passed in
 GitHub Actions, not on the initial Windows host.
 
+**Phase 0B review note:** the temporary test-key approval is limited to keys
+generated in process memory. No ADR-0004/0014 ratifier or approved policy was
+named. The PR must remain a verification-only proposal until those decisions
+are recorded; the [Phase 0C proposal](docs/PHASE0C_PROPOSAL.md) separates
+independent preparatory work from decision-gated trust and identity work.
+
 ## 7. Style
 - Python ≥ 3.12, `mypy --strict` on core packages, `ruff`; Pydantic v2 models generated from `schemas/` where applicable; no global mutable state in the runtime; time/IDs/random via injected ports.
 - TypeScript `strict`; no `any` in `ui-runtime`/`editor-core`; React function components; state via query cache + editor command stack; all text via i18n; logical CSS properties only.

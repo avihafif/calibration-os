@@ -3,6 +3,11 @@
 Status: review request, 2026-11-02. This matrix does not ratify any ADR or
 authorize a production trust root. Phase 0B remains simulation-only.
 
+The user approved ephemeral Ed25519 keys **in test memory only**. No person
+authorized to ratify ADR-0004/0014 and no approved expiry, revocation or user
+authentication policy was identified. Their status remains Proposed. See the
+[Phase 0C proposal](PHASE0C_PROPOSAL.md) for decisions and safe independent work.
+
 | Decision | Current status | Phase 0B consequence | Human review needed |
 | --- | --- | --- | --- |
 | ADR-0022 E6, Ed25519 and TUF-style metadata | Accepted | Permits a verifier with injected public trust material and no private production key | No new ratification; select and review the implementation library |
@@ -28,7 +33,7 @@ authorize a production trust root. Phase 0B remains simulation-only.
    storage and issuer approval workflows are out of scope. Test keys are
    generated in memory by tests and never shipped as trusted material.
 4. Require a verified principal from an authentication port before applying
-   `package.verify` permission and tenant/deployment scope. Until ADR-0014 is
+   `package.import` permission and tenant/deployment scope. Until ADR-0014 is
    ratified and a real token issuer is provisioned, no public authenticated
    package endpoint or credential bootstrap is exposed.
 5. Keep lifecycle interfaces read-only or unimplemented. Verification creates
@@ -49,3 +54,9 @@ authorize a production trust root. Phase 0B remains simulation-only.
   approval and dual-controlled Trusted Release Issuers.
 - Appoint MI-34 role holders and decide Q-15. These decisions are not inferred
   from code review or CI success.
+
+**Review finding:** the Phase 0B verifier checks the caller principal against
+the verifier's deployment even if an authenticator is miswired, freezes
+injected trust snapshots, and rejects using the same public key for JWT and
+package-signing roles. Those checks implement accepted deployment/key
+separation; they do not establish an approved trust-root provisioning process.

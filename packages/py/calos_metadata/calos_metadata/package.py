@@ -12,6 +12,8 @@ from .canonical import Json, canonical_bytes, content_digest
 from .schema import SchemaError, SchemaRegistry, validate_document
 
 MAX_PACKAGE_BYTES = 1_048_576
+MAX_JSON_DEPTH = 64
+MAX_JSON_NODES = 10_000
 
 
 class PackageError(ValueError):
@@ -43,6 +45,20 @@ def _reject_number(_: str) -> None:
     raise PackageError("PACKAGE_NUMBER_UNSUPPORTED")
 
 
+def _check_shape(value: Any) -> None:
+    stack: list[tuple[Any, int]] = [(value, 0)]
+    seen = 0
+    while stack:
+        node, depth = stack.pop()
+        seen += 1
+        if depth > MAX_JSON_DEPTH or seen > MAX_JSON_NODES:
+            raise PackageError("PACKAGE_COMPLEXITY_LIMIT")
+        if isinstance(node, dict):
+            stack.extend((child, depth + 1) for child in node.values())
+        elif isinstance(node, list):
+            stack.extend((child, depth + 1) for child in node)
+
+
 class PackageParser:
     def __init__(self, repository_root: Path) -> None:
         self._registry = SchemaRegistry(repository_root)
@@ -66,6 +82,7 @@ class PackageParser:
             raise
         except (UnicodeError, ValueError, RecursionError) as exc:
             raise PackageError("PACKAGE_MALFORMED") from exc
+        _check_shape(envelope)
         if not isinstance(envelope, dict) or set(envelope) != {
             "manifest",
             "content",

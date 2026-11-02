@@ -147,6 +147,11 @@ create a version, approve, release, assign, or provide a graphical workflow.
 The row's NC classification describes the target product capability, not a
 claim that the complete operation is implemented. Trust-root and authentication
 policies remain dependent on Proposed ADR-0004 and ADR-0014.
+Phase 0B hardening also enforces package size and JSON complexity limits,
+strict time strings and distinct JWT/package public-key roles. These are
+runtime verification controls, not authored application behavior or a new
+configuration kind. The [Phase 0C proposal](PHASE0C_PROPOSAL.md) keeps the
+future GUI and lifecycle work gated by the relevant ADRs.
 
 ## 7. Summary
 

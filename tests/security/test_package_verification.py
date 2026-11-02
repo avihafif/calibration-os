@@ -17,6 +17,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from calos_domain import DeploymentIdentity
 from calos_metadata import PackageParser, canonical_bytes, content_digest
 from calos_security import (
+    AuthError,
     AuthTrustSnapshot,
     JwtAuthenticator,
     PackageTrustSnapshot,
@@ -169,6 +170,11 @@ class VerificationTests(unittest.TestCase):
         self.assert_rejected(
             "UNAUTHENTICATED", self.envelope(), self.token(principal_type="station")
         )
+        self.assert_rejected(
+            "UNAUTHENTICATED",
+            self.envelope(),
+            self.token(exp=str(int((self.now + timedelta(minutes=30)).timestamp()))),
+        )
 
     def test_trust_material_cannot_be_reused_across_deployments(self) -> None:
         other = DeploymentIdentity(OTHER_ID, "production_rehearsal")
@@ -181,6 +187,75 @@ class VerificationTests(unittest.TestCase):
                 "0.1.0",
             )
         self.assertEqual(caught.exception.code, "DEPLOYMENT_MISMATCH")
+        with self.assertRaises(AuthError) as caught:
+            JwtAuthenticator(other, self.auth_trust)
+        self.assertEqual(caught.exception.code, "DEPLOYMENT_MISMATCH")
+        other_auth = JwtAuthenticator(other, replace(self.auth_trust, deployment=other))
+        miswired = PackageVerifier(
+            TEST_ID, self.parser, other_auth, self.package_trust, "0.1.0", lambda: self.now
+        )
+        with self.assertRaises(VerificationError) as caught:
+            miswired.verify(
+                json.dumps(self.envelope()).encode(),
+                self.token(deployment_id=OTHER_ID, environment_kind="production_rehearsal"),
+            )
+        self.assertEqual(caught.exception.code, "DEPLOYMENT_MISMATCH")
+        with self.assertRaises(VerificationError) as caught:
+            replace(self.package_trust, keys=(self.package_key, self.package_key))
+        self.assertEqual(caught.exception.code, "PACKAGE_TRUST_INVALID")
+        with self.assertRaises(AuthError) as caught:
+            replace(self.auth_trust, expires_at=self.now.replace(tzinfo=None))
+        self.assertEqual(caught.exception.code, "AUTH_TRUST_INVALID")
+
+    def test_production_rehearsal_rejects_direct_metadata_verification(self) -> None:
+        rehearsal = DeploymentIdentity(OTHER_ID, "production_rehearsal")
+        rehearsal_auth = JwtAuthenticator(rehearsal, replace(self.auth_trust, deployment=rehearsal))
+        rehearsal_key = replace(self.package_key, deployment=rehearsal)
+        rehearsal_trust = PackageTrustSnapshot(
+            rehearsal, (rehearsal_key,), self.now + timedelta(hours=1)
+        )
+        verifier = PackageVerifier(
+            rehearsal,
+            self.parser,
+            rehearsal_auth,
+            rehearsal_trust,
+            "0.1.0",
+            lambda: self.now,
+        )
+        with self.assertRaises(VerificationError) as caught:
+            verifier.verify(
+                json.dumps(self.envelope()).encode(),
+                self.token(deployment_id=OTHER_ID, environment_kind="production_rehearsal"),
+            )
+        self.assertEqual(caught.exception.code, "PRODUCTION_CHANGE_CONTROL")
+
+    def test_trust_snapshots_are_immutable_and_key_roles_separate(self) -> None:
+        package_keys = [self.package_key]
+        revoked = {"previous-package"}
+        snapshot = PackageTrustSnapshot(
+            TEST_ID,
+            package_keys,
+            self.now + timedelta(hours=1),
+            revoked_package_ids=revoked,
+        )
+        package_keys.clear()
+        revoked.add("synthetic-package")
+        self.assertEqual(len(snapshot.keys), 1)
+        self.assertNotIn("synthetic-package", snapshot.revoked_package_ids)
+        auth_keys = {"auth-key": self.auth_private.public_key()}
+        auth_snapshot = AuthTrustSnapshot(
+            TEST_ID,
+            "fixture-auth-issuer",
+            "calos-phase0b-test",
+            auth_keys,
+            self.now + timedelta(hours=1),
+        )
+        auth_keys.clear()
+        self.assertEqual(len(auth_snapshot.public_keys), 1)
+        reused = replace(self.package_key, public_key=self.auth_private.public_key())
+        with self.assertRaises(VerificationError) as caught:
+            self.verifier(replace(self.package_trust, keys=(reused,)))
+        self.assertEqual(caught.exception.code, "TRUST_ROLE_CONFLICT")
 
     def test_unknown_revoked_and_stale_trust_rejected(self) -> None:
         self.assert_rejected("RELEASE_ISSUER_UNTRUSTED", self.envelope(key_id="unknown"))
@@ -220,6 +295,9 @@ class VerificationTests(unittest.TestCase):
         self.assert_rejected(
             "PACKAGE_PROVENANCE_UNSUPPORTED", self.envelope(provenance_status="authored")
         )
+        self.assert_rejected(
+            "SCHEMA_PATTERN:/issued_at", self.envelope(issued_at="2026-11-01 00:00:00Z")
+        )
 
     def test_api_requires_injected_trust_and_authenticated_permission(self) -> None:
         with patch.dict(
@@ -247,9 +325,18 @@ class VerificationTests(unittest.TestCase):
             "VERIFIER_UNAVAILABLE",
         )
         app = create_app(TEST_ID, self.verifier())
+        with self.assertRaisesRegex(ValueError, "DEPLOYMENT_MISMATCH"):
+            create_app(OTHER_ID, self.verifier())
         self.assertEqual(asyncio.run(post(app, payload)).status_code, 401)
-        denied = asyncio.run(post(app, payload, self.token(permissions=[])))
+        denied_token = self.token(permissions=[])
+        with self.assertLogs("calos.api.package_verification", level="WARNING") as captured:
+            denied = asyncio.run(post(app, payload, denied_token))
         self.assertEqual((denied.status_code, denied.json()["code"]), (403, "FORBIDDEN"))
+        self.assertEqual(denied.headers["content-type"], "application/problem+json")
+        self.assertEqual(denied.headers["x-request-id"], denied.json()["correlation_id"])
+        self.assertEqual(captured.records[0].code, "FORBIDDEN")
+        self.assertEqual(captured.records[0].correlation_id, denied.json()["correlation_id"])
+        self.assertNotIn(denied_token, "\n".join(captured.output))
         accepted = asyncio.run(post(app, payload, self.token()))
         self.assertEqual(accepted.status_code, 200)
         self.assertTrue(accepted.json()["simulated"])
@@ -259,6 +346,20 @@ class VerificationTests(unittest.TestCase):
         rejected = asyncio.run(post(app, tampered, self.token()))
         self.assertEqual(
             (rejected.status_code, rejected.json()["code"]), (422, "PACKAGE_DIGEST_MISMATCH")
+        )
+
+        async def oversized() -> httpx.Response:
+            transport = httpx.ASGITransport(app=app)
+            async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+                return await client.post(
+                    "/api/v1/config/packages/verify",
+                    content=b"x" * 1_048_577,
+                    headers={"Authorization": self.token()},
+                )
+
+        too_large = asyncio.run(oversized())
+        self.assertEqual(
+            (too_large.status_code, too_large.json()["code"]), (413, "PACKAGE_TOO_LARGE")
         )
 
 
