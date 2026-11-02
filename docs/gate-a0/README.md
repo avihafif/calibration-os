@@ -1,6 +1,6 @@
 # Gate A0 closure package
 
-Status: **preparation for human decisions. No approval is recorded; every sign-off field is blank.** Prepared 2026-11-02 after PRs #1–#5 were merged into `main`. Nothing in this package changes Codex-owned source, any ADR, or any register; PR #6 is not merged.
+**Current status (2026-11-02, after PR #6 merge):** R-4 is merged into `main` at `19e81df`; ADR-0025 is Accepted. Scoped WP-1A-1 product/architecture/dependency decisions are documented by delegation in [06](06_PRODUCT_OWNER_DECISIONS_2026-11-02.md) and [13](13_DELEGATED_ARCHITECTURE_SECURITY_LEGAL_RECORD_2026-11-02.md), **not independently reviewed or legally certified**. ADR-0001/0015 and dependency ADR-0026 are proposed to be recorded in PR #9. Full Gate A0 remains **CLOSED**. Historical review and blank approval forms below are retained as evidence of earlier states.
 
 | File | Purpose |
 |---|---|
@@ -21,4 +21,4 @@ Status: **preparation for human decisions. No approval is recorded; every sign-o
 
 **Form ids** (`GA0-nn`) identify these forms only; `D-nn`, `PD-DEC-nnn`, `A0-n` and ADR numbers keep their meaning and status. The decision-identifier check (`design/tools/check_decision_ids.py`) continues to pass.
 
-**Headline (updated).** After Codex's correction round, PR #6 is technically ready to merge as an R-4-only change with two human conditions ([07](07_PR6_FINAL_REVIEW_VERDICT.md)); the first-round verdict in [01](01_PR6_INDEPENDENT_REVIEW.md) is historical. WP-1A-1 is blocked only by unrecorded architecture/security/legal decisions ([10](10_WP-1A-1_SCOPED_READINESS_AND_APPROVALS.md)); the full Gate A0 stays closed.
+**Headline (current).** PR #6 R-4 has merged and main CI is green. This PR #9 consolidates scoped WP-1A-1 documentation and delegated approvals, but does not deliver application code or any independent security/legal review. Before Codex starts WP-1A-1 sub-PR 1a, reconcile the accepted ADR-0001 A1–A4 specs and run dependency audits when dependencies are actually introduced; keep full Gate A0 closed.
