@@ -1,0 +1,53 @@
+name: Design prototype checks (non-product)
+
+# Standalone workflow for the DESIGN PROTOTYPES and design documentation only (design/**, docs/**).
+# It is deliberately separate from phase0a.yml (Python/application CI owned by the implementation team).
+# These are prototype QA checks. They are NOT operational product tests and prove nothing about the product.
+# To make failures block merging, add the two jobs below as required status checks in branch protection (repository owner's setting).
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  prototype-tests:
+    name: Prototype QA (Node, dependency-free)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Phase 1A prototype design-rule checks
+        run: node design/phase1a-prototype/tests/prototype.test.js
+      - name: Procedure Designer prototype checks
+        run: node design/procedure-designer-prototype/tests/pd.test.js
+      - name: Procedure Designer translation completeness (en/he)
+        run: node design/procedure-designer-prototype/tests/i18n-audit.js
+      - name: Cross-prototype consistency
+        run: node design/tools/check_prototype_consistency.js
+      - name: Syntax check of every prototype and tool script
+        run: |
+          set -e
+          for f in design/phase1a-prototype/js/*.js design/phase1a-prototype/tests/*.js design/procedure-designer-prototype/js/*.js design/procedure-designer-prototype/tests/*.js design/tools/*.js; do node --check "$f"; done
+      - name: Summary
+        if: always()
+        run: |
+          echo "### Design prototype checks (non-product)" >> "$GITHUB_STEP_SUMMARY"
+          echo "Automated prototype QA only. In-browser flow and accessibility scripts (design/procedure-designer-prototype/tests/*-in-page.js) are run manually and are not part of this job." >> "$GITHUB_STEP_SUMMARY"
+
+  decision-ids:
+    name: Decision identifier uniqueness
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Checker self-test
+        run: python design/tools/check_decision_ids.py --self-test
+      - name: Repository-wide decision identifier check
+        run: python design/tools/check_decision_ids.py

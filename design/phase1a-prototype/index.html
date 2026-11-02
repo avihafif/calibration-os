@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en" dir="ltr" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="robots" content="noindex">
+<title>CalOS Application Builder — design prototype</title>
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<a class="skip" id="skip" href="#main">Skip to content</a>
+<div id="app">
+  <div id="proto-banner" class="proto-banner" role="note"></div>
+  <header id="topbar" class="topbar" role="banner"></header>
+  <div class="shell">
+    <nav id="nav" class="nav" aria-label="Main"></nav>
+    <main id="main" tabindex="-1"></main>
+  </div>
+  <footer id="statusbar" class="statusbar" role="contentinfo"></footer>
+</div>
+<div id="toasts" aria-live="polite" aria-atomic="false"></div>
+<div id="sr-live" class="sr-only" aria-live="polite"></div>
+<noscript>This design prototype requires JavaScript. It runs entirely in the browser with synthetic data and makes no network requests.</noscript>
+<script src="js/engine.js"></script>
+<script src="js/data.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/views.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
