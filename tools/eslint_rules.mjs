@@ -36,7 +36,22 @@ export const calosRules = {
             inspect(node.source.value, node);
           },
           ImportExpression(node) {
+            if (
+              node.source.type !== "Literal" ||
+              typeof node.source.value !== "string"
+            ) {
+              context.report({ node, messageId: "forbidden" });
+              return;
+            }
             inspect(node.source.value, node);
+          },
+          CallExpression(node) {
+            if (
+              node.callee.type === "Identifier" &&
+              node.callee.name === "require"
+            ) {
+              context.report({ node, messageId: "forbidden" });
+            }
           },
         };
       },

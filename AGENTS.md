@@ -124,6 +124,17 @@ The [Phase 0B security closure matrix](docs/PHASE0B_SECURITY_CLOSURE.md)
 records three open High **activation gates** from independent review; the
 [Gate A0 checklist](docs/PHASE1A_GATE_A0.md) remains unapproved.
 
+**WP-1A-1a local verification (2026-11-02, Windows workspace):** the bilingual
+React demonstration and `packages/ts/i18n` pass `pnpm check:ts`,
+`pnpm check:browser-types`, `pnpm lint:ts`, `pnpm lint:logical-css`,
+`pnpm test:ts-boundary` (60 negative probes), `pnpm test:frontend` (17 tests),
+`pnpm build:web`, `node tools/check_frontend_bundle.mjs` and
+`pnpm test:e2e` (one English/Hebrew keyboard, RTL and accessibility browser
+test). `pnpm test:schema-vectors` and the existing Python checks pass. The
+frontend supply-chain gates are checked independently at installation and
+remain required in CI. These checks do not open Gate A0 or enable Builder,
+operational signing, storage, hardware or calibration capabilities.
+
 ## 7. Style
 - Python ≥ 3.12, `mypy --strict` on core packages, `ruff`; Pydantic v2 models generated from `schemas/` where applicable; no global mutable state in the runtime; time/IDs/random via injected ports.
 - TypeScript `strict`; no `any` in `ui-runtime`/`editor-core`; React function components; state via query cache + editor command stack; all text via i18n; logical CSS properties only.

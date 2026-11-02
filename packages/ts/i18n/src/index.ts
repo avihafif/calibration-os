@@ -25,7 +25,9 @@ export interface MessageBundleProvider {
 
 export const systemMessageProvider: MessageBundleProvider = Object.freeze({
   systemMessages(locale: SystemLocale) {
-    return locale === "he" ? heMessages : enMessages;
+    if (locale === "en") return enMessages;
+    if (locale === "he") return heMessages;
+    throw new Error("UNSUPPORTED_LOCALE");
   },
 });
 
@@ -33,7 +35,8 @@ export function messageReviewStatus(
   locale: SupportedLocale,
   key: SystemMessageKey,
 ): ReviewStatus {
-  if (!(key in enMessages)) throw new Error("UNKNOWN_SYSTEM_MESSAGE");
+  if (!Object.hasOwn(enMessages, key))
+    throw new Error("UNKNOWN_SYSTEM_MESSAGE");
   return baseLocale(locale) === "he" ? "needs_review" : "reviewed";
 }
 

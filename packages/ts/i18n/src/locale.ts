@@ -4,7 +4,16 @@ export type SupportedLocale = SystemLocale | PseudoLocale;
 export type Direction = "ltr" | "rtl";
 
 export function baseLocale(locale: SupportedLocale): SystemLocale {
-  return locale === "he" || locale === "he-XB" ? "he" : "en";
+  switch (locale) {
+    case "en":
+    case "en-XA":
+      return "en";
+    case "he":
+    case "he-XB":
+      return "he";
+    default:
+      throw new Error("UNSUPPORTED_LOCALE");
+  }
 }
 
 export function directionForLocale(locale: SupportedLocale): Direction {

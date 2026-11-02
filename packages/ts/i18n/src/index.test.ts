@@ -94,6 +94,13 @@ describe("compiled system localization", () => {
       "MISSING_MESSAGE_VALUE",
     );
   });
+  it("fails closed on unsupported runtime locales and inherited keys", () => {
+    expect(() => baseLocale("fr" as "en")).toThrow("UNSUPPORTED_LOCALE");
+    expect(() => createSystemI18n("fr" as "en")).toThrow("UNSUPPORTED_LOCALE");
+    expect(() => messageReviewStatus("en", "toString" as "app.title")).toThrow(
+      "UNKNOWN_SYSTEM_MESSAGE",
+    );
+  });
   it("rejects unknown keys at runtime despite compile-time key typing", () => {
     expect(() =>
       createSystemI18n("en").format("unknown.key" as "app.title"),

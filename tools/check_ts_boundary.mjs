@@ -87,6 +87,18 @@ await probe(
   "calos/import-boundary",
 );
 tested += 1;
+await probe(
+  "packages/ts/i18n/src/boundary-probe.ts",
+  'void import("../../../../design/" + "prototype.js");',
+  "calos/import-boundary",
+);
+tested += 1;
+await probe(
+  "packages/ts/i18n/src/boundary-probe.ts",
+  'require("../../../../design/prototype.js");',
+  "calos/import-boundary",
+);
+tested += 1;
 process.stdout.write(
   `TypeScript boundary and UI-string negative probes passed: ${tested}.\n`,
 );
