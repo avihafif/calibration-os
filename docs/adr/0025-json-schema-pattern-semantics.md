@@ -1,9 +1,11 @@
 # ADR-0025: JSON Schema pattern semantics for the metadata engine
 
-Status: **Proposed — pending verifiable owner confirmation.** A task-thread
-reply selected standard semantics, but this repository has no named owner,
-role, date and review record establishing architectural ratification. This
-corrects a premature status claim before PR #6 merges.
+Status: **Accepted** · Date: 2026-11-02 · Decider: Avi Hafif, Product Owner.
+The [owner's PR #6 comment](https://github.com/avihafif/calibration-os/pull/6#issuecomment-6586557689)
+confirms this decision in substance and directs that its status be updated.
+The delegated record is in [PR #9](https://github.com/avihafif/calibration-os/pull/9)
+(`docs/gate-a0/13_DELEGATED_ARCHITECTURE_SECURITY_LEGAL_RECORD_2026-11-02.md`, P-8).
+This is an owner decision, not an independent security or metrology approval.
 
 ## Context
 
@@ -37,7 +39,7 @@ authorize user-authored regex or arbitrary schema registration through an API.
   emulate it. Rejected because the schema advertises Draft 2020-12.
 - Use search semantics without anchoring existing patterns. Rejected because
   it broadens signed manifest acceptance.
-- Use search semantics and explicit cross-language absolute anchors. Proposed.
+- Use search semantics and explicit cross-language absolute anchors. Chosen.
 
 ## Consequences (positive / negative / risks)
 
