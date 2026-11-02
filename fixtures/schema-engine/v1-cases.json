@@ -1,0 +1,57 @@
+{
+  "schema": "schemas/schema-proof/v1.schema.json",
+  "cases": [
+    {
+      "id": "valid-nested-union-and-optional-omission",
+      "valid": true,
+      "content": {"name": "Synthetic preview", "mode": "preview", "entries": [{"tag": "text", "value": "sample"}, {"tag": "count", "value": 0}]}
+    },
+    {
+      "id": "valid-integer-upper-bound",
+      "valid": true,
+      "content": {"name": "Synthetic preview", "mode": "preview", "entries": [{"tag": "count", "value": 20}], "note": "test only", "label": {"$t": "schema.proof.name"}}
+    },
+    {
+      "id": "missing-required",
+      "valid": false,
+      "code": "SCHEMA_REQUIRED",
+      "pointer": "/name",
+      "content": {"mode": "preview", "entries": [{"tag": "text", "value": "sample"}]}
+    },
+    {
+      "id": "unknown-nested-property",
+      "valid": false,
+      "code": "SCHEMA_ONEOF_NONE",
+      "pointer": "/entries/0",
+      "content": {"name": "Synthetic preview", "mode": "preview", "entries": [{"tag": "text", "value": "sample", "unknown": true}]}
+    },
+    {
+      "id": "const-mismatch",
+      "valid": false,
+      "code": "SCHEMA_CONST",
+      "pointer": "/mode",
+      "content": {"name": "Synthetic preview", "mode": "active", "entries": [{"tag": "text", "value": "sample"}]}
+    },
+    {
+      "id": "integer-out-of-bounds",
+      "valid": false,
+      "code": "SCHEMA_ONEOF_NONE",
+      "pointer": "/entries/0",
+      "content": {"name": "Synthetic preview", "mode": "preview", "entries": [{"tag": "count", "value": 21}]}
+    },
+    {
+      "id": "duplicate-structural-items",
+      "valid": false,
+      "code": "SCHEMA_UNIQUE_ITEMS",
+      "pointer": "/entries/1",
+      "content": {"name": "Synthetic preview", "mode": "preview", "entries": [{"tag": "text", "value": "sample"}, {"value": "sample", "tag": "text"}]}
+    },
+    {
+      "id": "wrong-integer-type",
+      "valid": false,
+      "code": "SCHEMA_ONEOF_NONE",
+      "pointer": "/entries/0",
+      "content": {"name": "Synthetic preview", "mode": "preview", "entries": [{"tag": "count", "value": true}]}
+    }
+  ]
+}
