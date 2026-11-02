@@ -4,19 +4,19 @@
 |---|---|
 | Purpose | Let the right humans approve, in one sitting, what must be true before Codex starts **Phase 1A implementation** (the schema-driven Builder on synthetic data). Concise by design: each decision is a card with options, recommendation, justification, risks and implementation impact. |
 | Sources | [phase1/11 decision register](../phase1/11_DECISIONS_REQUIRED.md) (D-01…D-26), [phase1/13 §3 gate A0](../phase1/13_PHASE1A_PLAN.md#3-entry-conditions-gate-a0), [phase1/14 review](../phase1/14_PHASE0B_SECURITY_REVIEW.md), Codex's conditional plan [`docs/PHASE1A_IMPLEMENTATION_PLAN.md`](https://github.com/avihafif/calibration-os/blob/feature/phase0b-secure-metadata/docs/PHASE1A_IMPLEMENTATION_PLAN.md) on PR #1's branch, and the approved prototype work in this PR. |
-| Rules honoured | No approval, role holder, signatory, metrology value, safety limit or supplier permission is invented. Every sign-off field below is **blank**. Recommendations are not decisions. |
-| Date / state | 2026-11-02. PR #1 (Phase 0B) open; PR #2 (Phase 1 design) open; this PR is stacked on PR #2. |
+| Rules honoured | Original sign-off sheet below remains a historical template. Specific product-owner decisions were recorded separately on 2026-11-02 in [the delegated decision record](../gate-a0/06_PRODUCT_OWNER_DECISIONS_2026-11-02.md) and [updated Gate A0 forms](../gate-a0/02_GATE_A0_APPROVAL_FORMS.md). Remaining recommendations are not decisions; no other authority is invented. |
+| Date / state | 2026-11-02 (as written). **Status update (2026-11-02, later):** PRs #1–#5 are merged into `main` (merge commits `940ab8b`, `86910c1`, `61aa618`, `1be2233`, `9e2bd0e`); R-4 is open as PR #6 and **not ready to merge** ([review](../gate-a0/01_PR6_INDEPENDENT_REVIEW.md)). Since the merger, product-owner approvals were recorded separately: A0-1, D-23, palette-only D-13, A0-5 product-side coordination, D-27/28/29 and product-side D-32. A0-2 and the remaining architecture/security/licence conditions are open. Approval-ready forms: [docs/gate-a0](../gate-a0/README.md). |
 
 ## 1. What gate A0 requires today
 
 | # | Condition (phase1/13 §3) | State | Who closes it |
 |---|---|---|---|
-| A0-1 | Phase 0B merged, or 1A cut from PR #1 head with the owner's written agreement | **Open** — PR #1 is open; its branch has moved since my review (adds `docs/PHASE1A_IMPLEMENTATION_PLAN.md`) | Product owner (merge is theirs) |
-| A0-2 | Review corrections **R-4** (validator subset incl. `x-calos-editor`, `$defs/$ref`, `oneOf`, `const`, bounds, `uniqueItems`, `pattern` semantics) and **R-7** (lifecycle ports redesigned) merged | **Open** — implementation work for Codex; I did not touch Codex-owned modules | Codex, reviewed by architecture |
-| A0-3 | Decisions **D-23, D-11, D-12, D-13, D-18, D-21** recorded | **Open** — cards below | Product owner / architecture |
+| A0-1 | Phase 0B merged, or 1A cut from PR #1 head with the owner's written agreement | **Product-owner accepted 2026-11-02** — PR #1 merged (`940ab8b`); see delegated decision record ([form GA0-01](../gate-a0/02_GATE_A0_APPROVAL_FORMS.md)) | Product owner (merge is theirs) |
+| A0-2 | Review corrections **R-4** (validator subset incl. `x-calos-editor`, `$defs/$ref`, `oneOf`, `const`, bounds, `uniqueItems`, `pattern` semantics) and **R-7** (lifecycle ports redesigned) merged | **Partly open** — R-7 merged (PR #4); R-4 is PR #6, review verdict *not ready to merge* (2 High, 7 Medium); sequencing question in [form GA0-02](../gate-a0/02_GATE_A0_APPROVAL_FORMS.md) | Codex, reviewed by architecture |
+| A0-3 | Decisions **D-23, D-11, D-12, D-13, D-18, D-21** recorded | **Partially approved** — D-23 and palette-only D-13 product approvals; D-11/D-12/D-18/D-21 and fonts still open | Product owner / architecture |
 | A0-4 | ADR-0001 and ADR-0015 ratified | **Open** — both Proposed | Architecture owner |
-| A0-5 | Q-15 acknowledged (strings may be `needs_review`) | **Open** | Content owner (name TBD) |
-| **New** | Decisions **D-27 … D-29, D-32** (this package) recorded | **Open** | See cards |
+| A0-5 | Q-15 acknowledged (strings may be `needs_review`) | **Product-side coordination recorded** — Avi Hafif; qualified translation/metrology review pending | Product owner / content review |
+| **New** | Decisions **D-27 … D-29, D-32** (this package) recorded | **Product-owner approvals recorded** for D-27/28/29 and reference-only D-32; any required co-review remains open | See forms |
 
 ## 2. Who can approve what
 
@@ -100,7 +100,7 @@ Approve = prototype + [01](01_DESIGN_SYSTEM.md) + [02](02_BUILDER_UX_SPEC.md) ar
 | Directory plan | `apps/web/src/builder/…`, `packages/ts/editor-core`, `ui-runtime` | `designers/inspector`, `ui-kit`, host ports, `SyntheticHost` (phase1/06) | **Open:** pick final package names in the first PR; Codex plan uses `ui-runtime` for the field registry whereas phase1/06 places it in `designers/inspector` (runtime renders *operator* screens). Recommendation: inspector in `designers/inspector` |
 | i18n location | `apps/web/src/i18n/` | `packages/ts/i18n` | Recommendation: package (shared by operator shell) |
 
-## 5. Gate A0 sign-off sheet (blank — to be completed by named humans)
+## 5. Gate A0 sign-off sheet (historical template; see recorded outcomes in the linked governance forms)
 
 | Decision / condition | Approved (Y/N) | Name and role | Date | Notes |
 |---|---|---|---|---|

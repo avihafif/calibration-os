@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | **Preparation only.** Every outcome below is **Open**. "Recommended" is advice to the named owner, not a decision, and nothing here records an approval, a name or a date. |
+| Status | **Partially approved (product-owner only) on 2026-11-02**: see [delegated decision record](../gate-a0/06_PRODUCT_OWNER_DECISIONS_2026-11-02.md). Architecture, dependencies, legal/font approvals, R-4 and full Gate A0 remain open. Recommendations elsewhere are not approvals. |
 | Sources | [phase1/11](../phase1/11_DECISIONS_REQUIRED.md) (D-01…D-26), [phase1a/05](../phase1a/05_GATE_A0_APPROVAL_PACKAGE.md) (D-27…D-32), [procedure-designer/10](../procedure-designer/10_DECISIONS_AND_DEPENDENCIES.md) (PD-DEC-001…012), Codex's `docs/PHASE1A_GATE_A0.md` (on PR #4). Identifiers are unique (CI: `design/tools/check_decision_ids.py`). |
 | Legend | **A0** = needed to sign Gate A0 · **WP-1A-1** = needed before WP-1A-1 starts (see [04](04_WP-1A-1_START_RECOMMENDATION.md)) · **later** = gates a later slice/phase |
 
@@ -11,14 +11,14 @@ Gate conditions (phase1/13 §3): A0-1 PR #1 disposition · A0-2 R-4 and R-7 merg
 ## A. Product-owner decisions
 | ID | Decision | Recommended (not approved) | Needed | Status |
 |---|---|---|---|---|
-| A0-1 | Disposition of PR #1 (merge as verification-only vs cut 1A from its head) | Owner reviews; if not merged, give written agreement to branch from its head. Merge order of #1→#2→#3→#5 is the owner's | A0 | Open |
-| A0-5 | Acknowledge he/en string ownership; strings stay `needs_review` while Q-15/MI-31 open | Acknowledge; name a content owner | A0 | Open |
-| D-01 | Shape of Phase 1 | (c) incremental slices S0–S8 | later | Open |
-| D-23 | UI-first on a labelled in-memory Synthetic Host | **Approve** (a) | A0 · WP-1A-1 | Open |
-| D-27 | Persistence in 1A | Memory-only for 1A.1; namespaced local drafts later | A0 | Open |
-| D-28 | Synthetic review/approve/publish simulation in 1A | Approve, clearly labelled synthetic | A0 | Open |
-| D-29 | Kind scope for 1A (Tier 1: Manufacturer, Family, Model; Tier 2 stretch) | Approve tiers as written | A0 | Open |
-| D-32 | Adopt prototypes + design system v1.0 as the visual/interaction baseline (not code to ship) | Approve after a design review of both prototypes (this package) | A0 | Open |
+| A0-1 | Disposition of PR #1 (merge as verification-only vs cut 1A from its head) | PR #1 is merged (`940ab8b`); owner records it as the disposition (form GA0-01). Merge order was the owner's | A0 | Product owner accepted merge of #1 on 2026-11-02; see delegated record. Other gates open |
+| A0-5 | Acknowledge he/en string ownership; strings stay `needs_review` while Q-15/MI-31 open | Acknowledge; name a content owner | A0 | Avi Hafif acknowledged product-side coordination 2026-11-02; specialist language review remains open |
+| D-01 | Shape of Phase 1 | (c) incremental slices S0–S8 | later | Approved by product owner, 2026-11-02 |
+| D-23 | UI-first on a labelled in-memory Synthetic Host | **Approve** (a) | A0 · WP-1A-1 | Product-owner approved option (a), 2026-11-02 |
+| D-27 | Persistence in 1A | Memory-only for 1A.1; namespaced local drafts later | A0 | Product-owner approved memory-only first, 2026-11-02 |
+| D-28 | Synthetic review/approve/publish simulation in 1A | Approve, clearly labelled synthetic | A0 | Product-owner approved clearly labelled simulation only, 2026-11-02 |
+| D-29 | Kind scope for 1A (Tier 1: Manufacturer, Family, Model; Tier 2 stretch) | Approve tiers as written | A0 | Product-owner approved Tier 1 required / Tier 2 optional, 2026-11-02 |
+| D-32 | Adopt prototypes + design system v1.0 as the visual/interaction baseline (not code to ship) | Approve after a design review of both prototypes (this package) | A0 | Product owner approved reference baseline, 2026-11-02; UX authority still needs any formal review |
 | D-03 / D-04 / D-05 | Library scope; plugin packaging; theme editor timing | (a) local Library; (a) read-only plugin visibility; (a) theme editor in P2 | later | Open |
 | D-10 | Usability thresholds and participants | Define after research Round 0; **no usability claim exists today** | before S4 | Open |
 | D-17 | UX telemetry | Off by default, opt-in per tenant, no content values | later | Open |
@@ -36,7 +36,7 @@ Gate conditions (phase1/13 §3): A0-1 PR #1 disposition · A0-2 R-4 and R-7 merg
 | D-11 | Locale handling in `Manufacturer` schema | (a) correct v1 if nothing was ever published | A0 (WP-1A-2) | Open |
 | D-18 | `media` not `assets`; `.calrel` | Accept both | A0 (WP-1A-2) | Open |
 | D-21 | Lease/heartbeat/offline defaults | Accept as configuration defaults | A0 (WP-1A-4) | Open |
-| A0-2 | R-4 (validator subset, `pattern` dialect) and R-7 (lifecycle ports; PR #4 open) merged; classify R-4/WP-1A-0 as **A0 prerequisite** | Yes; anchored `re.search` pattern semantics (reviewer's recommendation) | A0 (not needed for WP-1A-1 itself) | Open |
+| A0-2 | R-7 merged (PR #4); R-4 is PR #6 (review: not ready, see docs/gate-a0/01); owner decides the gate split (GA0-02) | Yes; anchored `re.search` pattern semantics (reviewer's recommendation) | A0 (not needed for WP-1A-1 itself) | Open |
 | D-02 | Pull identity/RBAC/RLS into Phase 1 (S0) | (a) yes | 1B | Open |
 | D-07 / D-08 | Kind→permission table; accept 07 §4 bodies for undefined kinds | Accept with amendments | before S1 | Open |
 | D-14 / D-15 / D-19 / D-20 / D-24 / D-25 / D-26 / D-30 | `package.verify` permission; transport split; canvas library spike; error-code housekeeping; trust-metadata owner (ADR-0004); `environment_kind`; ADR-0022 addendum (PyJWT, cryptography); admin visibility of content | per register (least privilege for D-30) | 1B / S3 | Open |
@@ -65,7 +65,7 @@ Gate conditions (phase1/13 §3): A0-1 PR #1 disposition · A0-2 R-4 and R-7 merg
 | ID | Decision | Recommended (not approved) | Needed | Status |
 |---|---|---|---|---|
 | D-16 (Q-08, MI-01) | Vendor documentation, names, trademarks, logos | Neutral names in UI/docs; vendor strings only in `content/` after legal OK | before S3 / real drivers | Open |
-| D-13 (part) | Font licences (Inter, Heebo, JetBrains Mono — SIL OFL) | Confirm licence text and bundling terms | A0 · WP-1A-1 | Open |
+| D-13 (part) | Font licences (Inter, Heebo, JetBrains Mono — SIL OFL) | Confirm licence text and bundling terms | A0 · WP-1A-1 | Palette approved by product owner; font/legal approval OPEN |
 | D-12 / D-26 (part) | Licence and CVE review for each dependency | Permissive licences only; SBOM + audit in CI | A0 · WP-1A-1 | Open |
 | D-03 (part) | Library/marketplace legal scope | Deployment-local only in P1 | later | Open |
 | Q-10 | Hosted vs on-prem launch scope | No effect on P1 build | Phase 5 | Open |
