@@ -9,7 +9,7 @@ Neither PR may be merged automatically. This checklist does not approve them.
 | Gate | Required evidence | Current state |
 | --- | --- | --- |
 | A0-1 | Phase 0B PR #1 owner-reviewed and merged, or written agreement to branch from its head | PR #1 open; no written alternative recorded |
-| A0-2 / R-4 | Extended fail-closed schema validator and codegen with conformance tests; `pattern` dialect decided | Current subset lacks Phase 1 keywords; dialect decision open |
+| A0-2 / R-4 | Extended fail-closed schema validator and codegen with conformance tests; `pattern` dialect decided | R-4 worktree/PR under review. Pattern choice accepted in [ADR-0025](adr/0025-json-schema-pattern-semantics.md); merge and remaining Gate A0 evidence pending |
 | A0-2 / R-7 | Lifecycle Protocols aligned with `API_CONTRACT §2.3` and Findings contract; no write implementation | Contract-only work on `feature/phase1a-r7-lifecycle-contracts`; pending review/merge. See [R-7 contract report](PHASE1A_R7_LIFECYCLE_CONTRACTS.md) |
 | A0-3 | Named outcomes for D-23, D-11, D-12, D-13, D-18, D-21 | All blank in PR #2's register |
 | A0-4 | ADR-0001 and ADR-0015 ratified or superseded by named owners | Both Proposed |
@@ -26,10 +26,9 @@ This report does not silently treat either sequence as approved.
 Work from the existing `schema.py`/`codegen.py` rather than replacing the
 registry. The schema remains the source of truth. Scope a dedicated PR to:
 
-1. Decide standard Draft 2020-12 `pattern` semantics. The reviewer recommends
-   anchored authored patterns with `re.search` evaluation; this is **not yet an
-   approved decision**. The PR must update the Manufacturer and manifest
-   patterns and prove Python/TS parity with conformance vectors.
+1. Apply [ADR-0025](adr/0025-json-schema-pattern-semantics.md): Draft 2020-12
+   search semantics with explicit cross-language absolute anchors. Update the
+   manifest patterns and prove Python/TS parity with conformance vectors.
 2. Validate a closed, versioned `x-calos-editor` hint vocabulary, including
    localized message keys, widget ID, group/order and quick-fix references.
    Reject unknown hints at registration and never execute hint content.

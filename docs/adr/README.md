@@ -1,6 +1,6 @@
 # Architecture Decision Records
 
-Format: lightweight MADR. Status ∈ `Proposed | Accepted | Superseded by ADR-xxxx | Rejected`. All ADRs below are **Proposed** until ratified in Phase 0 (roadmap exit criterion). An ADR is immutable once Accepted; changes are made by a new ADR that supersedes it.
+Format: lightweight MADR. Status ∈ `Proposed | Accepted | Superseded by ADR-xxxx | Rejected`. Status is listed per ADR below. An ADR is immutable once Accepted; changes are made by a new ADR that supersedes it.
 
 Template:
 ```
@@ -39,3 +39,4 @@ Status · Date · Deciders
 | [0022](0022-baseline-extensions.md) | Baseline extensions (queue, object store, telemetry, tooling) | **Accepted** (E1–E6) |
 | [0023](0023-safety-profile-ownership-and-hardware-limits.md) | Safety Profile ownership, separation of duties, immutable hardware limits (resolves Q-13) | **Accepted** |
 | [0024](0024-separate-test-and-production-deployments.md) | Separate Test and Production deployments (resolves Q-14) | **Accepted** |
+| [0025](0025-json-schema-pattern-semantics.md) | Draft 2020-12 pattern search semantics with cross-language absolute anchors | **Accepted** (R-4 owner decision) |
