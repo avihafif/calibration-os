@@ -1,13 +1,13 @@
 # ADR-0026: Frontend dependency addendum to ADR-0022 (Phase 1A foundation)
 
-Status: **Proposed** · Date: 2026-11-02 · Deciders: Architecture owner (named holder required); Security reviewer for the policy; Legal for the MPL-2.0 licence acceptance · Amends (additively): ADR-0022
+Status: **Accepted** · Date: 2026-11-02 · Deciders: Avi Hafif (Architecture owner and Security reviewer; Legal approver for MPL-2.0 — designated 2026-11-02; recorded by delegation, see `docs/gate-a0/13_DELEGATED_ARCHITECTURE_SECURITY_LEGAL_RECORD_2026-11-02.md`) · Amends (additively): ADR-0022
 
-> **Not approved.** This ADR records a proposal. No dependency named here is adopted, installed in the repository or bundled until the named deciders accept it by a change to this file's Status line (with name, role, date, evidence link) in a reviewed pull request. ADR-0022 is Accepted and is not edited; this ADR extends it.
+> The MPL-2.0 acceptance is a technical reading by a non-lawyer. A dependency is added only by a reviewed PR at the exact version below, with the evidence re-run at that time; fonts are not covered. Any other package or version needs a new decision.
 
 ## Context
 `AGENTS.md §12` accepts the baseline stack and ADR-0022 extensions E1–E6 but forbids other infrastructure or dependencies without a new ADR; `AGENTS.md §8` requires human approval for new dependencies and for non-permissive licences. Phase 1A WP-1A-1 (frontend foundation) needs an ICU message library, routing and a test/accessibility toolchain to meet P1A-AC-05…14. Evidence (exact versions, licences, vulnerability results, CSP analysis, SBOM) is in `docs/gate-a0/04_DEPENDENCY_AND_FONT_EVIDENCE.md` and `docs/gate-a0/09_D12_DEPENDENCY_APPROVAL_MATRIX.md`, verified 2026-11-02 with the repository's pinned package manager (`pnpm@11.25.0`).
 
-## Decision (proposed)
+## Decision
 1. **Approved set** (exact versions, no ranges):
 
    | Class | Package | Version | Licence |
@@ -32,7 +32,7 @@ Status: **Proposed** · Date: 2026-11-02 · Deciders: Architecture owner (named 
 
 ## Options considered
 - **Approve nothing; in-house router/i18n/test tooling.** Rejected for i18n (CLDR plural rules for Hebrew are non-trivial) and for accessibility testing (no credible in-house substitute for P1A-AC-10); acceptable for routing — see the deferral option below.
-- **Smaller set.** Defer `react-router` (in-house hash router) and `@testing-library/*` to later PRs. Viable; the approvers may approve rows individually.
+- **Smaller set.** (Not chosen.) Defer `react-router` (in-house hash router) and `@testing-library/*` to later PRs. Viable; the approvers may approve rows individually.
 - **Broader set** (Storybook, query cache, property-testing, UI kits). Rejected for WP-1A-1: weight, review cost, not needed for the first milestone.
 
 ## Consequences (positive / negative / risks)

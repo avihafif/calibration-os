@@ -1,5 +1,7 @@
 # 03 — ADR-0001 and ADR-0015: review and Accept/Revise recommendations
 
+> **Update 2026-11-02 (later):** the architecture, dependency, MPL-2.0 and ADR items in this document were recorded **by delegation** in [13](13_DELEGATED_ARCHITECTURE_SECURITY_LEGAL_RECORD_2026-11-02.md) (ADR-0001 with A1–A4 only; A5 not accepted). That is not independent review. Nothing else in this document changed.
+
 Status: **recommendations for the authorized architecture owner.** Both ADRs are *Proposed*; this document does not accept, edit or supersede either. Proposed amendment text is given so the owner can adopt it verbatim into the ADR (a Proposed ADR may be edited; an Accepted one may only be superseded). Decision forms: [02](02_GATE_A0_APPROVAL_FORMS.md) `GA0-09`, `GA0-10`.
 
 ## 1. ADR-0001 — Modular monorepo with enforced boundaries

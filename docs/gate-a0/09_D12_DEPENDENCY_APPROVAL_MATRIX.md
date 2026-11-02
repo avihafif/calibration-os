@@ -1,5 +1,7 @@
 # 09 — D-12 exact frontend dependency approval matrix (GA0-05)
 
+> **Update 2026-11-02 (later):** the architecture, dependency, MPL-2.0 and ADR items in this document were recorded **by delegation** in [13](13_DELEGATED_ARCHITECTURE_SECURITY_LEGAL_RECORD_2026-11-02.md) (ADR-0001 with A1–A4 only; A5 not accepted). That is not independent review. Nothing else in this document changed.
+
 | | |
 |---|---|
 | Status | **Proposal with evidence. Nothing is approved, installed in the repository, or bundled.** The product-owner record (PR #8) explicitly did **not** approve GA0-05/D-12/D-26; the approvers below are the open authorities. |

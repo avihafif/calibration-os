@@ -1,5 +1,7 @@
 # 02 — Gate A0 approval forms
 
+> **Update 2026-11-02 (later):** the architecture, dependency, MPL-2.0 and ADR items in this document were recorded **by delegation** in [13](13_DELEGATED_ARCHITECTURE_SECURITY_LEGAL_RECORD_2026-11-02.md) (ADR-0001 with A1–A4 only; A5 not accepted). That is not independent review. Nothing else in this document changed.
+
 | | |
 |---|---|
 | Status | **Product-owner portions recorded 2026-11-02** under the user's explicit authorization; see [delegated product-owner record](06_PRODUCT_OWNER_DECISIONS_2026-11-02.md). All architecture, security, legal, metrology and jointly-owned incomplete sign-offs remain open. A delegated record is not a personal signature. |

@@ -1,5 +1,7 @@
 # 05 — Approval checklist, sequencing and remaining blockers to WP-1A-1
 
+> **Update 2026-11-02 (later):** the architecture, dependency, MPL-2.0 and ADR items in this document were recorded **by delegation** in [13](13_DELEGATED_ARCHITECTURE_SECURITY_LEGAL_RECORD_2026-11-02.md) (ADR-0001 with A1–A4 only; A5 not accepted). That is not independent review. Nothing else in this document changed.
+
 Status: **partial product-owner approvals recorded** on 2026-11-02; all independent architecture/security/legal/metrology gates remain open. See [delegated decision record](06_PRODUCT_OWNER_DECISIONS_2026-11-02.md). Forms: [02](02_GATE_A0_APPROVAL_FORMS.md). Review of PR #6: [01](01_PR6_INDEPENDENT_REVIEW.md). Evidence: [03](03_ADR_REVIEWS.md), [04](04_DEPENDENCY_AND_FONT_EVIDENCE.md).
 
 ## 1. Two ways to open the gate

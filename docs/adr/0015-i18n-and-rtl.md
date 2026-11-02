@@ -1,6 +1,6 @@
 # ADR-0015: Internationalization and RTL
 
-Status: Proposed · Date: 2026-11-02 (amendments) · Deciders: Architecture (named owner required); content owner for the glossary · Amendments B1–B6 proposed for decision GA0-10 — **not accepted**
+Status: **Accepted with amendments B1–B6** · Date: 2026-11-02 · Deciders: Avi Hafif (Architecture owner, designated 2026-11-02; recorded by delegation — see `docs/gate-a0/13_DELEGATED_ARCHITECTURE_SECURITY_LEGAL_RECORD_2026-11-02.md`); content owner for the glossary not yet named
 
 ## Decision
 - ICU MessageFormat (FormatJS / `react-intl`-class) for UI; translation bundles are **configuration items** (`TranslationBundle`) so engineers can maintain them in the GUI. Platform strings ship as system bundles.
@@ -16,8 +16,8 @@ Status: Proposed · Date: 2026-11-02 (amendments) · Deciders: Architecture (nam
 ## Consequences
 + Translators/engineers need no code changes. − Visual regression suite doubles (LTR/RTL).
 
-## Proposed amendments (2026-11-02, decision GA0-10 — pending the architecture owner)
-The original Decision above is unchanged. If the owner accepts this ADR **with** amendments, the text below becomes part of the Decision. Review and evidence: `docs/gate-a0/03_ADR_REVIEWS.md`, `docs/gate-a0/08_ARCHITECTURE_DECISION_PROPOSALS.md`, `docs/gate-a0/04_DEPENDENCY_AND_FONT_EVIDENCE.md §3`.
+## Amendments (accepted 2026-11-02 — B1–B6)
+The original Decision above stands; the amendments below are part of the Decision. B3's finding-key namespace remains subject to decision GA0-16. Hebrew strings stay `needs_review` until the glossary is reviewed (MI-31).
 
 - **B1 — Bundles in Phase 1A.** Platform strings are **system bundles compiled into the web app**. `TranslationBundle` configuration items and any runtime bundle loader are out of scope until that kind is approved (it is not in the D-29 tiers). The i18n package exposes a bundle-provider port so config-item bundles can be added later without an API change.
 - **B2 — Pseudo-locales and string lint.** The i18n package provides pseudo-locales `en-XA` (accented, expanded) and `he-XB` (RTL, expanded) for tests; CI fails on hard-coded user-visible strings (in-house ESLint rule).

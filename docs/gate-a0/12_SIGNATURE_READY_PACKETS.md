@@ -1,6 +1,6 @@
 # 12 — Signature-ready packets (nothing signed)
 
-Status: **prepared for the designated holder ([11](11_ROLE_DESIGNATION_RECORD.md)); every outcome box, date and evidence field is blank.** The recommended outcome is shown, but no box is ticked and no ADR/status line is changed. Evidence for each item: [07](07_PR6_FINAL_REVIEW_VERDICT.md), [08](08_ARCHITECTURE_DECISION_PROPOSALS.md), [09](09_D12_DEPENDENCY_APPROVAL_MATRIX.md), [10](10_WP-1A-1_SCOPED_READINESS_AND_APPROVALS.md).
+Status: prepared for the designated holder ([11](11_ROLE_DESIGNATION_RECORD.md)). **Outcomes were subsequently recorded by delegation on 2026-11-02 in [13](13_DELEGATED_ARCHITECTURE_SECURITY_LEGAL_RECORD_2026-11-02.md); where they differ from the recommendation (P-6: A5 not accepted) the record governs.** The boxes below are left as originally prepared; use 13 as the authoritative outcome. Evidence for each item: [07](07_PR6_FINAL_REVIEW_VERDICT.md), [08](08_ARCHITECTURE_DECISION_PROPOSALS.md), [09](09_D12_DEPENDENCY_APPROVAL_MATRIX.md), [10](10_WP-1A-1_SCOPED_READINESS_AND_APPROVALS.md).
 
 ## How to sign (per packet)
 1. Read the linked evidence; choose an outcome.

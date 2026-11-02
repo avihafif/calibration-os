@@ -1,5 +1,7 @@
 # 08 — Architecture decision proposals for WP-1A-1 (GA0-02 architecture half, GA0-05, GA0-09, GA0-10)
 
+> **Update 2026-11-02 (later):** the architecture, dependency, MPL-2.0 and ADR items in this document were recorded **by delegation** in [13](13_DELEGATED_ARCHITECTURE_SECURITY_LEGAL_RECORD_2026-11-02.md) (ADR-0001 with A1–A4 only; A5 not accepted). That is not independent review. Nothing else in this document changed.
+
 | | |
 |---|---|
 | Status | **Proposals with recommended outcomes for the authorized architecture owner. No architecture, security or legal sign-off is recorded.** The product-owner record ([06](06_PRODUCT_OWNER_DECISIONS_2026-11-02.md), PR #8) is the only recorded approval relevant here and explicitly leaves these four items to others. |
