@@ -2,7 +2,7 @@
 
 Status: **readiness assessment; not an approval.** State as of 2026-11-02, after PR #8 (product-owner record) and the PR #6 correction round. Supersedes the checklist state in [05](05_CHECKLIST_SEQUENCING_AND_BLOCKERS.md) where they differ. Evidence: [07](07_PR6_FINAL_REVIEW_VERDICT.md), [08](08_ARCHITECTURE_DECISION_PROPOSALS.md), [09](09_D12_DEPENDENCY_APPROVAL_MATRIX.md).
 
-> **Update 2026-11-02 (later):** items 1–3 of §5 below were recorded by delegation ([13](13_DELEGATED_ARCHITECTURE_SECURITY_LEGAL_RECORD_2026-11-02.md)); ADR-0001 is accepted with A1–A4 only. What remains: the spec follow-up PR for A1–A4, merging PR #6 first (recommended), re-running the dependency evidence when `package.json` changes, and — for full independence — any reviewer you may later name. The text below is the pre-record assessment.
+> **Current update (2026-11-02, following PR #6 merge):** PR #6 is merged at `19e81df`, ADR-0025 is Accepted. Scoped WP-1A-1 decisions are recorded by delegation in [13](13_DELEGATED_ARCHITECTURE_SECURITY_LEGAL_RECORD_2026-11-02.md), with ADR-0001 A1–A4 only. These are not independent security or qualified legal reviews. Before starting sub-PR 1a, reconcile the accepted architecture texts in a reviewed follow-up PR; when packages are installed, refresh the dependency audit and SBOM evidence. **Full Gate A0 remains closed.** The original pre-record assessment below is historical.
 
 **Bottom line.** Product-side decisions for WP-1A-1 are recorded (by delegation — *not* independent review). What blocks Codex from starting is **four architecture/security/legal decisions that no one has recorded**: the architecture half of the scoped gate (GA0-02), D-12 dependencies (GA0-05, with Legal for MPL-2.0), ADR-0001 (GA0-09) and ADR-0015 (GA0-10). Fonts do not block.
 
@@ -38,7 +38,7 @@ Fonts: system stack throughout; no font file enters the repository.
 ## 3. First real React milestone (definition of done for WP-1A-1)
 A bilingual (en/he, RTL), light/dark, keyboard-operable web shell in the Test deployment whose every route shows the non-removable `TEST` and synthetic-sandbox frame, built from approved `ui-kit` components, with axe (zero critical/serious), keyboard-only and visual-baseline tests in CI; **no** schema, kind, persistence, network, authentication, font bundling or operational capability.
 
-## 4. Approvals still required from authorized humans (none recorded)
+## 4. Historical pre-delegation approval checklist (refer to [13](13_DELEGATED_ARCHITECTURE_SECURITY_LEGAL_RECORD_2026-11-02.md) for subsequent outcomes)
 > Update: the product owner has since designated himself for the architecture, security and legal roles ([11](11_ROLE_DESIGNATION_RECORD.md)); signature-ready packets are in [12](12_SIGNATURE_READY_PACKETS.md). Designation is not approval, and it does not provide independent review.
 
 | # | Authority | Needs to record | Evidence expected |
@@ -51,7 +51,7 @@ A bilingual (en/he, RTL), light/dark, keyboard-operable web shell in the Test de
 
 The repository's governance record (06) states that product-owner decisions entered by an assistant under the owner's instruction are **not** evidence of independent architecture, security, quality or legal review; items 1–3 therefore cannot be satisfied by that mechanism.
 
-## 5. Remaining blockers to starting WP-1A-1 (exact)
+## 5. Historical pre-delegation blockers (superseded by current update above)
 1. No recorded architecture decision on the scoped gate (GA0-02 architecture half).
 2. D-12 rows not approved; MPL-2.0 not accepted by Legal (blocks sub-PR 1e only); ADR-0026 not accepted.
 3. ADR-0001 not accepted — the TS dependency table (A1) that sub-PR 1a must encode does not exist yet.
