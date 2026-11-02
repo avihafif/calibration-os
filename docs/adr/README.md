@@ -1,6 +1,6 @@
 # Architecture Decision Records
 
-Format: lightweight MADR. Status ∈ `Proposed | Accepted | Superseded by ADR-xxxx | Rejected`. All ADRs below are **Proposed** until ratified in Phase 0 (roadmap exit criterion). An ADR is immutable once Accepted; changes are made by a new ADR that supersedes it.
+Format: lightweight MADR. Status ∈ `Proposed | Accepted | Superseded by ADR-xxxx | Rejected`. Each ADR has its own recorded status; proposed ADRs require ratification by the named accountable owner. An ADR is immutable once Accepted; changes are made by a new ADR that supersedes it.
 
 Template:
 ```
@@ -15,7 +15,7 @@ Status · Date · Deciders
 
 | ADR | Title | Status |
 |---|---|---|
-| [0001](0001-modular-monorepo-boundaries.md) | Modular monorepo with enforced boundaries | Proposed |
+| [0001](0001-modular-monorepo-boundaries.md) | Modular monorepo with enforced boundaries | **Accepted** (A1–A4, delegated architecture-owner record; A5 pending) |
 | [0002](0002-execution-engine-build-vs-opentap.md) | Execution engine: build vs. OpenTAP | Proposed |
 | [0003](0003-station-local-first-journal.md) | Station local-first, journal-based persistence (SQLite) | **Accepted** — baseline extension E1 |
 | [0004](0004-package-signing-and-trust.md) | Package signing and trust model (Class A and B) | Proposed |
@@ -29,7 +29,7 @@ Status · Date · Deciders
 | [0012](0012-windows-service-and-agent-update.md) | Windows service hosting and agent update | Proposed |
 | [0013](0013-simulation-marking.md) | Non-removable simulation marking | Proposed |
 | [0014](0014-authentication-and-station-enrolment.md) | Authentication: local + optional OIDC; station enrolment | Proposed |
-| [0015](0015-i18n-and-rtl.md) | Internationalization and RTL approach | Proposed |
+| [0015](0015-i18n-and-rtl.md) | Internationalization and RTL approach | **Accepted** (B1–B6, delegated architecture-owner record) |
 | [0016](0016-metadata-engine.md) | Versioned metadata engine as the platform core | Proposed |
 | [0017](0017-typed-expression-language.md) | Typed, dimension-checked, terminating expression language | Proposed |
 | [0018](0018-declarative-drivers-and-safety.md) | Declarative drivers, hazard classes, and out-of-band safety profiles (amended by ADR-0023) | Proposed |
@@ -39,3 +39,6 @@ Status · Date · Deciders
 | [0022](0022-baseline-extensions.md) | Baseline extensions (queue, object store, telemetry, tooling) | **Accepted** (E1–E6) |
 | [0023](0023-safety-profile-ownership-and-hardware-limits.md) | Safety Profile ownership, separation of duties, immutable hardware limits (resolves Q-13) | **Accepted** |
 | [0024](0024-separate-test-and-production-deployments.md) | Separate Test and Production deployments (resolves Q-14) | **Accepted** |
+
+| [0025](0025-json-schema-pattern-semantics.md) | JSON Schema pattern semantics | **Accepted** (product-owner record, PR #6) |
+| [0026](0026-frontend-dependencies-addendum.md) | Frontend dependency addendum to ADR-0022 | **Accepted** (delegated architecture/security/legal record; no independent review) |
