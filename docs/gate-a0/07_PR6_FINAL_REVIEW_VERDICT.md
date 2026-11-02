@@ -1,5 +1,8 @@
 # 07 — PR #6 final independent review verdict (R-4 correction round)
 
+> **Post-review update (2026-11-02):** PR #6 was subsequently merged into `main` at commit `19e81df` after the restricted grammar, CI and owner decision records were updated. ADR-0025 is Accepted in the merged repository. This report preserves the pre-merge review scope and evidence as a historical assessment; open H-2, M-4 and M-6 issues remain gated before later Builder work.
+
+
 | | |
 |---|---|
 | PR | [#6](https://github.com/avihafif/calibration-os/pull/6) · head `de6e934` (`feature/phase1a-r4-schema-engine`) · base `main` |
