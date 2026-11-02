@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en" dir="ltr" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CalOS Phase 1 design reference</title>
+<style>
+/* Design reference only. Tokens mirror docs/phase1/03_UX_ARCHITECTURE.md §4 (proposal, pending D-13).
+   No metrology values appear anywhere: every measurement is a {placeholder}. */
+:root{
+  --bg:#F5F7FA;--surface:#FFFFFF;--surface-2:#EDF1F6;--text:#121821;--text-muted:#475467;--border:#7A899E;--line:#D5DBE5;
+  --primary:#1B4FD1;--primary-contrast:#FFFFFF;--focus:#0B57D0;
+  --ok:#14693F;--warn:#8F4A00;--error:#B42318;--info:#0A5F8C;--hazard:#B93815;--sim:#6D28D9;
+  --deployment-test:#0A5F8C;--deployment-prod:#8A1C1C;--on-fill:#FFFFFF;
+  --radius:4px;--radius-lg:8px;--row:32px;
+  --font:Inter,"Segoe UI",Heebo,system-ui,-apple-system,Arial,sans-serif;--mono:"JetBrains Mono",Consolas,monospace;
+}
+:root[data-theme="dark"]{
+  --bg:#0E131A;--surface:#161C25;--surface-2:#1E2632;--text:#E8ECF2;--text-muted:#A3AFC2;--border:#6B7A90;--line:#2B3544;
+  --primary:#8AB0FF;--primary-contrast:#0B1220;--focus:#9DBDFF;
+  --ok:#5FD39A;--warn:#F2B35C;--error:#FF8A7A;--info:#6CC4EE;--hazard:#FF9A6B;--sim:#C4A8FF;
+  --deployment-test:#6CC4EE;--deployment-prod:#FF8F8F;--on-fill:#0B1220;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font:14px/1.45 var(--font);font-variant-numeric:tabular-nums}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+:root{color-scheme:light}
+:root[data-theme="dark"]{color-scheme:dark}
+button,select,input{font:inherit;color:inherit}
+select{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:3px 6px}
+.ltr{direction:ltr;unicode-bidi:isolate;font-family:var(--mono);font-size:.92em}
+.ref-banner{background:var(--surface-2);border-block-end:1px solid var(--line);padding:6px 16px;font-size:12px;color:var(--text-muted)}
+/* top bar */
+.topbar{display:flex;align-items:center;gap:12px;padding:0 16px;height:48px;background:var(--surface);border-block-end:1px solid var(--line)}
+.brand{font-weight:700;letter-spacing:.2px}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:2px 8px;border-radius:var(--radius);font-weight:600;font-size:12px;color:var(--on-fill)}
+.badge.test{background:var(--deployment-test)}
+.badge.prod{background:var(--deployment-prod)}
+.badge.sim{background:var(--sim)}
+.spacer{flex:1}
+.search{display:flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:var(--radius);padding:4px 10px;background:var(--bg);color:var(--text-muted);min-inline-size:220px}
+.btn{border:1px solid var(--border);background:var(--surface);border-radius:var(--radius);padding:4px 12px;cursor:pointer;min-block-size:28px}
+.btn.primary{background:var(--primary);color:var(--primary-contrast);border-color:var(--primary)}
+.btn[aria-pressed="true"]{background:var(--surface-2);font-weight:600}
+/* frame */
+.frame{display:grid;grid-template-columns:200px 1fr;min-block-size:calc(100vh - 120px)}
+.nav{background:var(--surface);border-inline-end:1px solid var(--line);padding:8px}
+.nav button{display:block;inline-size:100%;text-align:start;border:0;background:none;padding:7px 10px;border-radius:var(--radius);cursor:pointer;color:var(--text)}
+.nav button[aria-current="page"]{background:var(--surface-2);font-weight:600;box-shadow:inset 3px 0 0 var(--primary)}
+[dir="rtl"] .nav button[aria-current="page"]{box-shadow:inset -3px 0 0 var(--primary)}
+.nav h4{margin:12px 10px 4px;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text-muted)}
+.main{padding:16px;min-inline-size:0}
+.crumbs{display:flex;align-items:center;gap:10px;margin-block-end:12px;flex-wrap:wrap}
+.crumbs h2{margin:0;font-size:18px}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:1px 8px;border-radius:999px;border:1px solid currentColor;font-size:12px;font-weight:600;background:transparent}
+.chip.ok{color:var(--ok)}.chip.warn{color:var(--warn)}.chip.err{color:var(--error)}.chip.info{color:var(--info)}.chip.sim{color:var(--sim)}.chip.haz{color:var(--hazard)}.chip.mut{color:var(--text-muted)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:12px 14px}
+.card h3{margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted)}
+.grid{display:grid;gap:12px}
+.g3{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.row{display:flex;align-items:center;gap:8px;padding:6px 0;border-block-end:1px solid var(--line)}
+.row:last-child{border-block-end:0}
+table{border-collapse:collapse;inline-size:100%}
+th,td{padding:0 10px;block-size:var(--row);border-block-end:1px solid var(--line);text-align:start;white-space:nowrap}
+th{background:var(--surface-2);font-size:12px;color:var(--text-muted)}
+td.num{text-align:right}
+/* tokens page */
+.sw{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.sw div{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;font-size:12px}
+.sw i{display:block;block-size:36px}
+.sw span{display:block;padding:4px 8px;background:var(--surface)}
+/* workspace */
+.ws{display:grid;grid-template-columns:150px 1fr 260px;gap:12px}
+.tabs button{display:block;inline-size:100%;text-align:start;border:0;background:none;padding:6px 8px;border-radius:var(--radius);cursor:pointer;color:var(--text)}
+.tabs button.on{background:var(--surface-2);font-weight:600}
+.ribbon{background:var(--hazard);color:var(--on-fill);padding:1px 8px;font-size:11px;font-weight:700;border-radius:var(--radius)}
+/* canvas */
+.designer{display:grid;grid-template-columns:170px 1fr 280px;gap:12px}
+.flow{display:flex;flex-direction:column;gap:8px}
+.lane-title{font-size:11px;font-weight:700;letter-spacing:.6px;color:var(--text-muted);margin-block-start:6px}
+.node{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:8px 10px}
+.node[aria-selected="true"]{outline:2px solid var(--primary);outline-offset:1px}
+.node .id{color:var(--text-muted);min-inline-size:22px}
+.container{border:1px dashed var(--border);border-radius:var(--radius-lg);padding:8px;display:flex;flex-direction:column;gap:8px;background:var(--surface-2)}
+.finding{display:flex;gap:8px;align-items:center;padding:4px 0}
+/* runner */
+.banner-sim{background:var(--sim);color:var(--on-fill);font-weight:700;padding:8px 14px;border-radius:var(--radius-lg);display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.run{display:grid;grid-template-columns:230px 1fr;gap:12px;margin-block-start:12px}
+.big{font-size:22px;font-weight:600}
+.view{display:none}.view.on{display:block}
+footer.ref{padding:12px 16px;color:var(--text-muted);font-size:12px}
+[hidden]{display:none!important}
+@media (max-width:900px){.frame{grid-template-columns:1fr}.nav{display:flex;flex-wrap:wrap;gap:4px;align-items:center;border-inline-end:0;border-block-end:1px solid var(--line)}.nav h4{display:none}.nav button{inline-size:auto}.ws,.designer,.run{grid-template-columns:1fr}.topbar{flex-wrap:wrap;block-size:auto;padding-block:6px}}
+@media (prefers-reduced-motion:no-preference){.btn{transition:background .12s}}
+</style>
+</head>
+<body>
+<div class="ref-banner" role="note"><span data-i18n="ref">DESIGN REFERENCE — static and non-functional. All measurement values are placeholders; no metrology is depicted. Hebrew labels are unreviewed placeholders (MI-31 / Q-15).</span></div>
+
+<header class="topbar" role="banner">
+  <span class="brand">CalOS</span>
+  <select aria-label="Laboratory"><option>Lab A</option></select>
+  <span class="badge test" id="depl" title="Deployment (not switchable)">TEST</span>
+  <span class="badge sim" id="modeBadge" hidden>SIMULATION</span>
+  <span class="spacer"></span>
+  <label class="search"><span aria-hidden="true">⌕</span><input aria-label="Search" placeholder="Ctrl K" style="border:0;background:none;outline:none;inline-size:100px"></label>
+  <button class="btn" id="btnLang" aria-pressed="false">EN | עב</button>
+  <button class="btn" id="btnTheme" aria-pressed="false">Dark</button>
+  <span aria-label="Signed in user">👤</span>
+</header>
+
+<div class="frame">
+  <nav class="nav" aria-label="Builder">
+    <h4 data-i18n="navBuilder">Builder</h4>
+    <button data-view="tokens" aria-current="page" data-i18n="navTokens">Design tokens</button>
+    <button data-view="home" data-i18n="navHome">Home</button>
+    <button data-view="app" data-i18n="navApps">Applications</button>
+    <button data-view="proc" data-i18n="navProc">Procedures</button>
+    <h4 data-i18n="navOp">Operator</h4>
+    <button data-view="run" data-i18n="navRun">Calibration runner</button>
+  </nav>
+
+  <main class="main" id="main">
+
+  <!-- TOKENS -->
+  <section class="view on" id="v-tokens" aria-labelledby="h-tokens">
+    <div class="crumbs"><h2 id="h-tokens" data-i18n="tTitle">Design tokens and status vocabulary</h2></div>
+    <div class="grid">
+      <div class="card"><h3 data-i18n="tColors">Colour roles</h3>
+        <div class="sw" id="swatches"></div></div>
+      <div class="card"><h3 data-i18n="tStatus">Status chips — icon + text + colour, never colour alone</h3>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <span class="chip ok">✔ <span data-i18n="cWithin">Within limits</span></span>
+          <span class="chip err">✖ <span data-i18n="cOutside">Outside limits</span></span>
+          <span class="chip mut">○ <span data-i18n="cNotEval">Not evaluated</span></span>
+          <span class="chip warn">⚠ Input required · <span class="ltr">MI-02</span></span>
+          <span class="chip info">◇ synthetic_demo</span>
+          <span class="chip ok">● Published</span>
+          <span class="chip mut">✎ Draft r<span class="ltr">23</span></span>
+          <span class="chip warn">⚠ unverified_against_manual</span>
+          <span class="ribbon">H2 🔒 Hazardous</span>
+          <span class="chip sim">◈ SIMULATED</span>
+        </div>
+        <p style="color:var(--text-muted);margin:10px 0 0" data-i18n="tNote">Labels follow UI_UX_SPEC §11: “limit check”, never pass/fail or calibrated, unless an approved decision rule produced them.</p>
+      </div>
+      <div class="card"><h3 data-i18n="tRtl">RTL isolation sample</h3>
+        <p>Reading <bdi class="ltr">{value} {unit}</bdi> · Instrument <bdi class="ltr">{serial}</bdi> · Digest <bdi class="ltr">sha256:ab12…</bdi></p>
+        <p style="color:var(--text-muted);margin:0" data-i18n="tRtlNote">Values, units, IDs, hashes and wire text stay left-to-right inside right-to-left text.</p></div>
+    </div>
+  </section>
+
+  <!-- HOME -->
+  <section class="view" id="v-home" aria-labelledby="h-home">
+    <div class="crumbs"><h2 id="h-home" data-i18n="hTitle">Home</h2><span class="spacer"></span><button class="btn primary" data-i18n="hNew">+ New application</button></div>
+    <div class="grid g3">
+      <div class="card"><h3 data-i18n="hWork">My work</h3>
+        <div class="row"><span>{item key}</span><span class="spacer"></span><span class="chip mut">Draft r<span class="ltr">23</span></span><span class="chip ok">● Saved</span></div>
+        <div class="row"><span>{item key}</span><span class="spacer"></span><span class="chip mut">Draft r<span class="ltr">4</span></span><span class="chip err">⚠ 2 errors</span></div>
+        <div class="row"><span>{item key}</span><span class="spacer"></span><span class="chip warn">⏱ lease expires soon</span></div></div>
+      <div class="card"><h3 data-i18n="hReview">Awaiting my review</h3>
+        <div class="row"><span>{item} v{x}</span><span class="spacer"></span><span class="chip info">Metrological</span></div>
+        <div class="row" style="color:var(--text-muted)"><span data-i18n="hAuthor">You authored this — cannot approve (separation of duties)</span></div></div>
+      <div class="card"><h3 data-i18n="hBlock">Readiness blockers</h3>
+        <div class="row"><span>Input required</span><span class="spacer"></span><span class="chip warn">×{n}</span></div>
+        <div class="row"><span>synthetic_demo</span><span class="spacer"></span><span class="chip info">×{n}</span></div>
+        <div class="row"><span>pending_review functions</span><span class="spacer"></span><span class="chip warn">×{n}</span></div></div>
+      <div class="card"><h3 data-i18n="hRel">Releases</h3>
+        <div class="row"><span>Candidates</span><span class="spacer"></span><span class="ltr">{n}</span></div>
+        <div class="row"><span>Awaiting Test approval</span><span class="spacer"></span><span class="ltr">{n}</span></div>
+        <div class="row"><span>Awaiting Production approval</span><span class="spacer"></span><span class="ltr">{n}</span></div></div>
+    </div>
+  </section>
+
+  <!-- APPLICATION WORKSPACE -->
+  <section class="view" id="v-app" aria-labelledby="h-app">
+    <div class="crumbs"><h2 id="h-app">‹ Applications / {Application title}</h2><span class="chip mut">Draft r<span class="ltr">23</span></span><span class="chip ok">● Saved</span><span class="spacer"></span><button class="btn">Validate</button><button class="btn">Run in Simulation Lab</button><button class="btn primary" data-i18n="aSubmit">Submit for review</button></div>
+    <div class="ws">
+      <div class="card tabs" role="tablist" aria-label="Application sections">
+        <button role="tab" aria-selected="false">Overview</button><button class="on" role="tab" aria-selected="true">Contents</button><button role="tab" aria-selected="false">Requirements</button><button role="tab">Tests</button><button role="tab">Publish</button><button role="tab">Versions</button><button role="tab">Deployments</button>
+      </div>
+      <div class="card"><h3>Contents</h3>
+        <div class="row"><span>▸ Instrument model</span><span class="spacer"></span><span class="ltr">{key}</span><span class="chip ok">✓ v{x}</span></div>
+        <div class="row"><span>▸ Driver</span><span class="spacer"></span><span class="ltr">{key}</span><span class="chip warn">⚠ 3 unverified commands</span></div>
+        <div class="row"><span>▸ Safety profile</span><span class="spacer"></span><span class="ltr">{key}</span><span class="chip sim">SIMULATED</span></div>
+        <div class="row"><span>▸ Procedures ({n})</span><span class="spacer"></span><span class="chip ok">✓</span></div>
+        <div class="row"><span>▸ Metrology (spec table, limits policy)</span><span class="spacer"></span><span class="chip info">synthetic_demo</span></div>
+        <div class="row"><span>▸ Screens · Report · Translations</span><span class="spacer"></span><span class="chip warn">he {x}% reviewed</span></div>
+        <div class="row"><span>▸ Application tests ({n})</span><span class="spacer"></span><span class="chip mut">last run: {state}</span></div>
+      </div>
+      <div class="card"><h3>Readiness</h3>
+        <div class="finding"><span class="chip err">✖</span> Errors ×{n}</div>
+        <div class="finding"><span class="chip warn">⚠</span> Input required ×{n}</div>
+        <div class="finding"><span class="chip info">◇</span> synthetic_demo ×{n}</div>
+        <hr style="border:0;border-block-start:1px solid var(--line)">
+        <strong>Intended modes</strong>
+        <div><label><input type="checkbox" checked disabled> Simulation</label></div>
+        <div><label><input type="checkbox" disabled> Validation</label></div>
+        <div><label><input type="checkbox" disabled> Production</label> <span class="chip err">blocked · {n} issues</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROCEDURE DESIGNER -->
+  <section class="view" id="v-proc" aria-labelledby="h-proc">
+    <div class="crumbs"><h2 id="h-proc">Procedure: {key}</h2><span class="chip mut">Draft r<span class="ltr">7</span></span><span class="chip ok">● Saved</span><span class="spacer"></span><button class="btn" aria-pressed="false">Hazard overlay</button><button class="btn">Validate</button><button class="btn primary">▶ Simulate</button></div>
+    <div class="designer">
+      <div class="card"><h3>Palette</h3><input aria-label="Search blocks" placeholder="Search…" style="inline-size:100%;margin-block-end:8px;border:1px solid var(--border);border-radius:var(--radius);padding:4px 8px;background:var(--bg)">
+        <div class="row">▸ Flow</div><div class="row">▸ Instrument</div><div class="row">▸ Operator</div><div class="row">▸ Compute</div><div class="row">▸ Metrology</div><div class="row">▸ Phases</div><div class="row">▸ Library</div>
+        <div class="row" style="color:var(--text-muted)">Not yet available ▾</div></div>
+      <div class="card"><h3>Canvas (view of the block tree)</h3>
+        <div class="flow" role="tree" aria-label="Procedure outline">
+          <div class="lane-title">SETUP</div>
+          <div class="node" role="treeitem"><span class="id ltr">1</span><span>Confirm connections</span><span class="spacer"></span><span class="chip mut">operator.confirm</span></div>
+          <div class="lane-title">PHASE · AS FOUND</div>
+          <div class="container">
+            <div class="chip mut" style="align-self:flex-start">for each {table row} · max {n}</div>
+            <div class="node" role="treeitem"><span class="id ltr">3</span><span>Apply source</span><span class="spacer"></span><span class="ribbon">H2 🔒</span><span class="chip mut">resumable</span></div>
+            <div class="node" role="treeitem"><span class="id ltr">4</span><span>Configure instrument under test</span><span class="spacer"></span><span class="chip mut">H1 · idempotent</span></div>
+            <div class="node" role="treeitem" aria-selected="true"><span class="id ltr">5</span><span>Acquire readings</span><span class="spacer"></span><span class="chip warn">mean · pending_review</span><span class="chip mut">H0 · idempotent</span></div>
+            <div class="node" role="treeitem"><span class="id ltr">6</span><span>Check limits</span><span class="spacer"></span><span class="chip mut">evaluate.limits</span></div>
+          </div>
+          <div class="lane-title">TEARDOWN (always) · SAFE-STATE (abort / fault)</div>
+          <div class="node" role="treeitem"><span class="id ltr">9</span><span>Source off</span><span class="spacer"></span><span class="chip mut">safe-state eligible</span></div>
+        </div>
+        <hr style="border:0;border-block-start:1px solid var(--line);margin:12px 0">
+        <div class="finding"><span class="chip err">✖ <span class="ltr">PR-006</span></span> Dimension mismatch at node 6 — expected {dimension}, got {dimension} <button class="btn" style="margin-inline-start:auto">Go</button></div>
+        <div class="finding"><span class="chip warn">⚠ <span class="ltr">PR-018</span></span> No teardown source-off <button class="btn" style="margin-inline-start:auto">Quick fix</button></div>
+      </div>
+      <div class="card"><h3>Inspector · measure.acquire</h3>
+        <div class="row" style="flex-wrap:wrap"><span class="chip mut">Main</span><span class="chip mut">Bindings</span><span class="chip mut">Flow</span><span class="chip mut">Errors</span><span class="chip ok">Resume</span><span class="chip mut">Permissions</span></div>
+        <p><strong>Resume policy</strong><br>idempotent <span style="color:var(--text-muted)">(derived minimum)</span></p>
+        <p style="color:var(--text-muted)">After an interruption here: the node is re-run; earlier attempts stay as superseded evidence.</p>
+        <p><strong>Limit band</strong> (sample row)<br><span class="ltr">{lo} … {hi}</span> · inclusive <span class="ltr">[ ] / ( )</span> <span class="chip warn">declared by author · no default</span></p></div>
+    </div>
+  </section>
+
+  <!-- RUNNER -->
+  <section class="view" id="v-run" aria-labelledby="h-run">
+    <div class="banner-sim" role="status"><span>◈ <span data-i18n="rBanner">SIMULATION · NOT A CALIBRATION</span></span><span class="spacer"></span><span class="ltr">Run {id} · {application} v{x} · sha256:{short}</span></div>
+    <div class="crumbs" style="margin-block-start:12px"><h2 id="h-run" data-i18n="rTitle">Run console</h2><span class="chip info">● RUNNING</span><span class="spacer"></span><button class="btn">Pause</button><button class="btn">Abort…</button></div>
+    <div class="run">
+      <div class="card"><h3>Steps</h3>
+        <div class="row"><span class="chip ok">✔</span> Setup</div>
+        <div class="row"><strong>▾ As Found</strong></div>
+        <div class="row" style="padding-inline-start:16px"><span class="chip ok">✔</span> TP1 <span class="chip ok">✔</span> TP2 <span class="chip info">▶</span> TP3</div>
+        <div class="row"><span class="chip mut">○</span> Teardown</div>
+        <h3 style="margin-block-start:14px">Evidence</h3>
+        <div class="row"><span class="chip ok">✔</span> Environment</div></div>
+      <div class="grid">
+        <div class="card"><h3>Now</h3>
+          <div class="big">Acquiring readings ({k}/{n})…</div>
+          <table aria-label="Live values"><tbody>
+            <tr><th scope="row">Reading</th><td class="num"><bdi class="ltr">{value} {unit}</bdi></td><th scope="row">Nominal</th><td class="num"><bdi class="ltr">{value} {unit}</bdi></td></tr>
+            <tr><th scope="row">Deviation</th><td class="num"><bdi class="ltr">{value} {unit}</bdi></td><th scope="row">Limit check</th><td><span class="chip mut">⏳ pending</span></td></tr></tbody></table></div>
+        <div class="card"><h3>Readings (live) · attempt 1</h3>
+          <table><thead><tr><th>#</th><th>value</th><th>time (UTC)</th><th>status</th></tr></thead><tbody>
+            <tr><td><bdi class="ltr">1</bdi></td><td class="num"><bdi class="ltr">{value} {unit}</bdi></td><td><bdi class="ltr">{time}</bdi></td><td><span class="chip ok">✔ recorded</span></td></tr>
+            <tr><td><bdi class="ltr">2</bdi></td><td class="num"><bdi class="ltr">{value} {unit}</bdi></td><td><bdi class="ltr">{time}</bdi></td><td><span class="chip ok">✔ recorded</span></td></tr></tbody></table></div>
+        <div class="card"><h3>Operator panel</h3><span style="color:var(--text-muted)">Prompts appear here and stay until answered.</span></div>
+        <div class="card" style="display:flex;gap:16px;flex-wrap:wrap"><span>Safety: no violations</span><span>Journal ✔ verified</span><span>Sync: offline · queued {n}</span></div>
+      </div>
+    </div>
+  </section>
+
+  </main>
+</div>
+<footer class="ref">Proposal tokens: see docs/phase1/03_UX_ARCHITECTURE.md §4. Fonts proposed: Inter / Heebo / JetBrains Mono (SIL OFL, to be bundled, D-13); this file falls back to system fonts.</footer>
+
+<script>
+(function(){
+  var html=document.documentElement;
+  var dict={
+    en:{ref:"DESIGN REFERENCE — static and non-functional. All measurement values are placeholders; no metrology is depicted. Hebrew labels are unreviewed placeholders (MI-31 / Q-15).",
+      navBuilder:"Builder",navTokens:"Design tokens",navHome:"Home",navApps:"Applications",navProc:"Procedures",navOp:"Operator",navRun:"Calibration runner",
+      tTitle:"Design tokens and status vocabulary",tColors:"Colour roles",tStatus:"Status chips — icon + text + colour, never colour alone",cWithin:"Within limits",cOutside:"Outside limits",cNotEval:"Not evaluated",
+      tNote:"Labels follow UI_UX_SPEC §11: “limit check”, never pass/fail or calibrated, unless an approved decision rule produced them.",tRtl:"RTL isolation sample",tRtlNote:"Values, units, IDs, hashes and wire text stay left-to-right inside right-to-left text.",
+      hTitle:"Home",hNew:"+ New application",hWork:"My work",hReview:"Awaiting my review",hAuthor:"You authored this — cannot approve (separation of duties)",hBlock:"Readiness blockers",hRel:"Releases",aSubmit:"Submit for review",
+      rBanner:"SIMULATION · NOT A CALIBRATION",rTitle:"Run console",dark:"Dark",light:"Light"},
+    he:{ref:"מסמך עיצוב לעיון — סטטי ולא פונקציונלי. כל ערכי המדידה הם מציינים בלבד; אין כאן מטרולוגיה. התוויות בעברית הן טיוטה לא מאושרת (MI-31 / Q-15).",
+      navBuilder:"בונה היישומים",navTokens:"אסימוני עיצוב",navHome:"בית",navApps:"יישומים",navProc:"נהלים",navOp:"מפעיל",navRun:"מריץ כיולים",
+      tTitle:"אסימוני עיצוב ואוצר מילים לסטטוס",tColors:"תפקידי צבע",tStatus:"תגי סטטוס — סמל + טקסט + צבע, לעולם לא צבע בלבד",cWithin:"בתוך הגבולות",cOutside:"מחוץ לגבולות",cNotEval:"לא הוערך",
+      tNote:"התוויות פועלות לפי UI_UX_SPEC §11: ”בדיקת גבולות”, ללא עבר/נכשל או ”כויל” אלא אם כלל החלטה מאושר הפיק אותם.",tRtl:"דוגמת בידוד לכיוון",tRtlNote:"ערכים, יחידות, מזהים, גיבובים וטקסט תקשורת נשארים משמאל לימין בתוך טקסט מימין לשמאל.",
+      hTitle:"בית",hNew:"+ יישום חדש",hWork:"העבודה שלי",hReview:"ממתין לבדיקה שלי",hAuthor:"אתה כתבת זאת — אין אפשרות לאשר (הפרדת תפקידים)",hBlock:"חוסמי מוכנות",hRel:"שחרורים",aSubmit:"שליחה לבדיקה",
+      rBanner:"הדמיה · אינו כיול",rTitle:"מסוף הרצה",dark:"כהה",light:"בהיר"}
+  };
+  var lang='en';
+  function apply(){
+    var d=dict[lang];
+    document.querySelectorAll('[data-i18n]').forEach(function(n){var k=n.getAttribute('data-i18n'); if(d[k]) n.textContent=d[k];});
+    html.lang=lang; html.dir=(lang==='he'?'rtl':'ltr');
+    document.getElementById('btnTheme').textContent = html.getAttribute('data-theme')==='dark' ? d.light : d.dark;
+    document.getElementById('btnLang').setAttribute('aria-pressed', lang==='he');
+  }
+  function swatches(){
+    var names=['bg','surface','surface-2','text','text-muted','border','primary','focus','ok','warn','error','info','hazard','sim','deployment-test','deployment-prod'];
+    var box=document.getElementById('swatches'); box.textContent='';
+    var cs=getComputedStyle(html);
+    names.forEach(function(n){
+      var v=cs.getPropertyValue('--'+n).trim();
+      var d=document.createElement('div'),i=document.createElement('i'),s=document.createElement('span');
+      i.style.background='var(--'+n+')'; s.textContent='--'+n+' '+v; d.appendChild(i); d.appendChild(s); box.appendChild(d);
+    });
+  }
+  document.getElementById('btnLang').addEventListener('click',function(){lang=(lang==='en'?'he':'en');apply();});
+  document.getElementById('btnTheme').addEventListener('click',function(){
+    var t=html.getAttribute('data-theme')==='dark'?'light':'dark'; html.setAttribute('data-theme',t); this.setAttribute('aria-pressed',t==='dark'); apply(); swatches();});
+  document.querySelectorAll('.nav button').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.querySelectorAll('.nav button').forEach(function(x){x.removeAttribute('aria-current');});
+      b.setAttribute('aria-current','page');
+      document.querySelectorAll('.view').forEach(function(v){v.classList.remove('on');});
+      var id='v-'+b.getAttribute('data-view'); document.getElementById(id).classList.add('on');
+      document.getElementById('modeBadge').hidden = (b.getAttribute('data-view')!=='run');
+    });
+  });
+  apply(); swatches();
+})();
+</script>
+</body>
+</html>
