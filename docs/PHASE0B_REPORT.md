@@ -41,7 +41,7 @@ production security accreditation or a metadata publication system.
 | Schema/compatibility failure | Unknown schema, invalid envelope and runtime-range vectors | Local pass |
 | Separate Test and Production rehearsal | Phase 0A Compose resource test retained; default verifier unavailable in both | Local static pass; hardening CI pass |
 | Phase 0A regression | Existing 12 tests and tooling gates retained | Local pass |
-| New security suite | Fourteen scenario groups, including the independent review's R-1 negatives | Local pass; closure CI pending |
+| New security suite | Fourteen scenario groups, including the independent review's R-1 negatives | Local and closure CI pass |
 
 The R-1 closure suite passed **16 unit tests and 14 security groups** locally
 on 2026-11-02, with no skipped or failing tests. `mypy --strict` passed 14
@@ -53,8 +53,10 @@ and [PR run 41394741209](https://github.com/avihafif/calibration-os/actions/runs
 both passed four jobs on hardening tree `937111c2`: Python on Windows and Ubuntu,
 TypeScript, and Compose rehearsal. The Compose job checked both isolated
 projects, migrations, shell routes, and `503` from the unprovisioned package
-route. Closure CI for the added R-1 vectors is pending at this report revision.
-No prior CI job failed or was skipped. PR #1 had zero submitted reviews,
+route. The R-1 closure [push run 41405379584](https://github.com/avihafif/calibration-os/actions/runs/41405379584)
+and [PR run 41405387138](https://github.com/avihafif/calibration-os/actions/runs/41405387138)
+each passed Python Ubuntu/Windows, TypeScript and Compose rehearsal (four
+jobs, no failures). PR #1 had zero submitted reviews,
 inline review comments and issue comments at this review checkpoint.
 
 ## Engineering and security review findings

@@ -6,13 +6,19 @@ this matrix records verified findings and corrections without ratifying ADRs.
 
 | Review item | Phase 0B action | Evidence | Status |
 | --- | --- | --- | --- |
-| R-1 / SR-M9 #1–2 | Added `alg=none`, HS256 public-key confusion, critical header, token size and whitespace negatives | `test_jwt_algorithm_header_and_size_rejections` | Local pass; CI recheck pending |
-| R-1 / SR-M9 #3–4 | Added issuer/audience, future `iat`/`nbf`, missing claims, boolean/float `exp`, unknown/revoked auth key negatives | `test_jwt_claim_issuer_audience_and_key_rejections` | Local pass; CI recheck pending |
-| R-1 / SR-M9 #5 | Added exact package, token, package-key, package-trust and auth-trust expiry boundaries | `test_exact_expiry_boundaries_rejected` | Local pass; CI recheck pending |
-| R-1 / SR-M9 #7–8 | Added extra/wrong-type/Unicode-lookalike manifest negatives and canonical JSON representation equivalence | `test_signed_manifest_shape_and_canonical_equivalence` | Local pass; CI recheck pending |
-| R-1 / SR-M9 #9 | Added unauthenticated oversized and no-Content-Length chunked body negatives; asserts denial logs and responses omit body marker | API ASGI test | Local pass; CI recheck pending |
-| R-2 / SR-L5 | Replaced stale CI and no-High assertions; explicitly recorded replay, token lifetime, package validity and unsigned trust gaps | `PHASE0B_REPORT.md` | Documented; closure CI pending |
-| R-3 / SR-H1–H3, SR-M3 | Added open gates to Phase 0C; every receipt is fixed to non-operational, replay-unchecked, untrusted and import-ineligible | `PHASE0C_PROPOSAL.md`, receipt fields, test | Local pass; policy unresolved |
+| R-1 / SR-M9 #1–2 | Added `alg=none`, HS256 public-key confusion, critical header, token size and whitespace negatives | `test_jwt_algorithm_header_and_size_rejections` | Local and CI pass |
+| R-1 / SR-M9 #3–4 | Added issuer/audience, future `iat`/`nbf`, missing claims, boolean/float `exp`, unknown/revoked auth key negatives | `test_jwt_claim_issuer_audience_and_key_rejections` | Local and CI pass |
+| R-1 / SR-M9 #5 | Added exact package, token, package-key, package-trust and auth-trust expiry boundaries | `test_exact_expiry_boundaries_rejected` | Local and CI pass |
+| R-1 / SR-M9 #7–8 | Added extra/wrong-type/Unicode-lookalike manifest negatives and canonical JSON representation equivalence | `test_signed_manifest_shape_and_canonical_equivalence` | Local and CI pass |
+| R-1 / SR-M9 #9 | Added unauthenticated oversized and no-Content-Length chunked body negatives; asserts denial logs and responses omit body marker | API ASGI test | Local and CI pass |
+| R-2 / SR-L5 | Replaced stale CI and no-High assertions; explicitly recorded replay, token lifetime, package validity and unsigned trust gaps | `PHASE0B_REPORT.md` | Documented with CI evidence |
+| R-3 / SR-H1–H3, SR-M3 | Added open gates to Phase 0C; every receipt is fixed to non-operational, replay-unchecked, untrusted and import-ineligible | `PHASE0C_PROPOSAL.md`, receipt fields, test | Local/CI pass; policy unresolved |
+
+[Push CI 41405379584](https://github.com/avihafif/calibration-os/actions/runs/41405379584)
+and [PR CI 41405387138](https://github.com/avihafif/calibration-os/actions/runs/41405387138)
+passed all four jobs on the R-1/R-2/R-3 code tree: Python Ubuntu, Python
+Windows, TypeScript and Compose rehearsal. The local run passed 16 unit and
+14 security test groups, no skips or failures.
 
 The review's SR-M9 #6 (replay rejection) cannot pass before ADR-0004 and a
 tenant-scoped replay ledger are approved. The current test demonstrates the
