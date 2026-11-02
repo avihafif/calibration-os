@@ -143,8 +143,8 @@ calos/
 ├─ packages/ts/
 │  ├─ api-client/             # Generated from OpenAPI
 │  ├─ domain-types/           # Generated from JSON Schemas
-│  ├─ editor-core/            # Document model, commands, patch, undo/redo, schema-driven inspector
-│  ├─ designers/              # procedure-canvas, driver, metrology, ui-layout, report-page, i18n workspaces
+│  ├─ editor-core/            # Framework-neutral document model, commands, patch, inspector model
+│  ├─ designers/              # One package: React inspector, procedure, driver, metrology, safety, sim-lab…
 │  ├─ ui-runtime/             # Renderer: component registry, binding, actions, layer resolver
 │  ├─ expr-presentation/      # TS presentation-subset evaluator (conformance-tested vs Python)
 │  ├─ ui-kit/                 # Design system components, tokens
@@ -154,6 +154,7 @@ calos/
 ├─ content/                   # SHIPPED CONFIGURATION (system UI, shared command libraries, demo app package)
 │  └─ apps/keysight-34401a-demo/   # exported .calapp sources — produced by the Builder, not hand-written code
 ├─ plugins/                   # Class B technical plugins (none required for VS-1)
+├─ design/                    # Non-shipping prototypes and design-only tools; never imported by production
 ├─ deploy/                    # Compose, Dockerfiles, installers (MSI), CI templates
 ├─ tests/                     # cross-cutting: e2e, contract, fault-injection, golden vectors
 └─ docs/
@@ -194,9 +195,36 @@ flowchart LR
 | Runtime packages contain **no instrument/manufacturer/model strings** | grep-lint test (B-3) |
 | `apps/*` are composition roots; **no app imports another app** | import-linter |
 | `plugins/*` import only `calos_plugin_sdk` | import-linter |
-| TS packages: `ui-runtime`, `editor-core`, `designers` do not import `api-client` directly; they use injected host ports | eslint-plugin-boundaries |
+| TypeScript packages follow the closed import table below; no package imports `apps/web` | eslint-plugin-boundaries + a negative probe for every forbidden edge |
+| Only `apps/web` composition code (and generated-client tests) imports `api-client`; `ui-runtime`, `editor-core` and `designers` use injected host ports | eslint-plugin-boundaries + negative probes |
+| `editor-core` owns the framework-neutral inspector model; React rendering lives in the single `designers` workspace package, with primitives in `ui-kit` | package boundary tests; `editor-core` cannot import React or `ui-kit` |
+| Production packages never import or bundle `design/`; its separate workflow checks prototypes only | import/bundle boundary tests; `.github/workflows/design-prototype.yml` is not product CI |
 | JSON Schemas in `schemas/` generate both Pydantic models and TS types; hand-edited generated code fails CI | codegen drift check |
 | New config kinds require registry entry + schema + validators + editor binding + conformance fixtures | PR checklist enforced by test that enumerates registry |
+
+**Accepted TypeScript import directions (ADR-0001 A1–A4).** An entry lists the
+only other repository packages a package may import; absence means no
+repository-package import. Ordinary third-party imports still require their
+own approval. `designers` is one workspace package with internal folders, not
+a separate package per workspace; its internal boundaries use path patterns.
+
+| Importing package | Allowed repository-package imports |
+|---|---|
+| `i18n`, `domain-types` | none |
+| `expr-presentation` | `domain-types` |
+| `ui-kit` | `i18n` |
+| `editor-core` | `domain-types`, `expr-presentation`; no React or `ui-kit` |
+| `designers` | `editor-core`, `ui-kit`, `i18n`, `domain-types`, `expr-presentation` |
+| `ui-runtime` | `ui-kit`, `i18n`, `domain-types`, `expr-presentation` |
+| `apps/web` | any approved repository package; composition root only |
+
+No production package imports `design/` or `apps/web`. No package other than
+`apps/web` composition code imports `api-client` (the generated client's own
+tests are the sole test exception). As each package is implemented, it must
+be declared as an element in `eslint-plugin-boundaries`, and
+`tools/check_ts_boundary.mjs` must gain a negative probe for every forbidden
+edge. Adding a package without these checks must fail CI. The existing Python
+import contracts and TypeScript host-port rule remain in force.
 
 ## 7. Component architecture
 

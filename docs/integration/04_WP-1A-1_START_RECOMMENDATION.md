@@ -1,9 +1,15 @@
 # 04 — Recommendation: starting WP-1A-1 (Frontend foundation)
 
-Status: **recommendation to the product owner; not an approval.** Superseded in detail by [docs/gate-a0/05](../gate-a0/05_CHECKLIST_SEQUENCING_AND_BLOCKERS.md) (exact checklist, two paths, blockers) and [04 evidence](../gate-a0/04_DEPENDENCY_AND_FONT_EVIDENCE.md). Nothing here authorises implementation.
+Status: **historical recommendation.** Scoped WP-1A-1 Path B, ADR-0001 A1–A4,
+ADR-0015 B1–B6 and exact dependencies in ADR-0026 have since been recorded
+by delegation. The current entry gate is [Gate A0 scoped readiness](../gate-a0/10_WP-1A-1_SCOPED_READINESS_AND_APPROVALS.md):
+a reviewed architecture-spec alignment PR must merge before sub-PR 1a, and
+dependency evidence is refreshed at installation. Full Gate A0 remains closed.
+The original recommendation below is retained as historical context; where
+it conflicts, the accepted ADRs and current readiness record govern.
 
 ## What WP-1A-1 is (phase1/13 §4)
-`packages/ts/i18n`, `packages/ts/ui-kit` (tokens, `FrameBadges`, `AppFrame`, primitives, inputs, `DataGrid`, `TreeView`, `DiffViewer`, `ValidationDrawer`, dialogs, `CommandPalette`), `apps/web` routing + query cache + shells, hard-coded-string lint, axe + Playwright + visual harness in CI; Phase 0A strings moved to i18n keys. Acceptance P1A-AC-05…14.
+`packages/ts/i18n`, `packages/ts/ui-kit` (tokens, `FrameBadges`, `AppFrame`, primitives, inputs, `DataGrid`, `TreeView`, `DiffViewer`, `ValidationDrawer`, dialogs, `CommandPalette`), `apps/web` routing + shells, hard-coded-string lint, axe + Playwright + visual harness in CI; Phase 0A strings moved to compiled ICU system bundles. The query-cache dependency is deferred by ADR-0026; system fonts are used until GA0-06b. Acceptance P1A-AC-05…14.
 
 ## Minimum approved scope to start (all must be recorded by named owners)
 | # | Item | Why it is needed for WP-1A-1 |

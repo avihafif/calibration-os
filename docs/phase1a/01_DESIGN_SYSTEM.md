@@ -2,10 +2,10 @@
 
 | | |
 |---|---|
-| Status | **Final proposal for approval (D-13)**. Supersedes the *values* in [phase1/03 §4](../phase1/03_UX_ARCHITECTURE.md#4-design-tokens-proposal) where they differ (§9 lists every difference); principles, shells, IA, chip vocabulary and RTL rules in phase1/03 remain in force and are **not repeated** here. |
+| Status | Product owner approved the palette/tokens provisionally (D-13/GA0-06a); font bundling GA0-06b remains open. Supersedes the *values* in [phase1/03 §4](../phase1/03_UX_ARCHITECTURE.md#4-design-tokens-proposal) where they differ (§9 lists every difference); principles, shells, IA, chip vocabulary and RTL rules remain in force. |
 | Reference implementation | [`design/phase1a-prototype/css/app.css`](../../design/phase1a-prototype/css/app.css) (tokens and components) and the live **Design system** screen in the prototype. The CSS is a *visual reference*, not production code. |
 | Verified | Every text/background pair below is checked by `design/phase1a-prototype/tests/prototype.test.js` (WCAG 2.x ratios ≥ 4.5:1 text, ≥ 3:1 control borders and focus ring) in light and dark. |
-| Brand | No brand colour or logo is mandated; the accent is a single replaceable token (§3.3). Fonts are SIL OFL and **must be bundled** (air-gapped stations); licence confirmation is part of D-13. |
+| Brand | No brand colour or logo is mandated; the accent is a single replaceable token (§3.3). WP-1A-1 uses a system font stack. Inter, Heebo and JetBrains Mono are possible later self-hosted fonts but **must not be bundled** before GA0-06b legal sign-off (ADR-0015 B4). |
 
 ## 1. Character
 
@@ -55,8 +55,8 @@ Accent (`--primary`, with `--primary-contrast` derived), surface/background neut
 
 | Role | Value |
 |---|---|
-| UI font stack | `Inter, "Segoe UI", Heebo, "Arial Hebrew", system-ui, Arial, sans-serif` (Inter Latin, Heebo Hebrew — bundled, SIL OFL, D-13) |
-| Monospace | `"JetBrains Mono", Consolas, "Courier New", monospace` — wire text, keys, hashes, identifiers, expressions; always `dir="ltr"` |
+| UI font stack | `"Segoe UI", "Arial Hebrew", system-ui, Arial, sans-serif` in WP-1A-1; no font files. After GA0-06b, a reviewed self-hosted Inter/Heebo stack may replace it. |
+| Monospace | `Consolas, "Courier New", monospace` in WP-1A-1 — wire text, keys, hashes, identifiers, expressions; always `dir="ltr"`. JetBrains Mono remains a later licence-gated option. |
 | Numerals | `font-variant-numeric: tabular-nums` globally; Western digits in both locales |
 | Scale (rem; root 16 px) | `xs .75` · `sm .8125` · `base .875` · `lg 1` · `xl 1.125` · `2xl 1.375` · `3xl 1.75`; comfortable density (station) uses `base 1` |
 | Line height | 1.5 body, 1.25 headings, **1.6 for Hebrew** (`:lang(he)`) |

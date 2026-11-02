@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Proposal for approval (decision **D-23**). Refines [02](02_PHASE1_PLAN.md): Phase 1A = the *frontend-first* half of slices S0 and S1, run against an in-memory **Synthetic Host**. Server-backed identity, persistence and import remain Phase 1B (the rest of S0/S1) and stay gated by ADR-0004/0008/0014/0016. |
+| Status | D-23 and scoped WP-1A-1 Path B are recorded by delegation in [Gate A0 record 13](../gate-a0/13_DELEGATED_ARCHITECTURE_SECURITY_LEGAL_RECORD_2026-11-02.md). ADR-0001 A1–A4, ADR-0015 B1–B6 and ADR-0026 are accepted. Full Gate A0 stays closed for later Builder work; H-2/GA0-16 remains undecided. Server-backed identity, persistence and import remain Phase 1B and gated by ADR-0004/0008/0014/0016. |
 | First visible milestone | **A professional, bilingual, schema-driven No-Code Application Builder, operating entirely on synthetic data, in which a non-programmer creates, edits, reviews (under separation of duties), publishes and compares versions of instrument manufacturers and models — with no instruments, no persistence, no real authentication and no production publication.** |
 | Audience | Codex (implementer); product owner (approver) |
 
@@ -20,9 +20,9 @@
 ## 2. Scope
 
 ### 2.1 In scope
-* Frontend foundation (S0 front half): `i18n`, `ui-kit` (tokens, protected components, frame, chips, banners, inputs), contrast validator, routing, query cache, test harness (unit, Playwright, axe, visual regression, pseudo-locales).
+* Frontend foundation (S0 front half): `i18n`, `ui-kit` (tokens, protected components, frame, chips, banners, inputs), contrast validator, routing and test harness (unit, Playwright, axe, visual regression, pseudo-locales). Server-state query cache is deferred by ADR-0026; this in-memory slice has no network.
 * Schemas and fixtures for `Manufacturer` (corrected per D-11), `InstrumentFamily`, `InstrumentModel` with shared definitions; generated TS types; registry fields (07 §3, §8).
-* `editor-core` and the **schema-driven inspector** with the closed hint vocabulary (07 §2).
+* Framework-neutral inspector model in `editor-core` and React rendering in the single `designers` package, after H-2/GA0-16 approves one closed hint vocabulary (ADR-0001 A2–A3).
 * **Synthetic Host** implementing the host ports with *clearly labelled* synthetic personas, in-memory only.
 * Builder shell: Home (SCR-01 A, synthetic), Instruments workspace (SCR-05a), validation drawer, History/Where-used, structural diff, View-as-data, Review queue, Publish wizard (synthetic versions), lease/conflict simulation, command palette, he/en + RTL, light/dark.
 * Capability Matrix rows and docs for the above.
@@ -31,6 +31,12 @@
 Real login/accounts/tokens; any database write; package import/export or verification endpoint use; signing; drivers/SCPI; metrology values; procedures/engine/simulator; stations; reports; **production publication** or any Release workflow; any real or simulated *instrument* behaviour; Hebrew content claims beyond placeholders.
 
 ## 3. Entry conditions (gate A0)
+
+The full gate below still applies to later Builder work. For **WP-1A-1 only**,
+the delegated scoped Path B decision in [Gate A0 record 13](../gate-a0/13_DELEGATED_ARCHITECTURE_SECURITY_LEGAL_RECORD_2026-11-02.md)
+permits a frontend foundation after the accepted architecture specifications
+are aligned in a reviewed PR. It does not authorize the inspector, kinds,
+Synthetic Host or operational capabilities. Fonts remain unbundled.
 
 | # | Condition | Evidence |
 |---|---|---|
@@ -42,14 +48,17 @@ Real login/accounts/tokens; any database write; package import/export or verific
 
 ## 4. Work packages
 
-Each package is one PR (or a short series). Order is mostly sequential; WP-1A-1 and WP-1A-2 can run in parallel.
+Each package is one PR (or a short series). WP-1A-1 may start under the
+recorded scoped Path B after its architecture-spec alignment PR merges.
+WP-1A-2/3 remain blocked on H-2/GA0-16 and their full gate conditions, so
+parallel implementation is not yet authorized.
 
 ### WP-1A-0 · Schema subset, canonical vectors (backend, small)
 **Deliver:** R-4 implementation in `packages/py/calos_metadata/calos_metadata/schema.py`, `tools/codegen.py` (emit unions/definitions to Python and TS), hint-vocabulary validator for `x-calos-editor`; RFC 8785 canonical-JSON **vectors** shared by Python and TS (`tests/vectors/canonical/*.yaml`); TS canonicalizer + SHA-256 digest in `packages/ts` (no new heavy dependency: Web Crypto), proven against the vectors.
 **Accept:** P1A-AC-01…04.
 
 ### WP-1A-1 · Frontend foundation
-**Deliver:** `packages/ts/i18n` (ICU, locale/direction, bidi helpers, `en-XA`/`he-XB` pseudo-locales), `packages/ts/ui-kit` (tokens from 03 §4, contrast validator, protected set, `FrameBadges`, `AppFrame`, chips, banners, `QuantityInput`, `IntervalInput`, `InputRequiredBadge`, `LocalizedTextField`, `DataGrid`, `TreeView`, `DiffViewer`, `JsonViewer`, `ValidationDrawer`, dialogs, `CommandPalette`), `apps/web` routing + query cache + shells, hard-coded-string lint, Storybook-class catalogue **only if D-12 approves it**; Phase 0A strings moved to i18n keys; axe + Playwright + visual harness in CI.
+**Deliver:** `packages/ts/i18n` (compiled en/he ICU system bundles, bundle-provider port for later approved config items, locale/direction, bidi helpers, CLDR Hebrew plurals, `en-XA`/`he-XB` pseudo-locales, `needs_review` flags), `packages/ts/ui-kit` (tokens from 03 §4, contrast validator, protected set, `FrameBadges`, `AppFrame`, chips, banners, `QuantityInput`, `IntervalInput`, `InputRequiredBadge`, `LocalizedTextField`, `DataGrid`, `TreeView`, `DiffViewer`, `JsonViewer`, `ValidationDrawer`, dialogs, `CommandPalette`), `apps/web` routing + shells, hard-coded-string lint; Phase 0A strings moved to i18n keys; axe + Playwright + visual harness in CI. Use only exact approved ADR-0026 dependencies with refreshed installation evidence; no query-cache or Storybook-class package. Use system fonts until GA0-06b.
 **Accept:** P1A-AC-05…14.
 
 ### WP-1A-2 · Kinds, schemas and fixtures
@@ -57,7 +66,7 @@ Each package is one PR (or a short series). Order is mostly sequential; WP-1A-1 
 **Accept:** P1A-AC-15…18.
 
 ### WP-1A-3 · editor-core and the schema-driven inspector
-**Deliver:** `packages/ts/editor-core` (document model, commands with inverses, JSON Patch, selection, clipboard, autosave queue, lease client against ports); `packages/ts/designers/inspector` (InspectorModel builder, widget registry, validation binding, permission-aware read-only/disabled-with-reason, provenance + Input-required handling, union/list/record editors, quick-fix hooks).
+**Deliver (after H-2/GA0-16):** `packages/ts/editor-core` (document model, commands with inverses, JSON Patch, selection, clipboard, autosave queue, lease client against ports, framework-neutral `InspectorModel` builder, hint interpretation, field tree and validation binding); the `inspector/` folder of the single `packages/ts/designers` package (React widget registry and rendering, permission-aware read-only/disabled-with-reason, provenance + Input-required handling, union/list/record editors, quick-fix hooks). No React or `ui-kit` import in `editor-core`.
 **Accept:** P1A-AC-19…26.
 
 ### WP-1A-4 · Synthetic Host
@@ -180,6 +189,6 @@ Phase 1B replaces `SyntheticHost` with an API-backed host (S0 backend: accounts,
 | Dependency sprawl in the frontend | D-12 approval list; ADR-0022 addendum per addition |
 | Hebrew strings unreviewed | `needs_review` flags; no claim of reviewed terminology |
 
-## 10. Prompt for Codex (use after gate A0 is green)
+## 10. Prompt for Codex (scoped WP-1A-1 first; later work after its gates)
 
-> Implement **Phase 1A** exactly as specified in `docs/phase1/13_PHASE1A_PLAN.md`, one work package per PR (WP-1A-0 … WP-1A-7), under all rules in `docs/phase1/12_CODEX_IMPLEMENTATION_PROMPT.md §3` and `AGENTS.md`. Do not implement anything listed in §2.2. Before each package: re-read the package section, the cited screens (04A SCR-01/05a/14), components (06), schemas (07) and the P1A-AC rows; verify gate A0 and the recorded decisions; write failing negative tests first. Stop and ask (12 §6) on any metrological value, role/permission change, new dependency, ADR gap, weakened contract, or any request to persist, authenticate, sign, import, export or publish. Report in the format of 12 §8, listing P1A-AC rows with test names and CI run links, and state explicitly what is not verified. Never present the Synthetic Host as a deployment or its personas as accounts.
+> Implement **scoped WP-1A-1** after the reviewed architecture-spec alignment PR merges, starting with sub-PR 1a for `i18n` and machine-enforced TypeScript boundaries. Use one work package per PR, only exact ADR-0026 dependencies, system fonts, compiled system messages, no network or storage, and no `design/` production import. Full Gate A0 remains closed; H-2/GA0-16 must be decided before WP-1A-2/3. For each later package, re-read its section, screens, components, schemas and P1A-AC rows and verify its own recorded gate. Do not implement §2.2. Stop and ask on any metrological value, role/permission change, unapproved dependency/font, ADR gap, weakened contract, or request to persist, authenticate, sign, import, export or publish operationally. Report test names, CI links and unverified items; never present the Synthetic Host as a deployment or its personas as accounts.
