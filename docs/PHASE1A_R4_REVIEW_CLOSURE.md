@@ -27,8 +27,11 @@ Post-integration local regression on 2026-11-02: `tools/check.py` passed all
 import boundaries, TypeScript type/lint/format/boundary/vector checks and web
 build passed. The merged prototype checks passed (12 Builder, 69 Procedure
 Designer, 13 consistency), as did the i18n audit and decision-ID checks.
-The earlier pre-integration head `de6e934` passed all four product jobs in
-[Actions run #55](https://github.com/avihafif/calibration-os/actions/runs/41506154854)
-and both design jobs in
-[run #24](https://github.com/avihafif/calibration-os/actions/runs/41506154780).
-CI for the final integrated head will be linked in PR #6 after it runs.
+The integrated head `f6acde5` passed all four product jobs in
+[Actions run #57](https://github.com/avihafif/calibration-os/actions/runs/41507454707)
+(Python Ubuntu/Windows, TypeScript, isolated Compose rehearsal) and both
+design jobs in
+[run #26](https://github.com/avihafif/calibration-os/actions/runs/41507454705).
+The earlier pre-integration head `de6e934` also passed
+[product run #55](https://github.com/avihafif/calibration-os/actions/runs/41506154854)
+and [design run #24](https://github.com/avihafif/calibration-os/actions/runs/41506154780).
