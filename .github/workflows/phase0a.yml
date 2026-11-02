@@ -21,12 +21,14 @@ jobs:
         run: uv sync --all-packages --frozen
       - name: Contract and unit checks
         run: uv run --no-sync python tools/check.py
+      - name: Phase 0B signature, authentication and tamper vectors
+        run: uv run --no-sync python -m unittest discover -s tests/security -v
       - name: Python lint
         run: uv run --no-sync ruff check apps packages/py tools tests
       - name: Python format
         run: uv run --no-sync ruff format --check apps packages/py tools tests
       - name: Python typing
-        run: uv run --no-sync mypy --strict packages/py/calos_domain/calos_domain packages/py/calos_metadata/calos_metadata
+        run: uv run --no-sync mypy --strict packages/py/calos_domain/calos_domain packages/py/calos_metadata/calos_metadata packages/py/calos_security/calos_security apps/api/calos_api
       - name: Import boundaries
         run: uv run --no-sync lint-imports --no-cache
 
@@ -83,6 +85,10 @@ jobs:
           curl --fail --silent --show-error --retry 15 --retry-delay 2 --retry-all-errors http://127.0.0.1:28080/healthz
           curl --fail --silent --show-error --retry 15 --retry-delay 2 --retry-all-errors http://127.0.0.1:28081/local/v1/status
           curl --fail --silent --show-error --retry 15 --retry-delay 2 --retry-all-errors http://127.0.0.1:28082/
+      - name: Verify package route fails closed without operational trust
+        run: |
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' --request POST --data '{}' http://127.0.0.1:18080/api/v1/config/packages/verify)" = "503"
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' --request POST --data '{}' http://127.0.0.1:28080/api/v1/config/packages/verify)" = "503"
       - name: Stop disposable stacks
         if: always()
         run: |

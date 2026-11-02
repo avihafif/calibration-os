@@ -1,6 +1,8 @@
 # AGENTS.md — Working rules for AI coding agents and contributors
 
-> **Repository status: specification only.** No application code exists yet. Commands in §6 are the **target** commands to be created in Phase 0; do not assume they work today. Specifications live in [`docs/`](docs/README.md).
+> **Repository status: Phase 0A/0B simulation-only skeleton.** Specifications
+> remain in [`docs/`](docs/README.md). The original command list in §6 is a
+> target list; use the verified subset below and do not infer production readiness.
 
 ## 1. What this product is
 **CalOS** — a *No-Code-First, metadata-driven* Calibration Operating System: central services (FastAPI + PostgreSQL + React/TS) and a Windows **Station Agent** (Python + PyVISA) that runs calibrations offline. Calibration applications (instruments, SCPI drivers, procedures, metrology, screens, reports) are **versioned configuration** built in the visual Application Builder and interpreted by a small **trusted runtime**. Code is for the runtime and for rare **Trusted Technical Plugins** (Class B).
@@ -99,6 +101,28 @@ dependencies as described in the repository `README.md`, `uv sync --all-packages
 `mypy --strict` on the two core packages, and `lint-imports --no-cache` have
 been run successfully. The `just` commands, Docker Compose startup, and
 database migration have **not** been verified on this host and remain targets.
+
+**Phase 0B verified subset (2026-11-02):** `python tools/check.py` now includes
+the verification-only package, JWT, Ed25519, tamper, authorization and isolation
+vectors in `tests/security`. The verifier accepts only injected public trust
+snapshots; the API returns `VERIFIER_UNAVAILABLE` without one. Test signing
+keys exist in memory during tests only. ADR-0004 and ADR-0014 remain Proposed;
+the trust/identity provisioning and their expiry/revocation decisions require
+ratification before operational use. No production trust root or private signing
+key has been configured. The Phase 0A Compose migrations and shells passed in
+GitHub Actions, not on the initial Windows host.
+
+**Phase 0B review note:** the temporary test-key approval is limited to keys
+generated in process memory. No ADR-0004/0014 ratifier or approved policy was
+named. The PR must remain a verification-only proposal until those decisions
+are recorded; the [Phase 0C proposal](docs/PHASE0C_PROPOSAL.md) separates
+independent preparatory work from decision-gated trust and identity work.
+The [Phase 1A plan](docs/PHASE1A_IMPLEMENTATION_PLAN.md) is conditional on
+Phase 0B review/merge and approval of the separate Builder architecture/UX
+design; no Builder implementation is present in this branch.
+The [Phase 0B security closure matrix](docs/PHASE0B_SECURITY_CLOSURE.md)
+records three open High **activation gates** from independent review; the
+[Gate A0 checklist](docs/PHASE1A_GATE_A0.md) remains unapproved.
 
 ## 7. Style
 - Python ≥ 3.12, `mypy --strict` on core packages, `ruff`; Pydantic v2 models generated from `schemas/` where applicable; no global mutable state in the runtime; time/IDs/random via injected ports.

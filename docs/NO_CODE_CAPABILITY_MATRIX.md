@@ -140,6 +140,19 @@ Assumption (A-16): the instrument speaks an ASCII SCPI/IEEE-488.2-style protocol
 | 6.20 | Change production policies/thresholds | NC·GOV | Change Requests |
 | 6.21 | Grant privileged roles (safety/approval) | NC·GOV | Admin (dual control, toxic-combination validation) |
 
+**Phase 0B implementation status for row 6.4:** a verification-only, signed
+`Manufacturer` metadata envelope is checked in a protected Test API route when
+test trust material is injected. This does not import a configuration item,
+create a version, approve, release, assign, or provide a graphical workflow.
+The row's NC classification describes the target product capability, not a
+claim that the complete operation is implemented. Trust-root and authentication
+policies remain dependent on Proposed ADR-0004 and ADR-0014.
+Phase 0B hardening also enforces package size and JSON complexity limits,
+strict time strings and distinct JWT/package public-key roles. These are
+runtime verification controls, not authored application behavior or a new
+configuration kind. The [Phase 0C proposal](PHASE0C_PROPOSAL.md) keeps the
+future GUI and lifecycle work gated by the relevant ADRs.
+
 ## 7. Summary
 
 | Class | Count (this version) | Comment |

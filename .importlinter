@@ -2,6 +2,7 @@
 root_packages =
     calos_domain
     calos_metadata
+    calos_security
     calos_api
     calos_station_agent
 
@@ -11,6 +12,7 @@ type = forbidden
 source_modules = calos_domain
 forbidden_modules =
     calos_metadata
+    calos_security
     calos_api
     calos_station_agent
 
@@ -18,6 +20,15 @@ forbidden_modules =
 name = Metadata must not import composition roots
 type = forbidden
 source_modules = calos_metadata
+forbidden_modules =
+    calos_api
+    calos_station_agent
+    calos_security
+
+[importlinter:contract:security-independent]
+name = Security must not import composition roots
+type = forbidden
+source_modules = calos_security
 forbidden_modules =
     calos_api
     calos_station_agent

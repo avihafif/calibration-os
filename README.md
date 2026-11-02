@@ -1,4 +1,4 @@
-# CalOS Phase 0A walking skeleton
+# CalOS Phase 0A/0B walking skeleton
 
 This repository holds the supplied CalOS specifications and a **non-operational,
 simulation-only** implementation probe. It cannot execute a calibration, talk to
@@ -9,6 +9,28 @@ The 42 supplied specification files were committed unchanged as the baseline.
 See [Phase 0A status](docs/PHASE0A_STATUS.md) for the acceptance checklist and
 unimplemented security checks, and the [file manifest](docs/PHASE0A_MANIFEST.md)
 for a file-by-file change list.
+
+Phase 0B adds a **verification-only** metadata package path with strict schema
+and digest checks, Ed25519 verification, publisher/tenant/deployment binding,
+expiry, revocation-snapshot and runtime-version checks, and an authenticated
+`POST /api/v1/config/packages/verify` route. It creates no drafts, approvals,
+versions, releases or assignments. The route returns `503 VERIFIER_UNAVAILABLE`
+in the supplied Compose projects because no operational trust or token issuer
+is provisioned. In-memory test keys demonstrate the contract; they are never
+trusted deployment keys. See [Phase 0B report](docs/PHASE0B_REPORT.md) and the
+[ADR review matrix](docs/PHASE0B_ADR_REVIEW.md). The next trust and identity
+work is scoped in the [Phase 0C proposal](docs/PHASE0C_PROPOSAL.md).
+The conditional [Phase 1A plan](docs/PHASE1A_IMPLEMENTATION_PLAN.md) describes
+a Test-only in-memory Synthetic Host Builder slice after [Gate A0](docs/PHASE1A_GATE_A0.md).
+Claude's independent findings and open High activation gates are tracked in
+the [security closure matrix](docs/PHASE0B_SECURITY_CLOSURE.md).
+
+The package endpoint accepts at most 1 MiB of JSON and rejects excessive
+nesting, unsupported number types, unsigned/tampered input and incompatible
+trust or runtime versions. Denials use `application/problem+json` with a
+correlation ID. Logs contain a stable rejection code and correlation ID, not
+the bearer token or package body. No durable security audit or operational
+issuer/revocation service is present.
 
 ## Windows PowerShell setup
 
@@ -27,7 +49,7 @@ pnpm install --frozen-lockfile --store-dir .pnpm-store
 .\.venv\Scripts\python.exe tools/check.py
 .\.venv\Scripts\ruff.exe check apps packages/py tools tests
 .\.venv\Scripts\ruff.exe format --check apps packages/py tools tests
-.\.venv\Scripts\mypy.exe --strict packages/py/calos_domain/calos_domain packages/py/calos_metadata/calos_metadata
+.\.venv\Scripts\mypy.exe --strict packages/py/calos_domain/calos_domain packages/py/calos_metadata/calos_metadata packages/py/calos_security/calos_security apps/api/calos_api
 .\.venv\Scripts\lint-imports.exe --no-cache
 pnpm check:ts
 pnpm lint:ts
@@ -35,6 +57,15 @@ pnpm format:ts:check
 pnpm test:ts-boundary
 pnpm build:web
 ```
+
+Phase 0B security vectors can also be run separately:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests/security -v
+```
+
+On the initial Windows host, async ASGI tests require permission for local
+event-loop sockets. CI runs the same suite on Windows and Linux.
 
 The local API and station stub need an explicit Test deployment identity:
 
@@ -52,8 +83,8 @@ read `http://127.0.0.1:18091/local/v1/status`. For the React shell, run
 ## Disposable Docker rehearsal stacks
 
 The following commands provision separate local random passwords and placeholder
-key seeds. Those seeds are **not** trusted signing keys, and no signature logic
-is implemented. Docker was unavailable on the initial development host; the
+key seeds. Those seeds are **not** trusted signing keys; no operational trust
+provisioning is implemented. Docker was unavailable on the initial development host; the
 commands below are exercised by the CI Compose job, not claimed locally.
 
 ```powershell
@@ -79,15 +110,18 @@ retained unless explicitly removed.
 
 ## Scope
 
-- `apps/api`: typed health route only; no instrument or authoring endpoint.
+- `apps/api`: typed health route and read-only, authenticated package verification
+  route that is unavailable without injected trust; no instrument or authoring endpoint.
 - `apps/station-agent`: status route only; no VISA, broker, commands, or run path.
 - `apps/web`: bilingual static shell rendering a schema-typed synthetic fixture.
 - `schemas/manufacturer`, `fixtures/manufacturer`, `catalog/kinds.json`: one
   metadata kind and valid/invalid corpus. The type generator supports this
   closed-object subset only and fails on unsupported schema constructs.
-- `packages/py/calos_metadata`: strict schema subset and canonical digest
-  proof. This is not a published-configuration lifecycle implementation.
-- `packages/py/calos_domain`: equality check for deployment identity. It does
-  not authenticate tokens or verify signed artifacts.
+- `packages/py/calos_metadata`: strict schema subset, canonical digest and
+  bounded package parser; lifecycle ports only, with no published-version writes.
+- `packages/py/calos_security`: pinned EdDSA JWT and Ed25519 package verifier
+  against injected public trust snapshots, for simulation tests only.
+- `packages/py/calos_domain`: deployment identity used by both verification
+  boundaries.
 - `deploy`: separate Compose rehearsal stacks and an Alembic migration with
   a tenant RLS probe table. It is not an application database model.

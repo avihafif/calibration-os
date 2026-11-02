@@ -13,11 +13,12 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-SCHEMA = ROOT / "schemas" / "manufacturer" / "v1.schema.json"
-PY_OUT = (
-    ROOT / "packages" / "py" / "calos_metadata" / "calos_metadata" / "generated" / "manufacturer.py"
+SCHEMAS = (
+    ("manufacturer/v1.schema.json", "Manufacturer", "manufacturer"),
+    ("package-manifest/v1.schema.json", "PackageManifest", "package_manifest"),
 )
-TS_OUT = ROOT / "packages" / "ts" / "domain-types" / "src" / "manufacturer.ts"
+PY_DIR = ROOT / "packages" / "py" / "calos_metadata" / "calos_metadata" / "generated"
+TS_DIR = ROOT / "packages" / "ts" / "domain-types" / "src"
 
 
 def _type_of(schema: dict[str, Any], name: str, language: str, classes: list[str]) -> str:
@@ -56,20 +57,24 @@ def _type_of(schema: dict[str, Any], name: str, language: str, classes: list[str
 
 
 def generate() -> dict[Path, str]:
-    schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
     outputs = {}
-    for language, target in (("py", PY_OUT), ("ts", TS_OUT)):
-        classes: list[str] = []
-        _type_of(schema, "Manufacturer", language, classes)
-        header = (
-            (
-                "# Generated from schemas/manufacturer/v1.schema.json; do not edit.\n"
-                "from typing import TypedDict\n\n\n"
+    for schema_path, type_name, filename in SCHEMAS:
+        schema = json.loads((ROOT / "schemas" / schema_path).read_text(encoding="utf-8"))
+        for language, target in (
+            ("py", PY_DIR / f"{filename}.py"),
+            ("ts", TS_DIR / f"{filename}.ts"),
+        ):
+            classes: list[str] = []
+            _type_of(schema, type_name, language, classes)
+            header = (
+                (
+                    f"# Generated from schemas/{schema_path}; do not edit.\n"
+                    "from typing import TypedDict\n\n\n"
+                )
+                if language == "py"
+                else (f"// Generated from schemas/{schema_path}; do not edit.\n\n")
             )
-            if language == "py"
-            else ("// Generated from schemas/manufacturer/v1.schema.json; do not edit.\n\n")
-        )
-        outputs[target] = header + "\n\n".join(classes).rstrip() + "\n"
+            outputs[target] = header + "\n\n".join(classes).rstrip() + "\n"
     return outputs
 
 
