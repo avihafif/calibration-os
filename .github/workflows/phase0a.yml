@@ -41,16 +41,34 @@ jobs:
           version: 11.25.0
       - uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version-file: ".nvmrc"
           cache: pnpm
-      - run: pnpm install --frozen-lockfile
+      - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: pnpm check:ts
+      - run: pnpm check:browser-types
       - run: pnpm lint:ts
       - run: pnpm format:ts:check
       - run: pnpm test:ts-boundary
+      - run: pnpm lint:logical-css
       - run: pnpm test:schema-vectors
+      - run: pnpm test:frontend
       - run: pnpm build:web
-
+      - run: node tools/check_frontend_bundle.mjs
+      - name: Generate CycloneDX SBOM
+        run: pnpm sbom --sbom-format cyclonedx > frontend-sbom.json
+      - name: OSV and licence verification
+        if: always()
+        run: node tools/check_frontend_supply_chain.mjs frontend-sbom.json
+      - name: pnpm audit
+        if: always()
+        run: pnpm audit
+      - name: Upload development SBOM
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wp-1a-1a-dev-sbom
+          path: frontend-sbom.json
+          if-no-files-found: warn
   compose-rehearsal:
     runs-on: ubuntu-latest
     steps:
@@ -95,3 +113,27 @@ jobs:
         run: |
           docker compose -f deploy/test/compose.yaml down -v --remove-orphans
           docker compose -f deploy/prod-rehearsal/compose.yaml down -v --remove-orphans
+
+  frontend-browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.25.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm build:web
+      - name: Install pinned Chromium for CI only
+        run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e
+      - name: Upload bilingual screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wp-1a-1a-screenshots
+          path: artifacts/screenshots/
+          if-no-files-found: warn

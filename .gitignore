@@ -15,3 +15,7 @@ deploy/*/secrets/
 *.egg-info/
 CalOS-specs.zip
 
+artifacts/
+test-results/
+playwright-report/
+frontend-sbom.json

@@ -2,20 +2,33 @@
   "name": "calos-workspace",
   "private": true,
   "packageManager": "pnpm@11.25.0",
+  "engines": { "node": ">=22.22.2" },
   "scripts": {
-    "check:ts": "pnpm --filter @calos/domain-types check && pnpm --filter @calos/web check",
+    "check:ts": "pnpm --filter @calos/domain-types check && pnpm --filter @calos/i18n check && pnpm --filter @calos/web check",
     "build:web": "pnpm --filter @calos/web build",
-    "lint:ts": "eslint apps/web/src packages/ts/domain-types/src",
-    "format:ts": "prettier --write apps/web/src packages/ts/domain-types/src tests/typing/schema_proof.ts tools/check_schema_vectors.mjs",
-    "format:ts:check": "prettier --check apps/web/src packages/ts/domain-types/src tests/typing/schema_proof.ts tools/check_schema_vectors.mjs",
+    "check:browser-types": "tsc --noEmit --strict --moduleResolution Bundler --module ESNext --target ES2022 --skipLibCheck playwright.config.ts tests/frontend/i18n.e2e.spec.ts",
+    "lint:ts": "eslint apps/web/src packages/ts/domain-types/src packages/ts/i18n/src",
+    "format:ts": "prettier --write apps/web/src packages/ts/domain-types/src packages/ts/i18n/src tests/typing/schema_proof.ts tests/frontend tools/*.mjs *.config.mjs playwright.config.ts",
+    "format:ts:check": "prettier --check apps/web/src packages/ts/domain-types/src packages/ts/i18n/src tests/typing/schema_proof.ts tests/frontend tools/*.mjs *.config.mjs playwright.config.ts",
     "test:ts-boundary": "node tools/check_ts_boundary.mjs",
-    "test:schema-vectors": "node tools/check_schema_vectors.mjs"
+    "lint:logical-css": "node tools/check_logical_css.mjs",
+    "test:schema-vectors": "node tools/check_schema_vectors.mjs",
+    "test:frontend": "vitest run",
+    "test:e2e": "playwright test"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "@playwright/test": "1.64.1",
+    "@testing-library/dom": "10.4.2",
+    "@testing-library/react": "16.3.3",
+    "@testing-library/user-event": "14.6.8",
+    "axe-core": "4.14.0",
     "eslint": "10.14.0",
     "eslint-import-resolver-typescript": "4.4.4",
     "eslint-plugin-boundaries": "7.4.0",
+    "jsdom": "30.1.3",
     "prettier": "3.9.10",
-    "typescript-eslint": "8.72.1"
+    "typescript-eslint": "8.72.1",
+    "vitest": "5.0.5"
   }
 }
