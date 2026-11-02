@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | **Preparation only. No approval, name, role holder or date is recorded here.** Every form below is blank. "Recommendation" is advice to the accountable role. |
+| Status | **Product-owner portions recorded 2026-11-02** under the user's explicit authorization; see [delegated product-owner record](06_PRODUCT_OWNER_DECISIONS_2026-11-02.md). All architecture, security, legal, metrology and jointly-owned incomplete sign-offs remain open. A delegated record is not a personal signature. |
 | Sources | `docs/phase1/11_DECISIONS_REQUIRED.md`, `docs/phase1a/05_GATE_A0_APPROVAL_PACKAGE.md`, `docs/phase1/13_PHASE1A_PLAN.md §3`, [01](01_PR6_INDEPENDENT_REVIEW.md), [03](03_ADR_REVIEWS.md), [04](04_DEPENDENCY_AND_FONT_EVIDENCE.md) |
 | Entry ids | `GA0-nn` identify these forms only; decision ids (`D-nn`, `PD-DEC-nnn`) and ADR numbers keep their meaning and status. |
 | Accountable roles | Named holders do not exist in the repository (MI-34). Roles are the ones in the registers (product owner, architecture owner, security, legal, quality). |
@@ -39,12 +39,12 @@
 
 **Sign-off (to be completed by the accountable human — intentionally blank; no approval is recorded by this document)**
 
-| Outcome | ☐ Approved as recommended · ☐ Approved with changes · ☐ Rejected · ☐ Deferred |
+| Outcome | ☑ Approved as recommended by product owner |
 |---|---|
-| Changes / conditions | |
-| Name · role | |
-| Date | |
-| Evidence reference (PR review link, signed commit, or minute) | |
+| Changes / conditions | Non-operational / Test-only constraints and other gates remain binding. Delegated record, not a personal signature. |
+| Name · role | Avi Hafif — Product Owner (GitHub @avihafif) |
+| Date | 2026-11-02 |
+| Evidence reference (PR review link, signed commit, or minute) | [Delegated product-owner record](06_PRODUCT_OWNER_DECISIONS_2026-11-02.md) (committed via user's connected GitHub account) |
 
 ---
 
@@ -73,6 +73,8 @@
 * WP-1A-1 deliverables (phase1/13 §4) are `i18n`, `ui-kit`, `apps/web` shells, CI harness — no schema or kind code.
 
 **Risks.** Option (b) is a process change to a documented gate and needs the owner's explicit wording; (a) delays the frontend foundation for no technical reason.
+
+**Partial product-owner record:** Product owner **endorses option (b)** (scoped frontend gate split), but **joint architecture approval is still pending**. Do not treat A0-2 as fully closed. See [delegated decision record](06_PRODUCT_OWNER_DECISIONS_2026-11-02.md).
 
 **Sign-off (to be completed by the accountable human — intentionally blank; no approval is recorded by this document)**
 
@@ -149,12 +151,12 @@
 
 **Sign-off (to be completed by the accountable human — intentionally blank; no approval is recorded by this document)**
 
-| Outcome | ☐ Approved as recommended · ☐ Approved with changes · ☐ Rejected · ☐ Deferred |
+| Outcome | ☑ Approved as recommended by product owner |
 |---|---|
-| Changes / conditions | |
-| Name · role | |
-| Date | |
-| Evidence reference (PR review link, signed commit, or minute) | |
+| Changes / conditions | Non-operational / Test-only constraints and other gates remain binding. Delegated record, not a personal signature. |
+| Name · role | Avi Hafif — Product Owner (GitHub @avihafif) |
+| Date | 2026-11-02 |
+| Evidence reference (PR review link, signed commit, or minute) | [Delegated product-owner record](06_PRODUCT_OWNER_DECISIONS_2026-11-02.md) (committed via user's connected GitHub account) |
 
 ---
 
@@ -254,6 +256,8 @@
 * Heebo has 27/27 Hebrew letters but lacks `Ω`, `≤`, `≥`; Inter has no Hebrew — the stack order (Inter, then Heebo) is required for correct unit and Hebrew rendering. Status icons (`✔ ✖ ⚠`) are in none of the fonts and need in-house SVG icons.
 
 **Risks.** Licence obligations (ship licence text and copyright, no standalone sale, Modified Version rules when converting formats). The verdict is evidence-based but **not legal advice**; legal sign-off belongs to the legal role.
+
+**Partial product-owner record:** Product owner **approves 06a (palette and tokens) only**. 06b font licence/bundling remains pending legal confirmation; use system font stack. See [delegated decision record](06_PRODUCT_OWNER_DECISIONS_2026-11-02.md).
 
 **Sign-off (to be completed by the accountable human — intentionally blank; no approval is recorded by this document)**
 
@@ -433,12 +437,12 @@
 
 **Sign-off (to be completed by the accountable human — intentionally blank; no approval is recorded by this document)**
 
-| Outcome | ☐ Approved as recommended · ☐ Approved with changes · ☐ Rejected · ☐ Deferred |
+| Outcome | ☑ Product owner acknowledged coordination; specialist translation review OPEN |
 |---|---|
-| Changes / conditions | |
-| Name · role | |
-| Date | |
-| Evidence reference (PR review link, signed commit, or minute) | |
+| Changes / conditions | Non-operational / Test-only constraints and other gates remain binding. Delegated record, not a personal signature. |
+| Name · role | Avi Hafif — Product Owner (product-side strings coordinator; qualified language review pending) |
+| Date | 2026-11-02 |
+| Evidence reference (PR review link, signed commit, or minute) | [Delegated product-owner record](06_PRODUCT_OWNER_DECISIONS_2026-11-02.md) (committed via user's connected GitHub account) |
 
 ---
 
@@ -469,12 +473,12 @@
 
 **Sign-off (to be completed by the accountable human — intentionally blank; no approval is recorded by this document)**
 
-| Outcome | ☐ Approved as recommended · ☐ Approved with changes · ☐ Rejected · ☐ Deferred |
+| Outcome | ☑ Approved as recommended by product owner |
 |---|---|
-| Changes / conditions | |
-| Name · role | |
-| Date | |
-| Evidence reference (PR review link, signed commit, or minute) | |
+| Changes / conditions | Non-operational / Test-only constraints and other gates remain binding. Delegated record, not a personal signature. |
+| Name · role | Avi Hafif — Product Owner (GitHub @avihafif) |
+| Date | 2026-11-02 |
+| Evidence reference (PR review link, signed commit, or minute) | [Delegated product-owner record](06_PRODUCT_OWNER_DECISIONS_2026-11-02.md) (committed via user's connected GitHub account) |
 
 ---
 
@@ -503,12 +507,12 @@
 
 **Sign-off (to be completed by the accountable human — intentionally blank; no approval is recorded by this document)**
 
-| Outcome | ☐ Approved as recommended · ☐ Approved with changes · ☐ Rejected · ☐ Deferred |
+| Outcome | ☑ Approved as recommended by product owner |
 |---|---|
-| Changes / conditions | |
-| Name · role | |
-| Date | |
-| Evidence reference (PR review link, signed commit, or minute) | |
+| Changes / conditions | Non-operational / Test-only constraints and other gates remain binding. Delegated record, not a personal signature. |
+| Name · role | Avi Hafif — Product Owner (GitHub @avihafif) |
+| Date | 2026-11-02 |
+| Evidence reference (PR review link, signed commit, or minute) | [Delegated product-owner record](06_PRODUCT_OWNER_DECISIONS_2026-11-02.md) (committed via user's connected GitHub account) |
 
 ---
 
@@ -538,12 +542,12 @@
 
 **Sign-off (to be completed by the accountable human — intentionally blank; no approval is recorded by this document)**
 
-| Outcome | ☐ Approved as recommended · ☐ Approved with changes · ☐ Rejected · ☐ Deferred |
+| Outcome | ☑ Approved as recommended by product owner |
 |---|---|
-| Changes / conditions | |
-| Name · role | |
-| Date | |
-| Evidence reference (PR review link, signed commit, or minute) | |
+| Changes / conditions | Non-operational / Test-only constraints and other gates remain binding. Delegated record, not a personal signature. |
+| Name · role | Avi Hafif — Product Owner (GitHub @avihafif) |
+| Date | 2026-11-02 |
+| Evidence reference (PR review link, signed commit, or minute) | [Delegated product-owner record](06_PRODUCT_OWNER_DECISIONS_2026-11-02.md) (committed via user's connected GitHub account) |
 
 ---
 
@@ -569,6 +573,8 @@
 * Automated checks and limits: docs/procedure-designer/07 and docs/integration/02; no user research and no screen-reader testing.
 
 **Risks.** Treating a prototype as validated usability evidence — it is not.
+
+**Partial product-owner record:** Product owner **approves D-32 as a visual reference only**; independent UX/accessibility validation and production readiness are not claimed. See [delegated decision record](06_PRODUCT_OWNER_DECISIONS_2026-11-02.md).
 
 **Sign-off (to be completed by the accountable human — intentionally blank; no approval is recorded by this document)**
 
