@@ -38,18 +38,21 @@ production security accreditation or a metadata publication system.
 | Unauthorized operation | Missing, forged, expired or unprivileged JWT vectors | Local pass |
 | Other deployment/environment/tenant | Token, package and trust-snapshot negative vectors | Local pass |
 | Schema/compatibility failure | Unknown schema, invalid envelope and runtime-range vectors | Local pass |
-| Separate Test and Production rehearsal | Phase 0A Compose resource test retained; default verifier unavailable in both | Local static pass; prior CI pass; hardening recheck pending |
+| Separate Test and Production rehearsal | Phase 0A Compose resource test retained; default verifier unavailable in both | Local static pass; hardening CI pass |
 | Phase 0A regression | Existing 12 tests and tooling gates retained | Local pass |
-| New security suite | Nine scenario groups with positive and negative cases | Local pass; prior CI pass; hardening recheck pending |
+| New security suite | Nine scenario groups with positive and negative cases | Local and hardening CI pass |
 
 Local checks on 2026-11-02: `tools/check.py` passed 16 unit tests and 9
 security scenario groups, with no skipped or failing tests. `mypy --strict`
 passed 14 core/API source files; Ruff, import-linter, codegen and TypeScript typing
 passed. Docker was unavailable on this Windows host. GitHub Actions
-[run 41361180311](https://github.com/avihafif/calibration-os/actions/runs/41361180311)
-passed four jobs for the initial PR commit, including Windows/Linux security
-vectors and both Compose projects returning `503` for the unprovisioned
-package route. The hardening changes await a new CI run.
+[push run 41394734344](https://github.com/avihafif/calibration-os/actions/runs/41394734344)
+and [PR run 41394741209](https://github.com/avihafif/calibration-os/actions/runs/41394741209)
+both passed four jobs on hardening tree `937111c2`: Python on Windows and Ubuntu,
+TypeScript, and Compose rehearsal. The Compose job checked both isolated
+projects, migrations, shell routes, and `503` from the unprovisioned package
+route. No CI job failed or was skipped. PR #1 had zero submitted reviews,
+inline review comments and issue comments at this review checkpoint.
 
 ## Engineering and security review findings
 
@@ -68,6 +71,9 @@ package route. The hardening changes await a new CI run.
 No instrument/model branch, arbitrary code execution path, API-to-transport
 dependency, configuration write or Production authoring path was found in the
 Phase 0B diff. The Phase 0A architecture and isolation gates remain active.
+No critical or high-severity implementation defect remained known after this
+review and the listed gates. This is an engineering finding, not an independent
+security assessment or production-readiness claim.
 
 ## Security limitations and dependencies
 
@@ -103,6 +109,11 @@ approval. Ratify or revise ADR-0004, ADR-0014, ADR-0016 and ADR-0021 with
 named decision owners; decide Q-15 and MI-34. Add approved trust provisioning,
 signed revocation/freshness metadata, identity issuer integration and
 dual-control issuer changes before enabling a deployed package verifier.
+
+The [Phase 1A implementation plan](PHASE1A_IMPLEMENTATION_PLAN.md) is a
+conditional file-level plan for a local-draft visual Builder. It does not
+authorize implementation before PR #1 is reviewed and merged and Claude's
+architecture/UX design is approved and integrated.
 
 **Phase 1 proposal, only after those gates:** build a minimal schema-driven
 Application Builder for one `Manufacturer` and one `InstrumentModel` configuration

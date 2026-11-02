@@ -117,6 +117,9 @@ generated in process memory. No ADR-0004/0014 ratifier or approved policy was
 named. The PR must remain a verification-only proposal until those decisions
 are recorded; the [Phase 0C proposal](docs/PHASE0C_PROPOSAL.md) separates
 independent preparatory work from decision-gated trust and identity work.
+The [Phase 1A plan](docs/PHASE1A_IMPLEMENTATION_PLAN.md) is conditional on
+Phase 0B review/merge and approval of the separate Builder architecture/UX
+design; no Builder implementation is present in this branch.
 
 ## 7. Style
 - Python ≥ 3.12, `mypy --strict` on core packages, `ruff`; Pydantic v2 models generated from `schemas/` where applicable; no global mutable state in the runtime; time/IDs/random via injected ports.

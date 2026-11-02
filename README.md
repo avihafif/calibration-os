@@ -20,6 +20,8 @@ is provisioned. In-memory test keys demonstrate the contract; they are never
 trusted deployment keys. See [Phase 0B report](docs/PHASE0B_REPORT.md) and the
 [ADR review matrix](docs/PHASE0B_ADR_REVIEW.md). The next trust and identity
 work is scoped in the [Phase 0C proposal](docs/PHASE0C_PROPOSAL.md).
+The conditional [Phase 1A plan](docs/PHASE1A_IMPLEMENTATION_PLAN.md) describes
+a Test-only local-draft Builder slice after PR review/merge and design approval.
 
 The package endpoint accepts at most 1 MiB of JSON and rejects excessive
 nesting, unsupported number types, unsigned/tampered input and incompatible
