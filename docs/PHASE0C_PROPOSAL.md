@@ -13,11 +13,30 @@ verification-only and simulation-only.
 | ADR-0023 | Preserve the separate AHL channel and reject any Safety Profile or hardware-limit operation through metadata verification | No AHL pack, limit value or safety approval may be inferred |
 | AGENTS.md and architecture boundaries | Expand read-only schema-registry compatibility fixtures, parser resource limits, codegen drift checks and architecture contracts | No draft, approval, publication or activation writes |
 
-These tasks can proceed while Claude finalizes the separate Phase 1 Builder
-architecture: CI hardening, secret and dependency scanning, Docker rehearsal
+These tasks can proceed while Claude's separate Phase 1 Builder design PR #2
+awaits human review: CI hardening, secret and dependency scanning, Docker rehearsal
 validation, a read-only schema-version compatibility matrix, canonicalization
 vectors, metadata fixture maintenance, and documentation of deployment setup.
 They do not require editing Claude's worktree or choosing Builder UX behavior.
+
+## Independent security review gates
+
+Claude's [Phase 0B review in PR #2](https://github.com/avihafif/calibration-os/blob/feature/phase-1-design/docs/phase1/14_PHASE0B_SECURITY_REVIEW.md)
+found no Critical issue but identified three High gates. They are open even
+though the shipped API has no trust provisioned and returns `503` by default.
+
+| Finding | Present limitation | Gate before any operational verifier or import |
+| --- | --- | --- |
+| SR-H1 | Token permissions are claim-based; no approved maximum lifetime, `jti`, account/permission lookup or token revocation | ADR-0014: approved short-lived token policy, revocation/replay handling and per-request server-side permission resolver |
+| SR-H2 | Stateless verification accepts replay and has no monotonic package sequence or ledger | ADR-0004/0016: signed sequence and tenant-scoped persistent replay/rollback ledger on the import path; pure verification must never grant import eligibility |
+| SR-H3 | Test-injected trust/revocation snapshots are unsigned and unversioned, so they cannot prove authority or resist rollback | ADR-0004 and D-24: approved root/targets/snapshot/timestamp custody, signatures, freshness and highest-version persistence |
+| SR-M3 | `production_rehearsal` in code differs from the `{test, production}` architectural vocabulary | D-25: decide whether rehearsal is a separate non-operational attribute or an ADR-0024 supersession before releasing signed schemas |
+
+The Phase 0B receipt is permanently marked `simulated`, `non_operational`,
+`replay_checked=false`, `operational_trust=false`, and `import_eligible=false`.
+No code may turn this receipt into an import, approval, activation or safety
+authorization. Token/package validity maxima remain unset pending policy; no
+engineering default is a substitute for the named human decisions.
 
 ## Decisions blocking operational Phase 0C work
 
@@ -28,6 +47,7 @@ They do not require editing Claude's worktree or choosing Builder UX behavior.
 | ADR-0008 | Ratify tenant-scoped persistence/RLS model before storing users, issuers or package records |
 | ADR-0016 and ADR-0021 | Ratify lifecycle, distribution and release semantics before publication, assignment or import writes |
 | ADR-0024 operational change control | Name the Quality Manager and Safety Officer who jointly approve Trusted Release Issuers; no direct trust-list edits |
+| D-25 / ADR-0024 alignment | Decide the environment-kind vocabulary; do not silently change an Accepted ADR or continue embedding the disputed value in new signed schemas |
 | Q-15 and MI-34 | Decide authored-content language ownership and name role holders/deputies; do not invent signatories |
 
 ## Proposed implementation sequence after decisions

@@ -18,8 +18,9 @@ production security accreditation or a metadata publication system.
   have stable codes.
 - A pinned EdDSA JWT verifier requires issuer, audience, subject, time,
   principal type, tenant, deployment and `package.import` permission. The API
-  offers a read-only verification response, with non-removable `simulated` and
-  `non_operational` receipt fields; it writes nothing. Denials use
+  offers a read-only verification response, with non-removable `simulated`,
+  `non_operational`, `replay_checked=false`, `operational_trust=false`, and
+  `import_eligible=false` receipt fields; it writes nothing. Denials use
   `application/problem+json`, correlation IDs and code-only denial log fields.
 - The supplied Compose deployments have **no authentication or package trust
   material**. The endpoint fails closed with `503 VERIFIER_UNAVAILABLE`.
@@ -40,18 +41,20 @@ production security accreditation or a metadata publication system.
 | Schema/compatibility failure | Unknown schema, invalid envelope and runtime-range vectors | Local pass |
 | Separate Test and Production rehearsal | Phase 0A Compose resource test retained; default verifier unavailable in both | Local static pass; hardening CI pass |
 | Phase 0A regression | Existing 12 tests and tooling gates retained | Local pass |
-| New security suite | Nine scenario groups with positive and negative cases | Local and hardening CI pass |
+| New security suite | Fourteen scenario groups, including the independent review's R-1 negatives | Local pass; closure CI pending |
 
-Local checks on 2026-11-02: `tools/check.py` passed 16 unit tests and 9
-security scenario groups, with no skipped or failing tests. `mypy --strict`
-passed 14 core/API source files; Ruff, import-linter, codegen and TypeScript typing
-passed. Docker was unavailable on this Windows host. GitHub Actions
+The R-1 closure suite passed **16 unit tests and 14 security groups** locally
+on 2026-11-02, with no skipped or failing tests. `mypy --strict` passed 14
+core/API source files; Ruff, import-linter, codegen, TypeScript typing/lint/
+format/boundary and web build passed. Docker was unavailable on this Windows
+host. The earlier hardening baseline GitHub Actions
 [push run 41394734344](https://github.com/avihafif/calibration-os/actions/runs/41394734344)
 and [PR run 41394741209](https://github.com/avihafif/calibration-os/actions/runs/41394741209)
 both passed four jobs on hardening tree `937111c2`: Python on Windows and Ubuntu,
 TypeScript, and Compose rehearsal. The Compose job checked both isolated
 projects, migrations, shell routes, and `503` from the unprovisioned package
-route. No CI job failed or was skipped. PR #1 had zero submitted reviews,
+route. Closure CI for the added R-1 vectors is pending at this report revision.
+No prior CI job failed or was skipped. PR #1 had zero submitted reviews,
 inline review comments and issue comments at this review checkpoint.
 
 ## Engineering and security review findings
@@ -71,9 +74,11 @@ inline review comments and issue comments at this review checkpoint.
 No instrument/model branch, arbitrary code execution path, API-to-transport
 dependency, configuration write or Production authoring path was found in the
 Phase 0B diff. The Phase 0A architecture and isolation gates remain active.
-No critical or high-severity implementation defect remained known after this
-review and the listed gates. This is an engineering finding, not an independent
-security assessment or production-readiness claim.
+Claude's independent [PR #2 security review](https://github.com/avihafif/calibration-os/blob/feature/phase-1-design/docs/phase1/14_PHASE0B_SECURITY_REVIEW.md)
+found no Critical defects and three **High pre-activation gates** (SR-H1–H3).
+The old assertion that no High finding was known is withdrawn. See the
+[security closure matrix](PHASE0B_SECURITY_CLOSURE.md). This test-only verifier
+is not an operational import or authorization service.
 
 ## Security limitations and dependencies
 
@@ -97,6 +102,28 @@ security assessment or production-readiness claim.
    implemented; denial logging is a local signal only. Full secret scanning,
    supply-chain scanning, independent security review and production
    infrastructure hardening remain release gates.
+7. **SR-H1:** a signed token with a very long lifetime is accepted by the
+   injected test seam. There is no approved maximum token lifetime, `jti`
+   replay/revocation service or server-side permission resolver. ADR-0014
+   ratification gates operational use.
+8. **SR-H2:** repeated verification of the same package and older signed
+   packages is possible. There is no monotonic sequence or persistent replay
+   ledger. The receipt says `replay_checked=false` and `import_eligible=false`.
+   ADR-0004/0016 gate any import.
+9. **SR-H3:** injected public trust and revocation snapshots are not signed or
+   rollback protected. An expiry field on an untrusted snapshot is not an
+   approved freshness guarantee. `operational_trust=false` is fixed in every
+   receipt. ADR-0004 ratification gates provisioning.
+10. **SR-M3:** the implemented `production_rehearsal` environment value differs
+    from the `{test, production}` vocabulary in ADR-0024/API contracts. D-25
+    requires an architecture/security decision before a released schema embeds
+    the final environment vocabulary.
+11. No maximum package lifetime or issuance-age policy is enforced. A
+    year-9999 expiry can pass the injected test seam. Policy values must come
+    from approved trust metadata, not an engineering guess. Authentication
+    currently follows the bounded request-body read, so an unauthenticated
+    oversized body is rejected with `413`; auth-before-body is an open R-13
+    hardening item before activation.
 
 See [ADR review and approval matrix](PHASE0B_ADR_REVIEW.md) for each owner
 decision. The original specification ADR statuses were not changed.
@@ -115,12 +142,11 @@ conditional file-level plan for a local-draft visual Builder. It does not
 authorize implementation before PR #1 is reviewed and merged and Claude's
 architecture/UX design is approved and integrated.
 
-**Phase 1 proposal, only after those gates:** build a minimal schema-driven
-Application Builder for one `Manufacturer` and one `InstrumentModel` configuration
-kind, then a simulator-only Calibration Execution Engine with a small trusted
-step catalog and mandatory simulation marking. Draft, validation, approval,
-publication and release operations remain separately gated by governance and
-the two-tier safety architecture. The first vertical slice uses no real
-instrument transport, SCPI or metrology numbers. Its acceptance test is a
-non-programmer creating and revising the application in the GUI, executing
-only a simulated procedure, and receiving a non-approvable watermarked draft.
+**Phase 1A proposal, only after Gate A0:** build a schema-driven Builder for
+`Manufacturer`, `InstrumentFamily` and `InstrumentModel` against a labelled,
+in-memory Synthetic Host. It can demonstrate draft, validation, comparison
+and synthetic publication with fake personas and digest-bound versions, but
+it cannot publish to a deployment or execute a procedure. No real instrument
+transport, SCPI or metrology number is part of Phase 1A. The Calibration
+Execution Engine, governed lifecycle and Release Package workflow are later
+slices with separate ADR and security gates.

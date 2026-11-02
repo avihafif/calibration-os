@@ -120,6 +120,9 @@ independent preparatory work from decision-gated trust and identity work.
 The [Phase 1A plan](docs/PHASE1A_IMPLEMENTATION_PLAN.md) is conditional on
 Phase 0B review/merge and approval of the separate Builder architecture/UX
 design; no Builder implementation is present in this branch.
+The [Phase 0B security closure matrix](docs/PHASE0B_SECURITY_CLOSURE.md)
+records three open High **activation gates** from independent review; the
+[Gate A0 checklist](docs/PHASE1A_GATE_A0.md) remains unapproved.
 
 ## 7. Style
 - Python ≥ 3.12, `mypy --strict` on core packages, `ruff`; Pydantic v2 models generated from `schemas/` where applicable; no global mutable state in the runtime; time/IDs/random via injected ports.

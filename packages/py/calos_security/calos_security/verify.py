@@ -88,6 +88,9 @@ class VerificationReceipt:
     environment_kind: str
     simulated: Literal[True] = field(default=True, init=False)
     non_operational: Literal[True] = field(default=True, init=False)
+    replay_checked: Literal[False] = field(default=False, init=False)
+    operational_trust: Literal[False] = field(default=False, init=False)
+    import_eligible: Literal[False] = field(default=False, init=False)
 
 
 def _timestamp(value: str) -> datetime:

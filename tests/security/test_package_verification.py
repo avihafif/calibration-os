@@ -2,6 +2,8 @@
 
 import base64
 import asyncio
+import hashlib
+import hmac
 import json
 import os
 import unittest
@@ -13,6 +15,7 @@ from unittest.mock import patch
 import jwt
 import httpx
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 
 from calos_domain import DeploymentIdentity
 from calos_metadata import PackageParser, canonical_bytes, content_digest
@@ -72,7 +75,7 @@ class VerificationTests(unittest.TestCase):
             lambda: self.now,
         )
 
-    def token(self, **changes: object) -> str:
+    def claims(self, **changes: object) -> dict[str, object]:
         claims: dict[str, object] = {
             "iss": "fixture-auth-issuer",
             "aud": "calos-phase0b-test",
@@ -87,9 +90,20 @@ class VerificationTests(unittest.TestCase):
             "principal_type": "user",
         }
         claims.update(changes)
+        return claims
+
+    def signed_token(
+        self, claims: dict[str, object], *, kid: str = "auth-key", extra_headers: dict | None = None
+    ) -> str:
         return "Bearer " + jwt.encode(
-            claims, self.auth_private, algorithm="EdDSA", headers={"kid": "auth-key", "typ": "JWT"}
+            claims,
+            self.auth_private,
+            algorithm="EdDSA",
+            headers={"kid": kid, "typ": "JWT", **(extra_headers or {})},
         )
+
+    def token(self, **changes: object) -> str:
+        return self.signed_token(self.claims(**changes))
 
     def envelope(self, **changes: object) -> dict:
         content = self.fixture["content"]
@@ -135,7 +149,122 @@ class VerificationTests(unittest.TestCase):
         receipt = self.verify(self.envelope())
         self.assertTrue(receipt.simulated)
         self.assertTrue(receipt.non_operational)
+        self.assertFalse(receipt.replay_checked)
+        self.assertFalse(receipt.operational_trust)
+        self.assertFalse(receipt.import_eligible)
         self.assertEqual(receipt.tenant_id, "synthetic-tenant")
+
+    def test_jwt_algorithm_header_and_size_rejections(self) -> None:
+        def segment(value: object) -> str:
+            return base64.urlsafe_b64encode(json.dumps(value).encode()).decode().rstrip("=")
+
+        claims = self.claims()
+        unsigned = f"{segment({'alg': 'none', 'typ': 'JWT', 'kid': 'auth-key'})}.{segment(claims)}."
+        self.assert_rejected("UNAUTHENTICATED", self.envelope(), "Bearer " + unsigned)
+        public_bytes = self.auth_private.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw)
+        signing_input = (
+            f"{segment({'alg': 'HS256', 'typ': 'JWT', 'kid': 'auth-key'})}.{segment(claims)}"
+        )
+        mac = (
+            base64.urlsafe_b64encode(
+                hmac.new(public_bytes, signing_input.encode(), hashlib.sha256).digest()
+            )
+            .decode()
+            .rstrip("=")
+        )
+        self.assert_rejected("UNAUTHENTICATED", self.envelope(), f"Bearer {signing_input}.{mac}")
+        for bad_token in (
+            self.signed_token(claims, extra_headers={"crit": ["unknown"]}),
+            "Bearer " + "a" * 8193,
+            self.token() + " whitespace",
+        ):
+            with self.subTest(token_type=bad_token[:12]):
+                self.assert_rejected("UNAUTHENTICATED", self.envelope(), bad_token)
+
+    def test_jwt_claim_issuer_audience_and_key_rejections(self) -> None:
+        for changes in (
+            {"iss": "wrong-issuer"},
+            {"aud": "wrong-audience"},
+            {"nbf": int((self.now + timedelta(seconds=1)).timestamp())},
+            {"iat": int((self.now + timedelta(seconds=1)).timestamp())},
+            {"exp": True},
+            {"exp": float((self.now + timedelta(minutes=30)).timestamp())},
+        ):
+            with self.subTest(changes=changes):
+                self.assert_rejected("UNAUTHENTICATED", self.envelope(), self.token(**changes))
+        for missing in self.claims():
+            claims = self.claims()
+            del claims[missing]
+            with self.subTest(missing=missing):
+                self.assert_rejected("UNAUTHENTICATED", self.envelope(), self.signed_token(claims))
+        self.assert_rejected(
+            "UNAUTHENTICATED", self.envelope(), self.signed_token(self.claims(), kid="unknown")
+        )
+        revoked_auth = JwtAuthenticator(
+            TEST_ID,
+            replace(self.auth_trust, revoked_key_ids=frozenset({"auth-key"})),
+            lambda: self.now,
+        )
+        verifier = PackageVerifier(
+            TEST_ID, self.parser, revoked_auth, self.package_trust, "0.1.0", lambda: self.now
+        )
+        with self.assertRaises(VerificationError) as caught:
+            verifier.verify(json.dumps(self.envelope()).encode(), self.token())
+        self.assertEqual(caught.exception.code, "UNAUTHENTICATED")
+
+    def test_exact_expiry_boundaries_rejected(self) -> None:
+        instant = self.now.isoformat().replace("+00:00", "Z")
+        self.assert_rejected("PACKAGE_EXPIRED", self.envelope(expires_at=instant))
+        self.assert_rejected(
+            "UNAUTHENTICATED", self.envelope(), self.token(exp=int(self.now.timestamp()))
+        )
+        with self.assertRaises(VerificationError) as caught:
+            self.verifier(replace(self.package_trust, expires_at=self.now)).verify(
+                json.dumps(self.envelope()).encode(), self.token()
+            )
+        self.assertEqual(caught.exception.code, "PACKAGE_TRUST_STALE")
+        expired_key = replace(self.package_key, valid_until=self.now)
+        with self.assertRaises(VerificationError) as caught:
+            self.verifier(replace(self.package_trust, keys=(expired_key,))).verify(
+                json.dumps(self.envelope()).encode(), self.token()
+            )
+        self.assertEqual(caught.exception.code, "RELEASE_ISSUER_UNTRUSTED")
+        expired_auth = JwtAuthenticator(
+            TEST_ID, replace(self.auth_trust, expires_at=self.now), lambda: self.now
+        )
+        with self.assertRaises(AuthError) as caught:
+            expired_auth.authenticate(self.token())
+        self.assertEqual(caught.exception.code, "UNAUTHENTICATED")
+
+    def test_signed_manifest_shape_and_canonical_equivalence(self) -> None:
+        envelope = self.envelope()
+        envelope["manifest"]["unexpected"] = "field"
+        self.assert_rejected("SCHEMA_UNKNOWN_PROPERTY:", envelope)
+        self.assert_rejected("SCHEMA_TYPE:/schema_version", self.envelope(schema_version="1"))
+        for value in ("synthetic-packagе", "ｓynthetic-package", "חבילה"):
+            with self.subTest(package_id=value):
+                self.assert_rejected("SCHEMA_PATTERN:/package_id", self.envelope(package_id=value))
+        envelope = self.envelope()
+        variants = (
+            json.dumps(envelope, ensure_ascii=False, separators=(",", ":")).encode(),
+            json.dumps(envelope, ensure_ascii=True, sort_keys=True, indent=2).encode(),
+        )
+        signed_bytes = {self.parser.parse(raw).signed_bytes for raw in variants}
+        self.assertEqual(len(signed_bytes), 1)
+        receipts = {self.verifier().verify(raw, self.token()) for raw in variants}
+        self.assertEqual(len(receipts), 1)
+
+    def test_unbounded_test_seam_cannot_grant_import_eligibility(self) -> None:
+        # SR-H1/H2/H3 remain decision-gated: these accepted inputs are never import authority.
+        long_token = self.token(exp=int((self.now + timedelta(days=3650)).timestamp()))
+        long_manifest = self.envelope(expires_at="9999-12-31T23:59:59Z")
+        raw = json.dumps(long_manifest).encode()
+        first = self.verifier().verify(raw, long_token)
+        replay = self.verifier().verify(raw, long_token)
+        self.assertEqual(first, replay)
+        self.assertFalse(first.import_eligible)
+        self.assertFalse(first.replay_checked)
+        self.assertFalse(first.operational_trust)
 
     def test_tamper_unsigned_and_wrong_signature_rejected(self) -> None:
         envelope = self.envelope()
@@ -340,13 +469,18 @@ class VerificationTests(unittest.TestCase):
         accepted = asyncio.run(post(app, payload, self.token()))
         self.assertEqual(accepted.status_code, 200)
         self.assertTrue(accepted.json()["simulated"])
+        self.assertFalse(accepted.json()["import_eligible"])
 
         tampered = self.envelope()
-        tampered["content"]["aliases"].append("changed")
-        rejected = asyncio.run(post(app, tampered, self.token()))
+        body_marker = "confidential-body-marker"
+        tampered["content"]["aliases"].append(body_marker)
+        with self.assertLogs("calos.api.package_verification", level="WARNING") as captured:
+            rejected = asyncio.run(post(app, tampered, self.token()))
         self.assertEqual(
             (rejected.status_code, rejected.json()["code"]), (422, "PACKAGE_DIGEST_MISMATCH")
         )
+        self.assertNotIn(body_marker, "\n".join(captured.output))
+        self.assertNotIn(body_marker, rejected.text)
 
         async def oversized() -> httpx.Response:
             transport = httpx.ASGITransport(app=app)
@@ -361,6 +495,30 @@ class VerificationTests(unittest.TestCase):
         self.assertEqual(
             (too_large.status_code, too_large.json()["code"]), (413, "PACKAGE_TOO_LARGE")
         )
+        unauthenticated_large = asyncio.run(post(app, {"padding": "x" * 1_048_577}))
+        self.assertEqual(
+            (unauthenticated_large.status_code, unauthenticated_large.json()["code"]),
+            (413, "PACKAGE_TOO_LARGE"),
+        )
+
+        async def chunked_oversized() -> httpx.Response:
+            async def body():
+                yield b"x" * 700_000
+                yield b"y" * 400_000
+
+            transport = httpx.ASGITransport(app=app)
+            async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+                request = client.build_request(
+                    "POST",
+                    "/api/v1/config/packages/verify",
+                    content=body(),
+                    headers={"Authorization": self.token()},
+                )
+                self.assertNotIn("content-length", request.headers)
+                return await client.send(request)
+
+        chunked = asyncio.run(chunked_oversized())
+        self.assertEqual((chunked.status_code, chunked.json()["code"]), (413, "PACKAGE_TOO_LARGE"))
 
 
 if __name__ == "__main__":
