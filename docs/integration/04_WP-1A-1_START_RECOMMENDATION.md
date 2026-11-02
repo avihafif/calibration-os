@@ -1,6 +1,6 @@
 # 04 — Recommendation: starting WP-1A-1 (Frontend foundation)
 
-Status: **recommendation to the product owner; not an approval.** Nothing here authorises implementation.
+Status: **recommendation to the product owner; not an approval.** Superseded in detail by [docs/gate-a0/05](../gate-a0/05_CHECKLIST_SEQUENCING_AND_BLOCKERS.md) (exact checklist, two paths, blockers) and [04 evidence](../gate-a0/04_DEPENDENCY_AND_FONT_EVIDENCE.md). Nothing here authorises implementation.
 
 ## What WP-1A-1 is (phase1/13 §4)
 `packages/ts/i18n`, `packages/ts/ui-kit` (tokens, `FrameBadges`, `AppFrame`, primitives, inputs, `DataGrid`, `TreeView`, `DiffViewer`, `ValidationDrawer`, dialogs, `CommandPalette`), `apps/web` routing + query cache + shells, hard-coded-string lint, axe + Playwright + visual harness in CI; Phase 0A strings moved to i18n keys. Acceptance P1A-AC-05…14.
@@ -8,7 +8,7 @@ Status: **recommendation to the product owner; not an approval.** Nothing here a
 ## Minimum approved scope to start (all must be recorded by named owners)
 | # | Item | Why it is needed for WP-1A-1 |
 |---|---|---|
-| 1 | **A0-1** PR #1 disposition (merged, or written agreement to branch from its head) | the base the work is cut from |
+| 1 | **A0-1** PR #1 disposition (PR #1 is now merged, `940ab8b`; the owner records it) | the base the work is cut from |
 | 2 | **D-23** UI-first on a labelled Synthetic Host | defines what the foundation is for |
 | 3 | **ADR-0001** and **ADR-0015** ratified (or revised) | package boundaries; i18n/RTL structure |
 | 4 | **D-12** dependency list for the S0/1A frontend (router, query cache, ICU, test tooling; component catalogue only if approved) with licence/CVE review | new dependencies need approval (AGENTS §8, ADR-0022) |

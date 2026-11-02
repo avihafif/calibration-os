@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | **Preparation only.** Every outcome below is **Open**. "Recommended" is advice to the named owner, not a decision, and nothing here records an approval, a name or a date. |
+| Status | **Preparation only; superseded in detail by [docs/gate-a0](../gate-a0/README.md) (forms, evidence).** Every outcome below is **Open**. "Recommended" is advice to the named owner, not a decision, and nothing here records an approval, a name or a date. |
 | Sources | [phase1/11](../phase1/11_DECISIONS_REQUIRED.md) (D-01…D-26), [phase1a/05](../phase1a/05_GATE_A0_APPROVAL_PACKAGE.md) (D-27…D-32), [procedure-designer/10](../procedure-designer/10_DECISIONS_AND_DEPENDENCIES.md) (PD-DEC-001…012), Codex's `docs/PHASE1A_GATE_A0.md` (on PR #4). Identifiers are unique (CI: `design/tools/check_decision_ids.py`). |
 | Legend | **A0** = needed to sign Gate A0 · **WP-1A-1** = needed before WP-1A-1 starts (see [04](04_WP-1A-1_START_RECOMMENDATION.md)) · **later** = gates a later slice/phase |
 
@@ -11,7 +11,7 @@ Gate conditions (phase1/13 §3): A0-1 PR #1 disposition · A0-2 R-4 and R-7 merg
 ## A. Product-owner decisions
 | ID | Decision | Recommended (not approved) | Needed | Status |
 |---|---|---|---|---|
-| A0-1 | Disposition of PR #1 (merge as verification-only vs cut 1A from its head) | Owner reviews; if not merged, give written agreement to branch from its head. Merge order of #1→#2→#3→#5 is the owner's | A0 | Open |
+| A0-1 | Disposition of PR #1 (merge as verification-only vs cut 1A from its head) | PR #1 is merged (`940ab8b`); owner records it as the disposition (form GA0-01). Merge order was the owner's | A0 | Open |
 | A0-5 | Acknowledge he/en string ownership; strings stay `needs_review` while Q-15/MI-31 open | Acknowledge; name a content owner | A0 | Open |
 | D-01 | Shape of Phase 1 | (c) incremental slices S0–S8 | later | Open |
 | D-23 | UI-first on a labelled in-memory Synthetic Host | **Approve** (a) | A0 · WP-1A-1 | Open |
@@ -36,7 +36,7 @@ Gate conditions (phase1/13 §3): A0-1 PR #1 disposition · A0-2 R-4 and R-7 merg
 | D-11 | Locale handling in `Manufacturer` schema | (a) correct v1 if nothing was ever published | A0 (WP-1A-2) | Open |
 | D-18 | `media` not `assets`; `.calrel` | Accept both | A0 (WP-1A-2) | Open |
 | D-21 | Lease/heartbeat/offline defaults | Accept as configuration defaults | A0 (WP-1A-4) | Open |
-| A0-2 | R-4 (validator subset, `pattern` dialect) and R-7 (lifecycle ports; PR #4 open) merged; classify R-4/WP-1A-0 as **A0 prerequisite** | Yes; anchored `re.search` pattern semantics (reviewer's recommendation) | A0 (not needed for WP-1A-1 itself) | Open |
+| A0-2 | R-7 merged (PR #4); R-4 is PR #6 (review: not ready, see docs/gate-a0/01); owner decides the gate split (GA0-02) | Yes; anchored `re.search` pattern semantics (reviewer's recommendation) | A0 (not needed for WP-1A-1 itself) | Open |
 | D-02 | Pull identity/RBAC/RLS into Phase 1 (S0) | (a) yes | 1B | Open |
 | D-07 / D-08 | Kind→permission table; accept 07 §4 bodies for undefined kinds | Accept with amendments | before S1 | Open |
 | D-14 / D-15 / D-19 / D-20 / D-24 / D-25 / D-26 / D-30 | `package.verify` permission; transport split; canvas library spike; error-code housekeeping; trust-metadata owner (ADR-0004); `environment_kind`; ADR-0022 addendum (PyJWT, cryptography); admin visibility of content | per register (least privilege for D-30) | 1B / S3 | Open |

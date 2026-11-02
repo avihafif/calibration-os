@@ -5,14 +5,14 @@
 | Purpose | Let the right humans approve, in one sitting, what must be true before Codex starts **Phase 1A implementation** (the schema-driven Builder on synthetic data). Concise by design: each decision is a card with options, recommendation, justification, risks and implementation impact. |
 | Sources | [phase1/11 decision register](../phase1/11_DECISIONS_REQUIRED.md) (D-01…D-26), [phase1/13 §3 gate A0](../phase1/13_PHASE1A_PLAN.md#3-entry-conditions-gate-a0), [phase1/14 review](../phase1/14_PHASE0B_SECURITY_REVIEW.md), Codex's conditional plan [`docs/PHASE1A_IMPLEMENTATION_PLAN.md`](https://github.com/avihafif/calibration-os/blob/feature/phase0b-secure-metadata/docs/PHASE1A_IMPLEMENTATION_PLAN.md) on PR #1's branch, and the approved prototype work in this PR. |
 | Rules honoured | No approval, role holder, signatory, metrology value, safety limit or supplier permission is invented. Every sign-off field below is **blank**. Recommendations are not decisions. |
-| Date / state | 2026-11-02. PR #1 (Phase 0B) open; PR #2 (Phase 1 design) open; this PR is stacked on PR #2. |
+| Date / state | 2026-11-02 (as written). **Status update (2026-11-02, later):** PRs #1–#5 are merged into `main` (merge commits `940ab8b`, `86910c1`, `61aa618`, `1be2233`, `9e2bd0e`); R-4 is open as PR #6 and **not ready to merge** ([review](../gate-a0/01_PR6_INDEPENDENT_REVIEW.md)). Merging recorded **no** decision: A0-3, A0-4 and A0-5 and every card below remain open. Approval-ready forms: [docs/gate-a0](../gate-a0/README.md). |
 
 ## 1. What gate A0 requires today
 
 | # | Condition (phase1/13 §3) | State | Who closes it |
 |---|---|---|---|
-| A0-1 | Phase 0B merged, or 1A cut from PR #1 head with the owner's written agreement | **Open** — PR #1 is open; its branch has moved since my review (adds `docs/PHASE1A_IMPLEMENTATION_PLAN.md`) | Product owner (merge is theirs) |
-| A0-2 | Review corrections **R-4** (validator subset incl. `x-calos-editor`, `$defs/$ref`, `oneOf`, `const`, bounds, `uniqueItems`, `pattern` semantics) and **R-7** (lifecycle ports redesigned) merged | **Open** — implementation work for Codex; I did not touch Codex-owned modules | Codex, reviewed by architecture |
+| A0-1 | Phase 0B merged, or 1A cut from PR #1 head with the owner's written agreement | **Open, evidence now available** — PR #1 is merged (`940ab8b`, by the owner's account, 0 reviews on GitHub); the owner still has to record it as the disposition ([form GA0-01](../gate-a0/02_GATE_A0_APPROVAL_FORMS.md)) | Product owner (merge is theirs) |
+| A0-2 | Review corrections **R-4** (validator subset incl. `x-calos-editor`, `$defs/$ref`, `oneOf`, `const`, bounds, `uniqueItems`, `pattern` semantics) and **R-7** (lifecycle ports redesigned) merged | **Partly open** — R-7 merged (PR #4); R-4 is PR #6, review verdict *not ready to merge* (2 High, 7 Medium); sequencing question in [form GA0-02](../gate-a0/02_GATE_A0_APPROVAL_FORMS.md) | Codex, reviewed by architecture |
 | A0-3 | Decisions **D-23, D-11, D-12, D-13, D-18, D-21** recorded | **Open** — cards below | Product owner / architecture |
 | A0-4 | ADR-0001 and ADR-0015 ratified | **Open** — both Proposed | Architecture owner |
 | A0-5 | Q-15 acknowledged (strings may be `needs_review`) | **Open** | Content owner (name TBD) |
