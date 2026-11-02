@@ -11,14 +11,14 @@ Gate conditions (phase1/13 §3): A0-1 PR #1 disposition · A0-2 R-4 and R-7 merg
 ## A. Product-owner decisions
 | ID | Decision | Recommended (not approved) | Needed | Status |
 |---|---|---|---|---|
-| A0-1 | Disposition of PR #1 (merge as verification-only vs cut 1A from its head) | PR #1 is merged (`940ab8b`); owner records it as the disposition (form GA0-01). Merge order was the owner's | A0 | Open |
-| A0-5 | Acknowledge he/en string ownership; strings stay `needs_review` while Q-15/MI-31 open | Acknowledge; name a content owner | A0 | Open |
+| A0-1 | Disposition of PR #1 (merge as verification-only vs cut 1A from its head) | PR #1 is merged (`940ab8b`); owner records it as the disposition (form GA0-01). Merge order was the owner's | A0 | Product owner accepted merge of #1 on 2026-11-02; see delegated record. Other gates open |
+| A0-5 | Acknowledge he/en string ownership; strings stay `needs_review` while Q-15/MI-31 open | Acknowledge; name a content owner | A0 | Avi Hafif acknowledged product-side coordination 2026-11-02; specialist language review remains open |
 | D-01 | Shape of Phase 1 | (c) incremental slices S0–S8 | later | Open |
-| D-23 | UI-first on a labelled in-memory Synthetic Host | **Approve** (a) | A0 · WP-1A-1 | Open |
-| D-27 | Persistence in 1A | Memory-only for 1A.1; namespaced local drafts later | A0 | Open |
-| D-28 | Synthetic review/approve/publish simulation in 1A | Approve, clearly labelled synthetic | A0 | Open |
-| D-29 | Kind scope for 1A (Tier 1: Manufacturer, Family, Model; Tier 2 stretch) | Approve tiers as written | A0 | Open |
-| D-32 | Adopt prototypes + design system v1.0 as the visual/interaction baseline (not code to ship) | Approve after a design review of both prototypes (this package) | A0 | Open |
+| D-23 | UI-first on a labelled in-memory Synthetic Host | **Approve** (a) | A0 · WP-1A-1 | Product-owner approved option (a), 2026-11-02 |
+| D-27 | Persistence in 1A | Memory-only for 1A.1; namespaced local drafts later | A0 | Product-owner approved memory-only first, 2026-11-02 |
+| D-28 | Synthetic review/approve/publish simulation in 1A | Approve, clearly labelled synthetic | A0 | Product-owner approved clearly labelled simulation only, 2026-11-02 |
+| D-29 | Kind scope for 1A (Tier 1: Manufacturer, Family, Model; Tier 2 stretch) | Approve tiers as written | A0 | Product-owner approved Tier 1 required / Tier 2 optional, 2026-11-02 |
+| D-32 | Adopt prototypes + design system v1.0 as the visual/interaction baseline (not code to ship) | Approve after a design review of both prototypes (this package) | A0 | Product owner approved reference baseline, 2026-11-02; UX authority still needs any formal review |
 | D-03 / D-04 / D-05 | Library scope; plugin packaging; theme editor timing | (a) local Library; (a) read-only plugin visibility; (a) theme editor in P2 | later | Open |
 | D-10 | Usability thresholds and participants | Define after research Round 0; **no usability claim exists today** | before S4 | Open |
 | D-17 | UX telemetry | Off by default, opt-in per tenant, no content values | later | Open |
