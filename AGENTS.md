@@ -124,7 +124,7 @@ The [Phase 0B security closure matrix](docs/PHASE0B_SECURITY_CLOSURE.md)
 records three open High **activation gates** from independent review; the
 [Gate A0 checklist](docs/PHASE1A_GATE_A0.md) remains unapproved.
 
-**WP-1A-1a local verification (2026-11-02, Windows workspace):** the bilingual
+**WP-1A-1a local verification (2026-11-03, Windows workspace):** the bilingual
 React demonstration and `packages/ts/i18n` pass `pnpm check:ts`,
 `pnpm check:browser-types`, `pnpm lint:ts`, `pnpm lint:logical-css`,
 `pnpm test:ts-boundary` (60 negative probes), `pnpm test:frontend` (17 tests),
