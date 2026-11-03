@@ -1,0 +1,31 @@
+name: Temporary formatter for autonomy branch
+on:
+  push:
+    branches:
+      - automation/calos-cloud-orchestrator
+permissions:
+  contents: write
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: automation/calos-cloud-orchestrator
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: |
+          python -m pip install uv==0.13.6
+          uv sync --all-packages --frozen
+          uv run --no-sync ruff format tools/autonomy/queue.py
+          uv run --no-sync ruff check tools/autonomy/queue.py
+      - name: Commit formatter-only update
+        run: |
+          if ! git diff --quiet -- tools/autonomy/queue.py; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add tools/autonomy/queue.py
+            git commit -m "style(autonomy): format queue with pinned Ruff"
+            git push origin HEAD:refs/heads/automation/calos-cloud-orchestrator
+          fi
