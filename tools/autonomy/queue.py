@@ -83,6 +83,38 @@ def allowed(path: str, entries: list[str]) -> bool:
     )
 
 
+
+def check_dependency_manifests(files: list[str]) -> None:
+    """Forbid unapproved direct dependency changes in agent-created packages."""
+    if "apps/web/package.json" in files:
+        before = json.loads(run_git("show", "HEAD:apps/web/package.json"))
+        after = json.loads(
+            (ROOT / "apps/web/package.json").read_text(encoding="utf-8")
+        )
+        allowed_after = json.loads(json.dumps(before))
+        allowed_after.setdefault("dependencies", {})["@calos/ui-kit"] = "workspace:*"
+        if after not in (before, allowed_after):
+            raise SystemExit("UNAPPROVED_WEB_MANIFEST_CHANGE")
+    ui_kit = ROOT / "packages/ts/ui-kit/package.json"
+    if ui_kit.exists():
+        manifest = json.loads(ui_kit.read_text(encoding="utf-8"))
+        approved = {
+            "@calos/i18n": "workspace:*",
+            "react": "19.3.0",
+            "react-dom": "19.3.0",
+            "@types/react": "19.3.0",
+            "@types/react-dom": "19.3.0",
+            "typescript": "5.9.3",
+        }
+        for name, version in {
+            **manifest.get("dependencies", {}),
+            **manifest.get("devDependencies", {}),
+            **manifest.get("peerDependencies", {}),
+        }.items():
+            if approved.get(name) != version:
+                raise SystemExit("UNAPPROVED_UI_KIT_DEPENDENCY: " + name)
+
+
 def check_changes(task_id: str) -> None:
     data = catalog()
     task = next((item for item in data["tasks"] if item["id"] == task_id), None)
@@ -102,6 +134,7 @@ def check_changes(task_id: str) -> None:
             raise SystemExit("FORBIDDEN_AGENT_PATH: " + path)
         if "\\n" in path or "\\r" in path or path.startswith("-"):
             raise SystemExit("INVALID_CHANGED_PATH")
+    check_dependency_manifests(files)
     summary = run_git("diff", "--cached", "--summary")
     if any(
         word in summary for word in ("mode change", "120000", "160000", "rename", "delete mode")
