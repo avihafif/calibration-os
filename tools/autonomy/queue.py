@@ -49,9 +49,7 @@ def state() -> dict:
 
 def save(value: dict) -> None:
     STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
-    STATE_FILE.write_text(
-        json.dumps(value, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    STATE_FILE.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
 def select_task() -> None:
@@ -81,8 +79,7 @@ def select_task() -> None:
 
 def allowed(path: str, entries: list[str]) -> bool:
     return any(
-        path.startswith(entry) if entry.endswith("/") else path == entry
-        for entry in entries
+        path.startswith(entry) if entry.endswith("/") else path == entry for entry in entries
     )
 
 
@@ -107,18 +104,20 @@ def check_changes(task_id: str) -> None:
             raise SystemExit("INVALID_CHANGED_PATH")
     summary = run_git("diff", "--cached", "--summary")
     if any(
-        word in summary
-        for word in ("mode change", "120000", "160000", "rename", "delete mode")
+        word in summary for word in ("mode change", "120000", "160000", "rename", "delete mode")
     ):
         raise SystemExit("UNSAFE_FILE_MODE_OR_RENAME")
-    if len(
-        subprocess.run(
-            ["git", "diff", "--cached", "--binary"],
-            cwd=ROOT,
-            capture_output=True,
-            check=True,
-        ).stdout
-    ) > 250_000:
+    if (
+        len(
+            subprocess.run(
+                ["git", "diff", "--cached", "--binary"],
+                cwd=ROOT,
+                capture_output=True,
+                check=True,
+            ).stdout
+        )
+        > 250_000
+    ):
         raise SystemExit("CHANGESET_TOO_LARGE")
     print("ALLOWED_CHANGESET: " + ", ".join(files))
 
@@ -136,9 +135,7 @@ def record(task_id: str, result: str, run_id: str) -> None:
         recorded["attempts"][task_id] = recorded["attempts"].get(task_id, 0) + 1
     else:
         raise SystemExit("UNKNOWN_RESULT")
-    recorded["history"].append(
-        {"task": task_id, "result": result, "run_id": str(run_id)}
-    )
+    recorded["history"].append({"task": task_id, "result": result, "run_id": str(run_id)})
     save(recorded)
 
 
