@@ -44,7 +44,11 @@ architecture probes, 24 contrast pairs, all strict TypeScript and formatting
 gates, Test/Production Rehearsal build checks, 228-component CycloneDX
 licence/OSV inventory with zero advisories, and `pnpm audit` clean. The
 inherited Python suite passed 35 core and 14 security tests, Ruff, mypy and
-four import contracts. The PR's Linux CI run is the independent repeat.
+four import contracts. [Phase 0A CI run 131](https://github.com/avihafif/calibration-os/actions/runs/41604412014)
+passed all five jobs on the code head `df58828`; the separate
+[design-prototype run 100](https://github.com/avihafif/calibration-os/actions/runs/41604412153)
+also passed. The previous CI attempt failed on a Linux-only expanded-heading
+overflow and an AppFrame formatting miss; both were corrected in `df58828`.
 
 Run from the repository root with Node 22.22.2+ and pnpm 11.25.0:
 

@@ -159,8 +159,11 @@ mobile navigation, command palette and no-JavaScript status. The design-token
 gate passed 24 contrast pairs. Both Test and Production Rehearsal static
 artifacts passed bundle checks; the 228-component CycloneDX licence/OSV gate
 and `pnpm audit` were clean. Python checks passed 35 core and 14 security
-tests, Ruff, mypy (18 files) and four import contracts. CI evidence remains
-subject to the stacked PR run. This does not establish CSP enforcement,
+tests, Ruff, mypy (18 files) and four import contracts. The [Phase 0A CI run
+131](https://github.com/avihafif/calibration-os/actions/runs/41604412014)
+passed all five jobs at code head `df58828`; the [design-prototype run
+100](https://github.com/avihafif/calibration-os/actions/runs/41604412153)
+also passed. This does not establish CSP enforcement,
 desktop packaging, offline synchronization or operational readiness.
 
 ## 7. Style
