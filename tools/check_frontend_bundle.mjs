@@ -23,6 +23,10 @@ if (
   throw new Error("PRODUCTION_REHEARSAL_FIXTURE_COPY_FORBIDDEN");
 }
 const scripts = readdirSync(assetDir).filter((name) => name.endsWith(".js"));
+if (
+  readdirSync(assetDir).some((name) => /\.(?:woff2?|ttf|otf|eot)$/iu.test(name))
+)
+  throw new Error("UNAPPROVED_FONT_ASSET");
 if (scripts.length === 0) throw new Error("WEB_BUNDLE_MISSING");
 const forbidden = [
   /\beval\s*\(/u,

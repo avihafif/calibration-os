@@ -1,6 +1,7 @@
 /** Platform-owned system text only. Authored content is not a system bundle. @req FR-UI-02 */
 export const enMessages = Object.freeze({
   "app.title": "CalOS · Frontend foundation",
+  "app.brand": "CalOS",
   "app.description":
     "Simulation-only frontend foundation. Application authoring, execution, and reports are unavailable.",
   "app.skip": "Skip to content",
@@ -27,12 +28,31 @@ export const enMessages = Object.freeze({
   "mode.simulation": "SIMULATION ONLY · NOT A CALIBRATION · NON-OPERATIONAL",
   "mode.test": "TEST · SIMULATION ONLY",
   "mode.rehearsal": "PRODUCTION REHEARSAL · NO REAL CALIBRATION",
+  "shell.navigation": "Primary navigation",
+  "shell.overview": "Overview",
+  "shell.technical": "Technical text",
+  "shell.openNavigation": "Open navigation",
+  "shell.closeNavigation": "Close navigation",
+  "shell.workspace": "Simulation workspace",
+  "shell.theme": "Theme",
+  "shell.light": "Light",
+  "shell.dark": "Dark",
+  "shell.command": "Command palette",
+  "shell.shortcut": "Ctrl K",
+  "shell.closeCommand": "Close command palette",
+  "shell.searchNavigation": "Search navigation",
+  "shell.noCommands": "No matching navigation items",
+  "shell.testNotice": "Test workspace · no operational actions",
+  "shell.rehearsalNotice":
+    "Production Rehearsal · no authoring or operational actions",
+  "shell.localHost": "Local static frontend · simulation only",
 } as const);
 
 export type SystemMessageKey = keyof typeof enMessages;
 
 export const heMessages = Object.freeze({
   "app.title": "CalOS · תשתית ממשק משתמש",
+  "app.brand": "CalOS",
   "app.description":
     "תשתית ממשק להדמיה בלבד. עריכת יישומים, הרצה ודוחות אינם זמינים.",
   "app.skip": "דילוג לתוכן",
@@ -59,4 +79,21 @@ export const heMessages = Object.freeze({
   "mode.simulation": "הדמיה בלבד · לא כיול · לא תפעולי",
   "mode.test": "בדיקה · הדמיה בלבד",
   "mode.rehearsal": "חזרת ייצור · אין לבצע כיול אמיתי",
+  "shell.navigation": "ניווט ראשי",
+  "shell.overview": "סקירה",
+  "shell.technical": "טקסט טכני",
+  "shell.openNavigation": "פתיחת ניווט",
+  "shell.closeNavigation": "סגירת ניווט",
+  "shell.workspace": "סביבת עבודה מדומה",
+  "shell.theme": "ערכת נושא",
+  "shell.light": "בהירה",
+  "shell.dark": "כהה",
+  "shell.command": "חלונית פקודות",
+  "shell.shortcut": "Ctrl K",
+  "shell.closeCommand": "סגירת חלונית פקודות",
+  "shell.searchNavigation": "חיפוש בניווט",
+  "shell.noCommands": "לא נמצאו פריטי ניווט מתאימים",
+  "shell.testNotice": "סביבת בדיקה · ללא פעולות תפעוליות",
+  "shell.rehearsalNotice": "חזרת ייצור · ללא עריכה או פעולות תפעוליות",
+  "shell.localHost": "ממשק מקומי סטטי · הדמיה בלבד",
 } as const satisfies Record<SystemMessageKey, string>);

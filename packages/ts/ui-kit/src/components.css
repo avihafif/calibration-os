@@ -1,0 +1,163 @@
+.calos-app *,
+.calos-app *::before,
+.calos-app *::after {
+  box-sizing: border-box;
+}
+.calos-app button,
+.calos-app input,
+.calos-app select {
+  font: inherit;
+}
+.ui-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-block-size: 2rem;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 550;
+  cursor: pointer;
+}
+.ui-button:hover {
+  background: var(--surface-2);
+}
+.ui-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.ui-button-primary {
+  background: var(--primary);
+  color: var(--primary-contrast);
+  border-color: var(--primary);
+}
+.ui-button-primary:hover {
+  filter: brightness(0.92);
+  background: var(--primary);
+}
+.ui-button-quiet {
+  border-color: transparent;
+  background: transparent;
+}
+.ui-field {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+.ui-field label {
+  font-weight: 650;
+}
+.ui-field input,
+.ui-field select {
+  min-block-size: 2.25rem;
+  inline-size: 100%;
+  min-inline-size: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  padding: var(--space-1) var(--space-2);
+  background: var(--surface);
+  color: var(--text);
+}
+.ui-field [aria-invalid="true"] {
+  border-color: var(--error);
+  border-width: 2px;
+}
+.ui-field-hint,
+.ui-field-error {
+  margin: 0;
+  font-size: 0.8125rem;
+}
+.ui-field-hint {
+  color: var(--text-muted);
+}
+.ui-field-error {
+  color: var(--error);
+}
+.ui-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0.125rem var(--space-2);
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.ui-badge-ok,
+.ui-notice-ok {
+  color: var(--ok);
+  background: var(--ok-bg);
+}
+.ui-badge-warn,
+.ui-notice-warn {
+  color: var(--warn);
+  background: var(--warn-bg);
+}
+.ui-badge-error,
+.ui-notice-error {
+  color: var(--error);
+  background: var(--error-bg);
+}
+.ui-badge-info,
+.ui-notice-info {
+  color: var(--info);
+  background: var(--info-bg);
+}
+.ui-badge-simulation,
+.ui-notice-simulation {
+  color: var(--sim);
+  background: var(--sim-bg);
+}
+.ui-card {
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--surface);
+  min-inline-size: 0;
+}
+.ui-card h2 {
+  margin-block: 0 var(--space-3);
+  font-size: 1.125rem;
+  line-height: 1.25;
+}
+.ui-notice {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid currentColor;
+  border-radius: var(--radius-control);
+  font-weight: 550;
+}
+.ui-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+  background: #0009;
+}
+.ui-dialog {
+  inline-size: min(100%, 38rem);
+  max-block-size: min(85vh, 48rem);
+  overflow: auto;
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-panel);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 12px 40px #0003;
+}
+.ui-dialog-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: var(--space-2);
+}
+.ui-dialog-heading h2 {
+  margin-block: 0 var(--space-4);
+}

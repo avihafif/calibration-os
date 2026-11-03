@@ -1,0 +1,16 @@
+{
+  "name": "@calos/ui-kit",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts", "./tokens.css": "./src/tokens.css" },
+  "scripts": { "check": "tsc --noEmit" },
+  "dependencies": {
+    "@calos/i18n": "workspace:*",
+    "react": "19.3.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "typescript": "5.9.3"
+  }
+}

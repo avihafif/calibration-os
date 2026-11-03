@@ -44,13 +44,14 @@ test("English and Hebrew demonstration is keyboard-accessible and network-isolat
   );
   await expect(page).toHaveTitle(/TEST · SIMULATION ONLY/u);
   await page.evaluate(() => {
-    document.getElementById("root")!.style.minHeight = "300vh";
+    document.querySelector<HTMLElement>(".calos-app")!.style.minHeight =
+      "300vh";
   });
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
   expect((await page.locator("[data-frame-badges]").boundingBox())?.y).toBe(0);
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.evaluate(() => {
-    document.getElementById("root")!.style.minHeight = "";
+    document.querySelector<HTMLElement>(".calos-app")!.style.minHeight = "";
   });
 
   await page.screenshot({
@@ -63,6 +64,16 @@ test("English and Hebrew demonstration is keyboard-accessible and network-isolat
   await page.keyboard.press("Tab");
   await expect(
     page.getByRole("link", { name: "Skip to content" }),
+  ).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("link", { name: "Overview" })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(
+    page.getByRole("link", { name: "Technical text" }),
+  ).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(
+    page.getByRole("button", { name: /Command palette/u }),
   ).toBeFocused();
   await page.keyboard.press("Tab");
   const selector = page.getByRole("combobox", { name: "Language" });
@@ -142,4 +153,90 @@ test("static markings and document title survive disabled JavaScript", async ({
   } finally {
     await context.close();
   }
+});
+
+test("AppFrame themes and locales retain protected tokens and responsive layout", async ({
+  page,
+}) => {
+  await page.goto("/");
+  for (const width of [320, 768, 1440]) {
+    await page.setViewportSize({ width, height: 800 });
+    for (const locale of ["en", "he"] as const) {
+      await page.locator("#language").selectOption(locale);
+      await expect(page.locator("html")).toHaveAttribute(
+        "dir",
+        locale === "he" ? "rtl" : "ltr",
+      );
+      for (const theme of ["light", "dark"] as const) {
+        await page.locator("#theme").selectOption(theme);
+        await expect(page.locator(".calos-app")).toHaveAttribute(
+          "data-theme",
+          theme,
+        );
+        await expect(page.locator("[data-frame-badges]")).toBeVisible();
+        const state = await page.evaluate(() => ({
+          scroll: document.documentElement.scrollWidth,
+          viewport: window.innerWidth,
+          testFill: getComputedStyle(
+            document.querySelector<HTMLElement>(
+              ".protected-marking.deployment",
+            )!,
+          ).backgroundColor,
+          simFill: getComputedStyle(
+            document.querySelector<HTMLElement>(
+              ".protected-marking.simulation",
+            )!,
+          ).backgroundColor,
+        }));
+        expect(state.scroll).toBeLessThanOrEqual(state.viewport);
+        expect(state.testFill).toBe(
+          theme === "light" ? "rgb(10, 95, 140)" : "rgb(108, 196, 238)",
+        );
+        expect(state.simFill).toBe(
+          theme === "light" ? "rgb(109, 40, 217)" : "rgb(196, 168, 255)",
+        );
+        if (width === 1440) {
+          const axe = await new AxeBuilder({ page }).analyze();
+          expect(axe.violations).toEqual([]);
+          await page.screenshot({
+            path: `artifacts/screenshots/frame-${locale}-${theme}.png`,
+            fullPage: true,
+          });
+        }
+        if (width === 320 && theme === "light") {
+          await page.screenshot({
+            path: `artifacts/screenshots/frame-${locale}-mobile.png`,
+            fullPage: true,
+          });
+        }
+      }
+    }
+  }
+});
+
+test("mobile navigation and command palette work by keyboard", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 700 });
+  await page.goto("/");
+  const menu = page.getByRole("button", { name: "Open navigation" });
+  await menu.click();
+  await expect(
+    page.getByRole("navigation", { name: "Primary navigation" }),
+  ).toBeVisible();
+  await expect(page.getByRole("link", { name: "Overview" })).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(
+    page.getByRole("button", { name: "Open navigation" }),
+  ).toBeFocused();
+  await page.keyboard.press("Control+k");
+  await expect(
+    page.getByRole("dialog", { name: "Command palette" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("textbox", { name: "Search navigation" }),
+  ).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.locator("[data-frame-badges]")).toBeVisible();
 });

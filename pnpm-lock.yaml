@@ -62,6 +62,9 @@ importers:
       '@calos/i18n':
         specifier: workspace:*
         version: link:../../packages/ts/i18n
+      '@calos/ui-kit':
+        specifier: workspace:*
+        version: link:../../packages/ts/ui-kit
       react:
         specifier: 19.3.0
         version: 19.3.0
@@ -94,6 +97,22 @@ importers:
         specifier: 12.1.5
         version: 12.1.5(@types/react@19.3.0)(react@19.3.0)
     devDependencies:
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
+  packages/ts/ui-kit:
+    dependencies:
+      '@calos/i18n':
+        specifier: workspace:*
+        version: link:../i18n
+      react:
+        specifier: 19.3.0
+        version: 19.3.0
+    devDependencies:
+      '@types/react':
+        specifier: 19.3.0
+        version: 19.3.0
       typescript:
         specifier: 5.9.3
         version: 5.9.3

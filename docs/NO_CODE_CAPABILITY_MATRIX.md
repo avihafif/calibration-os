@@ -177,6 +177,13 @@ infrastructure. They add no No-Code editor capability or operational
 publishing. Local desktop hosting remains a future host integration; no
 mandatory cloud or instrument access is introduced in React.
 
+**WP-1A-1b UI Kit status:** the shared semantic-token package, accessible
+controls and AppFrame are reusable platform **DEV** infrastructure. The
+English/Hebrew light/dark shell remains a static simulation demonstration.
+Its local host seam accepts injected content and navigation; there is no
+Builder, metadata-backed screen, lifecycle action or operational station
+integration yet. Rows 4.1–4.5 remain unimplemented.
+
 ## 7. Summary
 
 | Class | Count (this version) | Comment |

@@ -50,6 +50,7 @@ jobs:
       - run: pnpm format:ts:check
       - run: pnpm test:ts-boundary
       - run: pnpm lint:logical-css
+      - run: pnpm test:design-tokens
       - run: pnpm test:schema-vectors
       - run: pnpm test:frontend
       - run: pnpm build:web
@@ -70,7 +71,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: wp-1a-1a-dev-sbom
+          name: wp-1a-1b-dev-sbom
           path: frontend-sbom.json
           if-no-files-found: warn
   compose-rehearsal:
@@ -134,10 +135,10 @@ jobs:
       - name: Install pinned Chromium for CI only
         run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e
-      - name: Upload bilingual screenshots
+      - name: Upload AppFrame screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: wp-1a-1a-screenshots
+          name: wp-1a-1b-screenshots
           path: artifacts/screenshots/
           if-no-files-found: warn

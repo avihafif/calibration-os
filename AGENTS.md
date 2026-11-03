@@ -150,6 +150,22 @@ has no runtime network or storage and remains compatible with future local
 hosting through injected host ports; Station Agent and synchronization work
 are outside this milestone.
 
+**WP-1A-1b UI Kit local verification (2026-11-03, Windows worktree):** the
+five-package frozen install, strict TypeScript and browser typing, ESLint,
+Prettier, logical CSS, 77 negative architecture probes, R-4 vectors, 24 unit
+tests and five Playwright tests passed. The browser matrix covers en/he ×
+light/dark × 320/768/1440 px, four desktop axe checks, protected colors,
+mobile navigation, command palette and no-JavaScript status. The design-token
+gate passed 24 contrast pairs. Both Test and Production Rehearsal static
+artifacts passed bundle checks; the 228-component CycloneDX licence/OSV gate
+and `pnpm audit` were clean. Python checks passed 35 core and 14 security
+tests, Ruff, mypy (18 files) and four import contracts. The [Phase 0A CI run
+131](https://github.com/avihafif/calibration-os/actions/runs/41604412014)
+passed all five jobs at code head `df58828`; the [design-prototype run
+100](https://github.com/avihafif/calibration-os/actions/runs/41604412153)
+also passed. This does not establish CSP enforcement,
+desktop packaging, offline synchronization or operational readiness.
+
 ## 7. Style
 - Python ≥ 3.12, `mypy --strict` on core packages, `ruff`; Pydantic v2 models generated from `schemas/` where applicable; no global mutable state in the runtime; time/IDs/random via injected ports.
 - TypeScript `strict`; no `any` in `ui-runtime`/`editor-core`; React function components; state via query cache + editor command stack; all text via i18n; logical CSS properties only.
