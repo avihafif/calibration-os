@@ -1,78 +1,123 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Manufacturer } from "@calos/domain-types";
+import {
+  createSystemI18n,
+  messageReviewStatus,
+  type SystemLocale,
+} from "@calos/i18n";
 import example from "../../../fixtures/manufacturer/valid.json";
-
-type Locale = "en" | "he";
-const messages = {
-  en: {
-    title: "CalOS · Phase 0A",
-    banner: "SIMULATION ONLY · NOT A CALIBRATION · NON-OPERATIONAL",
-    description:
-      "Walking skeleton. Application authoring, execution, and reports are not available.",
-    metadata: "Metadata example",
-    locale: "Language",
-    kind: "Kind",
-    name: "Name",
-    provenance: "Provenance",
-    test: "TEST WALKING SKELETON",
-    rehearsal: "PRODUCTION REHEARSAL · NO REAL CALIBRATION",
-  },
-  he: {
-    title: "CalOS · שלב 0A",
-    banner: "סימולציה בלבד · לא כיול · לא תפעולי",
-    description: "שלד ראשוני. עריכת יישומים, הרצה ודוחות אינם זמינים.",
-    metadata: "דוגמת מטא-נתונים",
-    locale: "שפה",
-    kind: "סוג",
-    name: "שם",
-    provenance: "מקור",
-    test: "שלד סביבת בדיקה",
-    rehearsal: "חזרת ייצור · אין לבצע כיול אמיתי",
-  },
-} satisfies Record<Locale, Record<string, string>>;
 
 const metadata: Manufacturer = example.content;
 const isRehearsal =
   import.meta.env.VITE_ENVIRONMENT_KIND === "production_rehearsal";
 
+/** @req FR-UI-02, P1A-AC-08, P1A-AC-09: non-operational i18n demonstration. */
 export function App() {
-  const [locale, setLocale] = useState<Locale>("en");
-  const t = messages[locale];
+  const [locale, setLocale] = useState<SystemLocale>("en");
+  const [sampleCount, setSampleCount] = useState(2);
+  const i18n = useMemo(() => createSystemI18n(locale), [locale]);
+  const t = i18n.format;
+
+  useEffect(() => {
+    document.documentElement.lang = locale;
+    document.documentElement.dir = i18n.direction;
+    document.title = t("app.title");
+  }, [i18n, locale, t]);
+
   return (
-    <main dir={locale === "he" ? "rtl" : "ltr"}>
-      <header>
-        <div className="topline">
-          <strong>{t.title}</strong>
-          <label>
-            {t.locale}{" "}
-            <select
-              value={locale}
-              onChange={(event) => setLocale(event.target.value as Locale)}
-            >
-              <option value="en">English</option>
-              <option value="he">עברית</option>
-            </select>
-          </label>
+    <>
+      <a className="skip-link" href="#content">
+        {t("app.skip")}
+      </a>
+      <main lang={locale} dir={i18n.direction}>
+        <header>
+          <div className="topline">
+            <strong className="wordmark">{t("app.title")}</strong>
+            <div className="language-control">
+              <label htmlFor="language">{t("app.language")}</label>
+              <select
+                id="language"
+                lang={locale}
+                dir={i18n.direction}
+                value={locale}
+                onChange={(event) => {
+                  const next = event.currentTarget.value;
+                  if (next === "en" || next === "he") setLocale(next);
+                }}
+              >
+                <option value="en">{t("app.english")}</option>
+                <option value="he">{t("app.hebrew")}</option>
+              </select>
+            </div>
+          </div>
+        </header>
+        <div id="content" className="content" tabIndex={-1}>
+          <p className="warning" role="note">
+            {t("mode.simulation")}
+          </p>
+          <p className="environment">
+            {isRehearsal ? t("mode.rehearsal") : t("mode.test")}
+          </p>
+          <p className="description">{t("app.description")}</p>
+          <div className="cards">
+            <article aria-labelledby="sample-title">
+              <h1 id="sample-title">{t("app.sample")}</h1>
+              <dl>
+                <dt>{t("app.kind")}</dt>
+                <dd>
+                  <bdi dir="ltr">{example.kind}</bdi>
+                </dd>
+                <dt>{t("app.name")}</dt>
+                <dd lang={locale} dir="auto">
+                  {metadata.name[locale]}
+                </dd>
+                <dt>{t("app.provenance")}</dt>
+                <dd>
+                  <bdi dir="ltr">{example.provenance.status}</bdi>
+                </dd>
+              </dl>
+            </article>
+            <article aria-labelledby="technical-title">
+              <h2 id="technical-title">{t("app.technical")}</h2>
+              <dl>
+                <dt>{t("app.identifier")}</dt>
+                <dd>
+                  <bdi dir="ltr">{example.key}</bdi>
+                </dd>
+                <dt>{t("app.unit")}</dt>
+                <dd>
+                  <bdi dir="ltr">Ω</bdi>
+                </dd>
+              </dl>
+              <div className="count-control">
+                <button
+                  type="button"
+                  aria-label={t("app.decrease")}
+                  disabled={sampleCount === 0}
+                  onClick={() =>
+                    setSampleCount((count) => Math.max(0, count - 1))
+                  }
+                >
+                  −
+                </button>
+                <output aria-live="polite">
+                  {t("app.count", { count: sampleCount })}
+                </output>
+                <button
+                  type="button"
+                  aria-label={t("app.increase")}
+                  onClick={() => setSampleCount((count) => count + 1)}
+                >
+                  +
+                </button>
+              </div>
+            </article>
+          </div>
+          {messageReviewStatus(locale, "app.title") === "needs_review" && (
+            <p className="review-note">{t("app.review")}</p>
+          )}
         </div>
-      </header>
-      <section className="content">
-        <p className="warning" role="status">
-          {t.banner}
-        </p>
-        <p className="environment">{isRehearsal ? t.rehearsal : t.test}</p>
-        <p>{t.description}</p>
-        <article>
-          <h1>{t.metadata}</h1>
-          <dl>
-            <dt>{t.kind}</dt>
-            <dd>{example.kind}</dd>
-            <dt>{t.name}</dt>
-            <dd>{metadata.name[locale]}</dd>
-            <dt>{t.provenance}</dt>
-            <dd>{example.provenance.status}</dd>
-          </dl>
-        </article>
-      </section>
-    </main>
+      </main>
+    </>
   );
 }

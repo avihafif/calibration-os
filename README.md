@@ -32,6 +32,52 @@ correlation ID. Logs contain a stable rejection code and correlation ID, not
 the bearer token or package body. No durable security audit or operational
 issuer/revocation service is present.
 
+## WP-1A-1a frontend foundation (Test/simulation only)
+
+The first real frontend slice adds compiled English/Hebrew ICU system messages,
+RTL/LTR switching, pseudo-locales, exact decimal-text/date formatting helpers,
+bidi isolation, strict TypeScript package boundaries and a small bilingual
+React demonstration. It has **no Builder, persistence, account, API request,
+instrument access, approval, signing or production publication**. Hebrew
+terminology is marked `needs_review`; full Gate A0 and H-2/GA0-16 remain
+closed. The Product Owner's [limited PR #10 process exception](https://github.com/avihafif/calibration-os/pull/10#issuecomment-6587505382)
+covers entry to this slice only; this implementation PR requires independent
+review before merge.
+
+Run from the repository root with Node `22.22.2` or newer and pnpm `11.25.0`:
+
+```powershell
+pnpm install --frozen-lockfile --ignore-scripts
+pnpm --filter @calos/web dev --host 127.0.0.1
+# Open the URL printed by Vite; use the Language selector for en/he.
+```
+
+Frontend verification (build before the browser test, which previews static
+assets and uses installed local Chrome; CI downloads pinned Chromium):
+
+```powershell
+pnpm check:ts
+pnpm lint:ts
+pnpm lint:logical-css
+pnpm test:ts-boundary
+pnpm test:frontend
+pnpm build:web
+node tools/check_frontend_bundle.mjs
+pnpm test:e2e
+pnpm audit
+pnpm sbom --sbom-format cyclonedx > frontend-sbom.json
+node tools/check_frontend_supply_chain.mjs frontend-sbom.json
+```
+
+Browser screenshots are written to `artifacts/screenshots/` and uploaded by
+the frontend-browser CI job. Reviewed screenshots from the real React
+application are [English](docs/wp-1a-1a/en.png) and
+[Hebrew](docs/wp-1a-1a/he.png). The development SBOM is generated locally
+and not committed. See the implementation PR for exact audit results.
+
+The narrow transitive advisory remediation and its one-time release-age
+exception are recorded in the [WP-1A-1a dependency evidence](docs/wp-1a-1a/DEPENDENCY_EVIDENCE.md).
+
 ## Windows PowerShell setup
 
 Prerequisites: Git, Python (bootstrap interpreter), Node.js 22+, pnpm 11.25.0,
