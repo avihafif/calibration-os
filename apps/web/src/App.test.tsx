@@ -71,6 +71,22 @@ describe("React localization demonstration", () => {
       document.activeElement,
     );
     await user.tab();
+    expect(screen.getByRole("link", { name: "Overview" })).toBe(
+      document.activeElement,
+    );
+    await user.tab();
+    expect(screen.getByRole("link", { name: "Technical text" })).toBe(
+      document.activeElement,
+    );
+    await user.tab();
+    expect(screen.getByRole("button", { name: "Open navigation" })).toBe(
+      document.activeElement,
+    );
+    await user.tab();
+    expect(screen.getByRole("button", { name: /Command palette/u })).toBe(
+      document.activeElement,
+    );
+    await user.tab();
     expect(screen.getByRole("combobox", { name: "Language" })).toBe(
       document.activeElement,
     );

@@ -184,15 +184,18 @@ export const calosRules = {
             if (visible.test(node.value)) report(node);
           },
           JSXAttribute(node) {
+            if (!textAttributes.test(node.name.name)) return;
             if (
-              textAttributes.test(node.name.name) &&
               node.value?.type === "Literal" &&
               typeof node.value.value === "string" &&
               visible.test(node.value.value)
             )
               report(node);
+            if (node.value?.type === "JSXExpressionContainer")
+              checkTextExpression(node.value.expression, report);
           },
           JSXExpressionContainer(node) {
+            if (node.parent.type === "JSXAttribute") return;
             checkTextExpression(node.expression, report);
           },
           VariableDeclarator(node) {

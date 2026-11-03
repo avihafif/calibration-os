@@ -19,7 +19,11 @@ export function ProtectedMarkings({
       data-frame-badges
       aria-label={t("mode.simulation")}
     >
-      <strong className="protected-marking deployment" role="status">
+      <strong
+        className="protected-marking deployment"
+        data-deployment={deployment}
+        role="status"
+      >
         <span aria-hidden="true">◆</span>{" "}
         {deployment === "test" ? t("mode.test") : t("mode.rehearsal")}
       </strong>

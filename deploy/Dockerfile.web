@@ -5,10 +5,12 @@ COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY apps/web/package.json apps/web/package.json
 COPY packages/ts/domain-types/package.json packages/ts/domain-types/package.json
 COPY packages/ts/i18n/package.json packages/ts/i18n/package.json
+COPY packages/ts/ui-kit/package.json packages/ts/ui-kit/package.json
 RUN pnpm install --frozen-lockfile --ignore-scripts
 COPY apps/web apps/web
 COPY packages/ts/domain-types packages/ts/domain-types
 COPY packages/ts/i18n packages/ts/i18n
+COPY packages/ts/ui-kit packages/ts/ui-kit
 ARG VITE_ENVIRONMENT_KIND=test
 ENV VITE_ENVIRONMENT_KIND=${VITE_ENVIRONMENT_KIND}
 RUN pnpm build:web

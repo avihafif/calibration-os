@@ -157,6 +157,11 @@ const hardeningProbes = [
   ],
   [
     "apps/web/src/boundary-probe.tsx",
+    'export const sample = <Foo aria-label={flag ? "Visible" : t("app.title")} />;',
+    "calos/no-hardcoded-ui-text",
+  ],
+  [
+    "apps/web/src/boundary-probe.tsx",
     "export const sample = <span>{`Visible ${value}`}</span>;",
     "calos/no-hardcoded-ui-text",
   ],
