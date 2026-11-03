@@ -8,6 +8,9 @@
 .calos-app select {
   font: inherit;
 }
+.calos-app textarea {
+  font: inherit;
+}
 .ui-button {
   display: inline-flex;
   align-items: center;
@@ -51,7 +54,8 @@
   font-weight: 650;
 }
 .ui-field input,
-.ui-field select {
+.ui-field select,
+.ui-field textarea {
   min-block-size: 2.25rem;
   inline-size: 100%;
   min-inline-size: 0;
@@ -60,6 +64,44 @@
   padding: var(--space-1) var(--space-2);
   background: var(--surface);
   color: var(--text);
+}
+.ui-field textarea {
+  min-block-size: 6rem;
+  resize: vertical;
+}
+.ui-field input[dir="ltr"] {
+  direction: ltr;
+  text-align: start;
+  font-family: Consolas, "Courier New", monospace;
+}
+.ui-field input:read-only,
+.ui-field textarea:read-only,
+.ui-field select[aria-readonly="true"] {
+  background: var(--surface-2);
+}
+.ui-field :disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+.ui-required {
+  margin-inline-start: var(--space-1);
+  color: var(--error);
+}
+.ui-field-messages:empty {
+  display: none;
+}
+.ui-checkbox-row {
+  display: flex;
+  align-items: start;
+  gap: var(--space-2);
+}
+.ui-checkbox-row input[type="checkbox"] {
+  inline-size: 1.125rem;
+  min-block-size: 1.125rem;
+  block-size: 1.125rem;
+  margin: var(--space-1) 0 0;
+  accent-color: var(--primary);
+  flex: none;
 }
 .ui-field [aria-invalid="true"] {
   border-color: var(--error);

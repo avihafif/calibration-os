@@ -20,3 +20,10 @@ export {
   type Tone,
   type SelectOption,
 } from "./primitives";
+export {
+  TextField,
+  TextArea,
+  NumberTextField,
+  Checkbox,
+  isExactDecimalText,
+} from "./form-controls";
