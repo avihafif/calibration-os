@@ -1,15 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
-import type { Manufacturer } from "@calos/domain-types";
 import {
   createSystemI18n,
   messageReviewStatus,
   type SystemLocale,
 } from "@calos/i18n";
-import example from "../../../fixtures/manufacturer/valid.json";
 
-const metadata: Manufacturer = example.content;
-const isRehearsal =
-  import.meta.env.VITE_ENVIRONMENT_KIND === "production_rehearsal";
+const environmentKind =
+  import.meta.env.VITE_ENVIRONMENT_KIND === "production_rehearsal"
+    ? "production_rehearsal"
+    : "test";
+const platformIdentifier = "CALOS-UI";
 
 /** @req FR-UI-02, P1A-AC-08, P1A-AC-09: non-operational i18n demonstration. */
 export function App() {
@@ -56,63 +56,48 @@ export function App() {
             {t("mode.simulation")}
           </p>
           <p className="environment">
-            {isRehearsal ? t("mode.rehearsal") : t("mode.test")}
+            {environmentKind === "test" ? t("mode.test") : t("mode.rehearsal")}
           </p>
           <p className="description">{t("app.description")}</p>
-          <div className="cards">
-            <article aria-labelledby="sample-title">
-              <h1 id="sample-title">{t("app.sample")}</h1>
-              <dl>
-                <dt>{t("app.kind")}</dt>
-                <dd>
-                  <bdi dir="ltr">{example.kind}</bdi>
-                </dd>
-                <dt>{t("app.name")}</dt>
-                <dd lang={locale} dir="auto">
-                  {metadata.name[locale]}
-                </dd>
-                <dt>{t("app.provenance")}</dt>
-                <dd>
-                  <bdi dir="ltr">{example.provenance.status}</bdi>
-                </dd>
-              </dl>
-            </article>
-            <article aria-labelledby="technical-title">
-              <h2 id="technical-title">{t("app.technical")}</h2>
-              <dl>
-                <dt>{t("app.identifier")}</dt>
-                <dd>
-                  <bdi dir="ltr">{example.key}</bdi>
-                </dd>
-                <dt>{t("app.unit")}</dt>
-                <dd>
-                  <bdi dir="ltr">Ω</bdi>
-                </dd>
-              </dl>
-              <div className="count-control">
-                <button
-                  type="button"
-                  aria-label={t("app.decrease")}
-                  disabled={sampleCount === 0}
-                  onClick={() =>
-                    setSampleCount((count) => Math.max(0, count - 1))
-                  }
-                >
-                  −
-                </button>
-                <output aria-live="polite">
-                  {t("app.count", { count: sampleCount })}
-                </output>
-                <button
-                  type="button"
-                  aria-label={t("app.increase")}
-                  onClick={() => setSampleCount((count) => count + 1)}
-                >
-                  +
-                </button>
-              </div>
-            </article>
-          </div>
+          <article aria-labelledby="technical-title">
+            <h1 id="technical-title">{t("app.technical")}</h1>
+            <dl>
+              <dt>{t("app.identifier")}</dt>
+              <dd>
+                <bdi dir="ltr">{platformIdentifier}</bdi>
+              </dd>
+              <dt>{t("app.kind")}</dt>
+              <dd>
+                <bdi dir="ltr">{environmentKind}</bdi>
+              </dd>
+              <dt>{t("app.unit")}</dt>
+              <dd>
+                <bdi dir="ltr">Ω</bdi>
+              </dd>
+            </dl>
+            <div className="count-control">
+              <button
+                type="button"
+                aria-label={t("app.decrease")}
+                disabled={sampleCount === 0}
+                onClick={() =>
+                  setSampleCount((count) => Math.max(0, count - 1))
+                }
+              >
+                −
+              </button>
+              <output aria-live="polite">
+                {t("app.count", { count: sampleCount })}
+              </output>
+              <button
+                type="button"
+                aria-label={t("app.increase")}
+                onClick={() => setSampleCount((count) => count + 1)}
+              >
+                +
+              </button>
+            </div>
+          </article>
           {messageReviewStatus(locale, "app.title") === "needs_review" && (
             <p className="review-note">{t("app.review")}</p>
           )}

@@ -2,6 +2,11 @@ import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const assetDir = resolve("apps/web/dist/assets");
+if (
+  /^COPY\s+fixtures\//mu.test(readFileSync("deploy/Dockerfile.web", "utf8"))
+) {
+  throw new Error("PRODUCTION_REHEARSAL_FIXTURE_COPY_FORBIDDEN");
+}
 const scripts = readdirSync(assetDir).filter((name) => name.endsWith(".js"));
 if (scripts.length === 0) throw new Error("WEB_BUNDLE_MISSING");
 const forbidden = [
@@ -15,6 +20,7 @@ const forbidden = [
   /\bfetch\s*\(/u,
   /design\/phase1/u,
   /design\/procedure/u,
+  /synthetic_demo|fixtures\/manufacturer/u,
   /@axe-core\/playwright|axe-core|playwright-core|vitest/u,
 ];
 for (const script of scripts) {
@@ -25,5 +31,5 @@ for (const script of scripts) {
   }
 }
 process.stdout.write(
-  `Web bundle CSP/no-storage/no-network/design exclusion passed: ${scripts.length} script(s).\n`,
+  `Web bundle forbidden-code and fixture exclusion passed: ${scripts.length} script(s).\n`,
 );
