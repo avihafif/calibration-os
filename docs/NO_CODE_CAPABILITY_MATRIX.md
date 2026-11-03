@@ -170,6 +170,13 @@ generic forms, authored-content translation, governance or Production authoring.
 Hebrew wording remains `needs_review` pending MI-31, and H-2/GA0-16 remains
 open for the editor vocabulary.
 
+**WP-1A-1b hardening status:** protected Test/Simulation markings, no-JS
+fallback, content error boundary, safe technical-text display, tighter import
+and UI-string checks, and browser pseudo-locale coverage are platform UI
+infrastructure. They add no No-Code editor capability or operational
+publishing. Local desktop hosting remains a future host integration; no
+mandatory cloud or instrument access is introduced in React.
+
 ## 7. Summary
 
 | Class | Count (this version) | Comment |

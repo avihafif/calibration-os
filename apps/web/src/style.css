@@ -42,14 +42,21 @@ header {
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
+  flex-wrap: wrap;
 }
 .wordmark {
   font-size: 1.1rem;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  overflow-wrap: anywhere;
 }
 .language-control {
   display: flex;
   align-items: center;
   gap: 0.65rem;
+  flex-wrap: wrap;
+  min-inline-size: 0;
+  max-inline-size: 100%;
 }
 select {
   border: 1px solid #9db2c7;
@@ -57,6 +64,8 @@ select {
   padding-block: 0.35rem;
   padding-inline: 0.5rem;
   min-inline-size: 8rem;
+  max-inline-size: 100%;
+  inline-size: 14rem;
   background: white;
   color: #173047;
 }
@@ -147,10 +156,46 @@ bdi {
   color: #5a3700;
   font-weight: 600;
 }
+.protected-markings {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 1000;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #0e131a;
+}
+.protected-marking {
+  display: inline-flex;
+  gap: 0.35rem;
+  padding: 0.25rem 0.5rem;
+  border: 2px solid currentColor;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  overflow-wrap: anywhere;
+}
+.protected-marking.deployment {
+  color: #6cc4ee;
+}
+.protected-marking.simulation {
+  color: #c4a8ff;
+}
+.workspace-error {
+  padding: 1rem;
+  border: 2px solid #b42318;
+  background: #fbe9e7;
+  color: #b42318;
+}
 @media (max-width: 42rem) {
   .topline {
     flex-direction: column;
     align-items: flex-start;
+  }
+  .language-control {
+    inline-size: 100%;
   }
   .cards,
   dl {

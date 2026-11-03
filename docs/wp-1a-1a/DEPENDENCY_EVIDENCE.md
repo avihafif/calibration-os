@@ -13,8 +13,9 @@ development-only transitive `minimatch@10.2.6` to `11.0.1` for
 They separately approved one-time exceptions to ADR-0026's 14-day publication
 age rule for **only** `minimatch@11.0.1` (published 2026-10-27) and its newly
 required `@isaacs/nonrecursive-glob-match@1.0.3` (published 2026-10-28).
-The approvals are in the implementation conversation; PR #11 requires
-independent review before merge. No accepted ADR text was changed.
+The approvals and review scope are recorded in the merged
+[PR #12 decision record](../gate-a0/14_WP-1A-1a_TRANSITIVE_DEPENDENCY_EXCEPTION_RECORD_2026-11-03.md).
+No accepted ADR text was changed.
 
 The override is pinned in `pnpm-workspace.yaml`; `pnpm-lock.yaml` records both
 integrity hashes. The CycloneDX SBOM marks both packages `excluded` from the

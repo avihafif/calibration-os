@@ -2,6 +2,21 @@ import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const assetDir = resolve("apps/web/dist/assets");
+const html = readFileSync("apps/web/dist/index.html", "utf8");
+const fallbackCss = readFileSync("apps/web/dist/status.css", "utf8");
+const deployment = process.env.VITE_ENVIRONMENT_KIND ?? "test";
+if (deployment !== "test" && deployment !== "production_rehearsal")
+  throw new Error("UNKNOWN_WEB_DEPLOYMENT_KIND");
+const label = deployment === "test" ? "TEST" : "PRODUCTION REHEARSAL";
+if (
+  !html.includes(`<title>${label} · SIMULATION ONLY · CalOS</title>`) ||
+  !html.includes(`◆ ${label}`) ||
+  !html.includes("SIMULATION ONLY · NOT A CALIBRATION") ||
+  !html.includes('href="/status.css"') ||
+  !fallbackCss.includes("#static-markings") ||
+  html.includes("__CALOS_")
+)
+  throw new Error("STATIC_DEPLOYMENT_MARKINGS_MISSING");
 if (
   /^COPY\s+fixtures\//mu.test(readFileSync("deploy/Dockerfile.web", "utf8"))
 ) {

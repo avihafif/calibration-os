@@ -86,6 +86,18 @@ describe("compiled system localization", () => {
     }
   });
 
+  it("expands prose by at least 40% in both pseudo-locales", () => {
+    for (const locale of ["en-XA", "he-XB"] as const) {
+      const source = createSystemI18n(baseLocale(locale)).format(
+        "app.description",
+      );
+      const pseudo = createSystemI18n(locale).format("app.description");
+      expect([...pseudo].length).toBeGreaterThanOrEqual(
+        Math.ceil([...source].length * 1.4),
+      );
+    }
+  });
+
   it("rejects a missing ICU placeholder instead of displaying an unformatted template", () => {
     expect(() => createSystemI18n("he").format("app.count")).toThrow(
       "MISSING_MESSAGE_VALUE",

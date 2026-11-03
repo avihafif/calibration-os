@@ -1,0 +1,24 @@
+/* Build-time deployment labels remain visible without JavaScript and after a React failure. */
+#static-markings {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 1000;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #0e131a;
+  color: #ffffff;
+  font: 700 0.875rem/1.4 system-ui, sans-serif;
+}
+#static-markings strong {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border: 2px solid currentColor;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  overflow-wrap: anywhere;
+}
+#static-markings .static-environment { color: #6cc4ee; }
+#static-markings .static-simulation { color: #c4a8ff; }
+body:has([data-frame-badges]) #static-markings { display: none; }

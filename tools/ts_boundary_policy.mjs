@@ -36,6 +36,25 @@ export const allowedImports = Object.freeze({
   ],
 });
 
+/** Third-party imports are closed per package; test-only libraries stay in tests. */
+export const approvedExternal = Object.freeze({
+  web: ["react", "react-dom", "react-router"],
+  "api-client": [],
+  "domain-types": [],
+  i18n: ["react-intl"],
+  "expr-presentation": [],
+  "ui-kit": ["react", "react-dom"],
+  "editor-core": [],
+  designers: ["react"],
+  "ui-runtime": ["react"],
+});
+const approvedTestExternal = Object.freeze([
+  "vitest",
+  "@testing-library/react",
+  "@testing-library/dom",
+  "@testing-library/user-event",
+]);
+
 export function repoPath(absolute) {
   return relative(process.cwd(), absolute).split(sep).join("/");
 }
@@ -49,7 +68,12 @@ export function kindForPath(path) {
   const match = /^packages\/ts\/([^/]+)\//u.exec(path);
   if (match)
     return packageNames.includes(match[1]) ? match[1] : "unknown-package";
-  return null;
+  return "forbidden-root";
+}
+
+function externalName(source) {
+  if (source.startsWith("@")) return source.split("/").slice(0, 2).join("/");
+  return source.split("/")[0];
 }
 
 export function targetForImport(filename, source) {
@@ -66,11 +90,14 @@ export function targetForImport(filename, source) {
     const path = repoPath(resolve(dirname(filename), source));
     return { kind: kindForPath(path), path };
   }
-  if (source.startsWith("design/")) return { kind: "design", path: source };
-  if (source.startsWith("apps/") || source.startsWith("packages/")) {
+  if (
+    /^(apps|packages|design|fixtures|tests|tools|schemas|catalog|content|docs|deploy)\//u.test(
+      source,
+    )
+  ) {
     return { kind: kindForPath(source + "/"), path: source };
   }
-  return { kind: null, path: null };
+  return { kind: "external", path: externalName(source) };
 }
 
 function designerSection(path) {
@@ -81,9 +108,15 @@ export function importAllowed(filename, source) {
   const fromPath = repoPath(filename);
   const from = kindForPath(fromPath);
   const target = targetForImport(filename, source);
-  if (from === null || from === "design" || from === "other-app") return true;
-  if (from === "unknown-package") return false;
-  if (target.kind === null) return true;
+  if (from === "design" || from === "other-app") return true;
+  if (!sourceKinds.includes(from)) return false;
+  if (target.kind === "external") {
+    const testFile = /\.(test|spec)\.[jt]sx?$/u.test(fromPath);
+    return (
+      approvedExternal[from].includes(target.path) ||
+      (testFile && approvedTestExternal.includes(target.path))
+    );
+  }
   if (!allowedImports[from].includes(target.kind)) return false;
   if (
     from === "designers" &&

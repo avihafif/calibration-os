@@ -138,6 +138,18 @@ and remain subject to CI and independent PR review. These checks do not open
 Gate A0 or enable Builder,
 operational signing, storage, hardware or calibration capabilities.
 
+**WP-1A-1b hardening verification (2026-11-03, Windows worktree):** strict
+TypeScript, lint, 76 negative boundary probes, 20 frontend unit tests, three
+browser tests (including disabled JavaScript and pseudo-locale layouts), and
+both Test and Production Rehearsal artifact checks passed locally. The locked
+228-component CycloneDX inventory passed licence and OSV checks; `pnpm audit`
+reported no known vulnerabilities. CI evidence remains subject to the PR run.
+CSP is **not enforced** by the development preview; external deployment is
+blocked pending real response headers and browser verification. The frontend
+has no runtime network or storage and remains compatible with future local
+hosting through injected host ports; Station Agent and synchronization work
+are outside this milestone.
+
 ## 7. Style
 - Python ≥ 3.12, `mypy --strict` on core packages, `ruff`; Pydantic v2 models generated from `schemas/` where applicable; no global mutable state in the runtime; time/IDs/random via injected ports.
 - TypeScript `strict`; no `any` in `ui-runtime`/`editor-core`; React function components; state via query cache + editor command stack; all text via i18n; logical CSS properties only.

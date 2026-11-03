@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { App } from "./App";
@@ -11,6 +11,23 @@ afterEach(() => {
 
 /** @req FR-UI-02, P1A-AC-08, P1A-AC-09 */
 describe("React localization demonstration", () => {
+  it("retains immutable deployment and simulation markers when workspace rendering fails", () => {
+    const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+    function BrokenWorkspace(): never {
+      throw new Error("WORKSPACE_FAILURE_PROBE");
+    }
+    try {
+      render(<App workspace={<BrokenWorkspace />} />);
+      expect(screen.getByRole("status").textContent).toContain("TEST");
+      expect(screen.getByRole("note").textContent).toContain("SIMULATION ONLY");
+      expect(screen.getByRole("alert").textContent).toContain(
+        "Workspace unavailable",
+      );
+      expect(document.title).toContain("SIMULATION ONLY");
+    } finally {
+      logged.mockRestore();
+    }
+  });
   it("switches en → he and mirrors document and content direction", async () => {
     const user = userEvent.setup();
     render(<App />);
