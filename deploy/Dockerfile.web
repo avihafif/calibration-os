@@ -9,7 +9,6 @@ RUN pnpm install --frozen-lockfile --ignore-scripts
 COPY apps/web apps/web
 COPY packages/ts/domain-types packages/ts/domain-types
 COPY packages/ts/i18n packages/ts/i18n
-COPY fixtures/manufacturer fixtures/manufacturer
 ARG VITE_ENVIRONMENT_KIND=test
 ENV VITE_ENVIRONMENT_KIND=${VITE_ENVIRONMENT_KIND}
 RUN pnpm build:web

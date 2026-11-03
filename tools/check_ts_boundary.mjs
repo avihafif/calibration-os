@@ -99,6 +99,92 @@ await probe(
   "calos/import-boundary",
 );
 tested += 1;
+const hardeningProbes = [
+  [
+    "apps/web/src/boundary-probe.ts",
+    'import "../../../fixtures/manufacturer/valid.json";',
+    "calos/import-boundary",
+  ],
+  [
+    "apps/web/src/boundary-probe.ts",
+    'import "../../../schemas/manufacturer/v1.schema.json";',
+    "calos/import-boundary",
+  ],
+  [
+    "packages/ts/i18n/src/boundary-probe.ts",
+    'import "node:fs";',
+    "calos/import-boundary",
+  ],
+  [
+    "packages/ts/i18n/src/boundary-probe.ts",
+    'import "react-router";',
+    "calos/import-boundary",
+  ],
+  [
+    "apps/web/src/boundary-probe.ts",
+    "window.localStorage;",
+    "calos/no-unsafe-web-api",
+  ],
+  [
+    "apps/web/src/boundary-probe.ts",
+    'globalThis["local" + "Storage"];',
+    "calos/no-unsafe-web-api",
+  ],
+  [
+    "apps/web/src/boundary-probe.ts",
+    'element.innerHTML = "x";',
+    "calos/no-unsafe-web-api",
+  ],
+  [
+    "apps/web/src/boundary-probe.ts",
+    'element.insertAdjacentHTML("beforeend", "x");',
+    "calos/no-unsafe-web-api",
+  ],
+  [
+    "apps/web/src/boundary-probe.ts",
+    'import.meta.glob("../../../design/**");',
+    "calos/no-unsafe-web-api",
+  ],
+  [
+    "apps/web/src/boundary-probe.ts",
+    'new URL("../../../design/x", import.meta.url);',
+    "calos/no-unsafe-web-api",
+  ],
+  [
+    "apps/web/src/boundary-probe.tsx",
+    'export const sample = <Foo label="Visible" />;',
+    "calos/no-hardcoded-ui-text",
+  ],
+  [
+    "apps/web/src/boundary-probe.tsx",
+    "export const sample = <span>{`Visible ${value}`}</span>;",
+    "calos/no-hardcoded-ui-text",
+  ],
+  [
+    "apps/web/src/boundary-probe.tsx",
+    'export const sample = <span>{flag ? "Visible" : t("app.title")}</span>;',
+    "calos/no-hardcoded-ui-text",
+  ],
+  [
+    "apps/web/src/boundary-probe.tsx",
+    'export const sample = <span>{"Visible" + value}</span>;',
+    "calos/no-hardcoded-ui-text",
+  ],
+  [
+    "apps/web/src/boundary-probe.tsx",
+    "export const sample = <span>Пример</span>;",
+    "calos/no-hardcoded-ui-text",
+  ],
+  [
+    "apps/web/src/boundary-probe.tsx",
+    'const heading = "Visible"; export const sample = <h1>{heading}</h1>;',
+    "calos/no-hardcoded-ui-text",
+  ],
+];
+for (const [file, source, rule] of hardeningProbes) {
+  await probe(file, source, rule);
+  tested += 1;
+}
 process.stdout.write(
   `TypeScript boundary and UI-string negative probes passed: ${tested}.\n`,
 );

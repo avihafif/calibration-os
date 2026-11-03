@@ -1,19 +1,21 @@
-import { useEffect, useMemo, useState } from "react";
-import type { Manufacturer } from "@calos/domain-types";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   createSystemI18n,
   messageReviewStatus,
-  type SystemLocale,
+  type SupportedLocale,
 } from "@calos/i18n";
-import example from "../../../fixtures/manufacturer/valid.json";
+import { ProtectedMarkings, WorkspaceErrorBoundary } from "./ProtectedFrame";
 
-const metadata: Manufacturer = example.content;
-const isRehearsal =
-  import.meta.env.VITE_ENVIRONMENT_KIND === "production_rehearsal";
+const environmentKind =
+  import.meta.env.VITE_ENVIRONMENT_KIND === "production_rehearsal"
+    ? "production_rehearsal"
+    : "test";
+const platformIdentifier = "CALOS-UI";
+const technicalUnitSymbol = "Ω";
 
 /** @req FR-UI-02, P1A-AC-08, P1A-AC-09: non-operational i18n demonstration. */
-export function App() {
-  const [locale, setLocale] = useState<SystemLocale>("en");
+export function App({ workspace }: { workspace?: ReactNode }) {
+  const [locale, setLocale] = useState<SupportedLocale>("en");
   const [sampleCount, setSampleCount] = useState(2);
   const i18n = useMemo(() => createSystemI18n(locale), [locale]);
   const t = i18n.format;
@@ -21,7 +23,7 @@ export function App() {
   useEffect(() => {
     document.documentElement.lang = locale;
     document.documentElement.dir = i18n.direction;
-    document.title = t("app.title");
+    document.title = `${environmentKind === "test" ? "TEST" : "PRODUCTION REHEARSAL"} · SIMULATION ONLY · ${t("app.title")}`;
   }, [i18n, locale, t]);
 
   return (
@@ -29,6 +31,7 @@ export function App() {
       <a className="skip-link" href="#content">
         {t("app.skip")}
       </a>
+      <ProtectedMarkings locale={locale} deployment={environmentKind} />
       <main lang={locale} dir={i18n.direction}>
         <header>
           <div className="topline">
@@ -42,80 +45,78 @@ export function App() {
                 value={locale}
                 onChange={(event) => {
                   const next = event.currentTarget.value;
-                  if (next === "en" || next === "he") setLocale(next);
+                  if (
+                    next === "en" ||
+                    next === "he" ||
+                    (environmentKind === "test" &&
+                      (next === "en-XA" || next === "he-XB"))
+                  )
+                    setLocale(next);
                 }}
               >
                 <option value="en">{t("app.english")}</option>
                 <option value="he">{t("app.hebrew")}</option>
+                {environmentKind === "test" && (
+                  <>
+                    <option value="en-XA">{t("app.pseudoEnglish")}</option>
+                    <option value="he-XB">{t("app.pseudoHebrew")}</option>
+                  </>
+                )}
               </select>
             </div>
           </div>
         </header>
         <div id="content" className="content" tabIndex={-1}>
-          <p className="warning" role="note">
-            {t("mode.simulation")}
-          </p>
-          <p className="environment">
-            {isRehearsal ? t("mode.rehearsal") : t("mode.test")}
-          </p>
-          <p className="description">{t("app.description")}</p>
-          <div className="cards">
-            <article aria-labelledby="sample-title">
-              <h1 id="sample-title">{t("app.sample")}</h1>
-              <dl>
-                <dt>{t("app.kind")}</dt>
-                <dd>
-                  <bdi dir="ltr">{example.kind}</bdi>
-                </dd>
-                <dt>{t("app.name")}</dt>
-                <dd lang={locale} dir="auto">
-                  {metadata.name[locale]}
-                </dd>
-                <dt>{t("app.provenance")}</dt>
-                <dd>
-                  <bdi dir="ltr">{example.provenance.status}</bdi>
-                </dd>
-              </dl>
-            </article>
-            <article aria-labelledby="technical-title">
-              <h2 id="technical-title">{t("app.technical")}</h2>
-              <dl>
-                <dt>{t("app.identifier")}</dt>
-                <dd>
-                  <bdi dir="ltr">{example.key}</bdi>
-                </dd>
-                <dt>{t("app.unit")}</dt>
-                <dd>
-                  <bdi dir="ltr">Ω</bdi>
-                </dd>
-              </dl>
-              <div className="count-control">
-                <button
-                  type="button"
-                  aria-label={t("app.decrease")}
-                  disabled={sampleCount === 0}
-                  onClick={() =>
-                    setSampleCount((count) => Math.max(0, count - 1))
-                  }
-                >
-                  −
-                </button>
-                <output aria-live="polite">
-                  {t("app.count", { count: sampleCount })}
-                </output>
-                <button
-                  type="button"
-                  aria-label={t("app.increase")}
-                  onClick={() => setSampleCount((count) => count + 1)}
-                >
-                  +
-                </button>
-              </div>
-            </article>
-          </div>
-          {messageReviewStatus(locale, "app.title") === "needs_review" && (
-            <p className="review-note">{t("app.review")}</p>
-          )}
+          <WorkspaceErrorBoundary locale={locale}>
+            {workspace ?? (
+              <>
+                <p className="description">{t("app.description")}</p>
+                <article aria-labelledby="technical-title">
+                  <h1 id="technical-title">{t("app.technical")}</h1>
+                  <dl>
+                    <dt>{t("app.identifier")}</dt>
+                    <dd>
+                      <bdi dir="ltr">{platformIdentifier}</bdi>
+                    </dd>
+                    <dt>{t("app.kind")}</dt>
+                    <dd>
+                      <bdi dir="ltr">{environmentKind}</bdi>
+                    </dd>
+                    <dt>{t("app.unit")}</dt>
+                    <dd>
+                      <bdi dir="ltr">{technicalUnitSymbol}</bdi>
+                    </dd>
+                  </dl>
+                  <div className="count-control">
+                    <button
+                      type="button"
+                      aria-label={t("app.decrease")}
+                      disabled={sampleCount === 0}
+                      onClick={() =>
+                        setSampleCount((count) => Math.max(0, count - 1))
+                      }
+                    >
+                      −
+                    </button>
+                    <output aria-live="polite">
+                      {t("app.count", { count: sampleCount })}
+                    </output>
+                    <button
+                      type="button"
+                      aria-label={t("app.increase")}
+                      onClick={() => setSampleCount((count) => count + 1)}
+                    >
+                      +
+                    </button>
+                  </div>
+                </article>
+                {messageReviewStatus(locale, "app.title") ===
+                  "needs_review" && (
+                  <p className="review-note">{t("app.review")}</p>
+                )}
+              </>
+            )}
+          </WorkspaceErrorBoundary>
         </div>
       </main>
     </>

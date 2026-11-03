@@ -54,6 +54,10 @@ jobs:
       - run: pnpm test:frontend
       - run: pnpm build:web
       - run: node tools/check_frontend_bundle.mjs
+      - name: Verify Production Rehearsal artifact markings and fixture exclusion
+        run: |
+          VITE_ENVIRONMENT_KIND=production_rehearsal pnpm build:web
+          VITE_ENVIRONMENT_KIND=production_rehearsal node tools/check_frontend_bundle.mjs
       - name: Generate CycloneDX SBOM
         run: pnpm sbom --sbom-format cyclonedx > frontend-sbom.json
       - name: OSV and licence verification

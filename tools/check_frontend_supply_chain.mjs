@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 
 const path = process.argv[2];
 if (!path) throw new Error("SBOM_PATH_REQUIRED");
@@ -7,8 +7,9 @@ if (bom.bomFormat !== "CycloneDX" || !Array.isArray(bom.components)) {
   throw new Error("INVALID_CYCLONEDX_SBOM");
 }
 
-const approvedNew = {
+const approvedDirect = Object.freeze({
   "react-intl": "12.1.5",
+  "react-router": "8.5.0",
   vitest: "5.0.5",
   jsdom: "30.1.3",
   "@testing-library/react": "16.3.3",
@@ -17,42 +18,48 @@ const approvedNew = {
   "@playwright/test": "1.64.1",
   "axe-core": "4.14.0",
   "@axe-core/playwright": "4.14.0",
-};
-const approvedDirectNames = new Set([
-  ...Object.keys(approvedNew),
-  "eslint",
-  "eslint-import-resolver-typescript",
-  "eslint-plugin-boundaries",
-  "prettier",
-  "typescript-eslint",
-  "react",
-  "react-dom",
-  "@types/react",
-  "@types/react-dom",
-  "typescript",
-  "vite",
-]);
-for (const manifestPath of [
-  "package.json",
-  "apps/web/package.json",
-  "packages/ts/domain-types/package.json",
-  "packages/ts/i18n/package.json",
-]) {
+  eslint: "10.14.0",
+  "eslint-import-resolver-typescript": "4.4.4",
+  "eslint-plugin-boundaries": "7.4.0",
+  prettier: "3.9.10",
+  "typescript-eslint": "8.72.1",
+  react: "19.3.0",
+  "react-dom": "19.3.0",
+  "@types/react": "19.3.0",
+  "@types/react-dom": "19.3.0",
+  typescript: "5.9.3",
+  vite: "8.3.5",
+});
+const rootManifest = JSON.parse(readFileSync("package.json", "utf8"));
+if (rootManifest.packageManager !== "pnpm@11.25.0") {
+  throw new Error("UNAPPROVED_PACKAGE_MANAGER");
+}
+const manifestPaths = ["package.json", "apps/web/package.json"];
+for (const entry of readdirSync("packages/ts", { withFileTypes: true })) {
+  if (!entry.isDirectory()) continue;
+  const manifestPath = `packages/ts/${entry.name}/package.json`;
+  if (!existsSync(manifestPath))
+    throw new Error(`PACKAGE_MANIFEST_MISSING: ${entry.name}`);
+  manifestPaths.push(manifestPath);
+}
+for (const manifestPath of manifestPaths) {
   const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
   for (const [name, version] of Object.entries({
     ...manifest.dependencies,
     ...manifest.devDependencies,
   })) {
-    if (version.startsWith("workspace:")) continue;
-    if (!approvedDirectNames.has(name))
-      throw new Error(`UNAPPROVED_DIRECT_DEPENDENCY: ${name}`);
-    if (!/^\d+\.\d+\.\d+$/u.test(version)) {
-      throw new Error(
-        `NON_EXACT_DIRECT_PIN: ${manifestPath}: ${name}@${version}`,
-      );
+    if (typeof version !== "string")
+      throw new Error(`INVALID_DEPENDENCY_VERSION: ${name}`);
+    if (version.startsWith("workspace:")) {
+      if (version !== "workspace:*" || !name.startsWith("@calos/")) {
+        throw new Error(`UNAPPROVED_WORKSPACE_DEPENDENCY: ${name}@${version}`);
+      }
+      continue;
     }
-    if (name in approvedNew && approvedNew[name] !== version) {
-      throw new Error(`UNAPPROVED_VERSION: ${name}@${version}`);
+    if (approvedDirect[name] !== version) {
+      throw new Error(
+        `UNAPPROVED_DIRECT_DEPENDENCY: ${manifestPath}: ${name}@${version}`,
+      );
     }
   }
 }

@@ -34,6 +34,7 @@ export default [
     },
     rules: {
       "calos/import-boundary": "error",
+      "calos/no-unsafe-web-api": "error",
       "boundaries/no-unknown-files": "error",
       "boundaries/dependencies": ["error", { default: "allow", policies }],
       "no-restricted-globals": [

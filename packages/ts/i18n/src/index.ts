@@ -76,9 +76,11 @@ function pseudoText(text: string, locale: "en-XA" | "he-XB"): string {
     }
     const replacement = accent[character.toLowerCase()];
     if (replacement === undefined) return character;
-    return character === character.toUpperCase()
-      ? replacement.toUpperCase()
-      : replacement;
+    const mapped =
+      character === character.toUpperCase()
+        ? replacement.toUpperCase()
+        : replacement;
+    return mapped + "~";
   }).join("");
   return "⟦" + expanded + " ··⟧";
 }

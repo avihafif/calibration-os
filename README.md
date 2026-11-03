@@ -41,15 +41,24 @@ React demonstration. It has **no Builder, persistence, account, API request,
 instrument access, approval, signing or production publication**. Hebrew
 terminology is marked `needs_review`; full Gate A0 and H-2/GA0-16 remain
 closed. The Product Owner's [limited PR #10 process exception](https://github.com/avihafif/calibration-os/pull/10#issuecomment-6587505382)
-covers entry to this slice only; this implementation PR requires independent
-review before merge.
+covered entry to this slice only. PRs #11 and #12 are merged.
+
+The WP-1A-1b hardening branch adds bounded Unicode-safe technical display,
+closed third-party import and source-root boundaries, static Test/Simulation
+markings that survive JavaScript failure, an error-safe React content boundary,
+and stronger pseudo-locale checks. The web build has no runtime API requests,
+browser storage, cloud requirement or instrument connection; its future local
+desktop host must connect through injected ports. The current Vite preview is
+development infrastructure, not an approved offline desktop distribution.
+See [hardening findings](docs/wp-1a-1b/HARDENING.md). CSP remains an external
+deployment blocker until HTTP headers and browser tests prove enforcement.
 
 Run from the repository root with Node `22.22.2` or newer and pnpm `11.25.0`:
 
 ```powershell
 pnpm install --frozen-lockfile --ignore-scripts
 pnpm --filter @calos/web dev --host 127.0.0.1
-# Open the URL printed by Vite; use the Language selector for en/he.
+# Open the URL printed by Vite; use the Language selector for en/he and Test-only pseudo-locales.
 ```
 
 Frontend verification (build before the browser test, which previews static

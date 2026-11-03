@@ -13,12 +13,12 @@ export default defineConfig({
       ?.env?.CI
       ? undefined
       : "chrome",
-    baseURL: "http://127.0.0.1:4173",
+    baseURL: "http://127.0.0.1:4184",
   },
   webServer: {
     command:
-      "pnpm --filter @calos/web exec vite preview --host 127.0.0.1 --port 4173",
-    url: "http://127.0.0.1:4173",
+      "pnpm --filter @calos/web exec vite preview --host 127.0.0.1 --port 4184",
+    url: "http://127.0.0.1:4184",
     reuseExistingServer: false,
     timeout: 30000,
   },

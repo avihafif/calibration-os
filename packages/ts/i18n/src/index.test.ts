@@ -86,6 +86,18 @@ describe("compiled system localization", () => {
     }
   });
 
+  it("expands prose by at least 40% in both pseudo-locales", () => {
+    for (const locale of ["en-XA", "he-XB"] as const) {
+      const source = createSystemI18n(baseLocale(locale)).format(
+        "app.description",
+      );
+      const pseudo = createSystemI18n(locale).format("app.description");
+      expect([...pseudo].length).toBeGreaterThanOrEqual(
+        Math.ceil([...source].length * 1.4),
+      );
+    }
+  });
+
   it("rejects a missing ICU placeholder instead of displaying an unformatted template", () => {
     expect(() => createSystemI18n("he").format("app.count")).toThrow(
       "MISSING_MESSAGE_VALUE",
@@ -128,6 +140,26 @@ describe("display-only formatting", () => {
     );
   });
 
+  it("rejects bidi controls, lone surrogates and oversized technical input", () => {
+    expect(() => formatQuantity("1.5", "\u202eV", "en")).toThrow(
+      "INVALID_UNIT_TEXT",
+    );
+    expect(() => formatQuantity("1.5", "Ω".repeat(65), "he")).toThrow(
+      "INVALID_UNIT_TEXT",
+    );
+    expect(() => formatQuantity("1".repeat(129), "Ω", "en")).toThrow(
+      "INVALID_DECIMAL_TEXT",
+    );
+    expect(() => formatQuantity("1", "\ud800", "en")).toThrow(
+      "INVALID_UNIT_TEXT",
+    );
+    expect(() => isolateLtr("a\u2069 evil \u2066b")).toThrow(
+      "INVALID_TECHNICAL_TEXT",
+    );
+    expect(() => isolateLtr("x".repeat(513))).toThrow("INVALID_TECHNICAL_TEXT");
+    expect(() => isolateLtr("\udc00")).toThrow("INVALID_TECHNICAL_TEXT");
+    expect(formatQuantity("1.5", "µΩ", "he")).toContain("µΩ");
+  });
   it("isolates technical text when bdi is unavailable", () => {
     expect(isolateLtr("demo-id_42")).toBe("\u2066demo-id_42\u2069");
   });
