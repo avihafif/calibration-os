@@ -83,14 +83,11 @@ def allowed(path: str, entries: list[str]) -> bool:
     )
 
 
-
 def check_dependency_manifests(files: list[str]) -> None:
     """Forbid unapproved direct dependency changes in agent-created packages."""
     if "apps/web/package.json" in files:
         before = json.loads(run_git("show", "HEAD:apps/web/package.json"))
-        after = json.loads(
-            (ROOT / "apps/web/package.json").read_text(encoding="utf-8")
-        )
+        after = json.loads((ROOT / "apps/web/package.json").read_text(encoding="utf-8"))
         allowed_after = json.loads(json.dumps(before))
         allowed_after.setdefault("dependencies", {})["@calos/ui-kit"] = "workspace:*"
         if after not in (before, allowed_after):
