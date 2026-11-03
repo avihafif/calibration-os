@@ -191,7 +191,7 @@ export function AppFrame({
           <main
             id="content"
             className="frame-workspace"
-          dir={i18n.direction}
+            dir={i18n.direction}
             tabIndex={-1}
           >
             <WorkspaceErrorBoundary locale={locale}>
