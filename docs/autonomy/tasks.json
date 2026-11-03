@@ -4,9 +4,9 @@
   "max_attempts_per_task": 3,
   "tasks": [
     {
-      "id": "wp1a1b-design-tokens",
-      "title": "WP-1A-1b tokenized light/dark UI kit",
-      "prompt_file": "docs/autonomy/prompts/wp1a1b-design-tokens.md",
+      "id": "wp1a1c-generic-form-controls",
+      "title": "WP-1A-1c generic enterprise form-control primitives",
+      "prompt_file": "docs/autonomy/prompts/wp1a1c-generic-form-controls.md",
       "depends_on": [],
       "allowed_paths": [
         "apps/web/src/",
@@ -17,11 +17,11 @@
       ]
     },
     {
-      "id": "wp1a1b-responsive-a11y",
-      "title": "WP-1A-1b responsive RTL accessible application shell",
-      "prompt_file": "docs/autonomy/prompts/wp1a1b-responsive-a11y.md",
+      "id": "wp1a1d-generic-data-views",
+      "title": "WP-1A-1d generic accessible read-only data-view primitives",
+      "prompt_file": "docs/autonomy/prompts/wp1a1d-generic-data-views.md",
       "depends_on": [
-        "wp1a1b-design-tokens"
+        "wp1a1c-generic-form-controls"
       ],
       "allowed_paths": [
         "apps/web/src/",
@@ -36,7 +36,7 @@
       "title": "Offline-first station architecture gap analysis only",
       "prompt_file": "docs/autonomy/prompts/offline-station-proposal.md",
       "depends_on": [
-        "wp1a1b-responsive-a11y"
+        "wp1a1d-generic-data-views"
       ],
       "allowed_paths": [
         "docs/autonomy/research/"
