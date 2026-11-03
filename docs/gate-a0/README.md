@@ -17,6 +17,7 @@
 | [11_ROLE_DESIGNATION_RECORD.md](11_ROLE_DESIGNATION_RECORD.md) | Owner-stated designation of Avi Hafif as Architecture owner, Security reviewer and Legal approver (scope, limits, no approval) |
 | [12_SIGNATURE_READY_PACKETS.md](12_SIGNATURE_READY_PACKETS.md) | Eight signature-ready packets with recommended outcomes and exact status changes; every box blank |
 | [13_DELEGATED_ARCHITECTURE_SECURITY_LEGAL_RECORD_2026-11-02.md](13_DELEGATED_ARCHITECTURE_SECURITY_LEGAL_RECORD_2026-11-02.md) | Outcomes recorded by delegation for P-1…P-8 (assistant-entered under the owner's instruction; not independent review) |
+| [14_WP-1A-1a_TRANSITIVE_DEPENDENCY_EXCEPTION_RECORD_2026-11-03.md](14_WP-1A-1a_TRANSITIVE_DEPENDENCY_EXCEPTION_RECORD_2026-11-03.md) | `minimatch` override and one-time ADR-0026 age waiver for PR #11, recorded by delegation (assistant-entered; not independent review) |
 | `evidence/` | Reproducible artefacts: PR #6 probes, dependency evaluation (pins, lock, CSV, results), font licences and checksums |
 
 **Form ids** (`GA0-nn`) identify these forms only; `D-nn`, `PD-DEC-nnn`, `A0-n` and ADR numbers keep their meaning and status. The decision-identifier check (`design/tools/check_decision_ids.py`) continues to pass.
