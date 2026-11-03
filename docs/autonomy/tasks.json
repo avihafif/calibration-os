@@ -4,26 +4,10 @@
   "max_attempts_per_task": 3,
   "tasks": [
     {
-      "id": "wp1a1b-protected-frame",
-      "title": "WP-1A-1b protected FrameBadges and error-safe AppFrame",
-      "prompt_file": "docs/autonomy/prompts/wp1a1b-protected-frame.md",
-      "depends_on": [],
-      "allowed_paths": [
-        "apps/web/src/",
-        "apps/web/index.html",
-        "apps/web/package.json",
-        "packages/ts/ui-kit/",
-        "tests/frontend/",
-        "pnpm-lock.yaml"
-      ]
-    },
-    {
       "id": "wp1a1b-design-tokens",
       "title": "WP-1A-1b tokenized light/dark UI kit",
       "prompt_file": "docs/autonomy/prompts/wp1a1b-design-tokens.md",
-      "depends_on": [
-        "wp1a1b-protected-frame"
-      ],
+      "depends_on": [],
       "allowed_paths": [
         "apps/web/src/",
         "apps/web/package.json",

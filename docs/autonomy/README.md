@@ -5,7 +5,7 @@
 ## Goal
 
 GitHub-hosted workers process a bounded, trusted queue without a local computer. In each scheduled cycle:
-1. Read the next task from `docs/autonomy/tasks.json` and current state from `.calos-autonomy/state.json` on `autonomy/integration` (if present).
+1. If another pull request remains open, defer this cycle to avoid conflicting with work already under review. Otherwise read the next task from `docs/autonomy/tasks.json` and current state from `.calos-autonomy/state.json` on `autonomy/integration` (if present).
 2. Use **Codex** with its approved workspace sandbox and **no GitHub write credential** to produce a local patch.
 3. Reject unauthorized paths or file modes before accepting the patch. The queue, governance, workflows, deployment and policy controls are not AI-editable.
 4. Test the **same patch** in a separate, no-API-key job (frontend, architecture, supply chain, browser and Python regressions).
@@ -13,7 +13,7 @@ GitHub-hosted workers process a bounded, trusted queue without a local computer.
 6. Only on green tests and Claude's `APPROVE`, apply the verified patch and review record to **`autonomy/integration`** using a dedicated write-token job. The next scheduled cycle automatically picks the next task.
 7. If implementation, testing or review fails, record a failed attempt without integrating rejected code. **Stop after three failed attempts** to prevent unlimited costs or an endless repair loop.
 
-The workflow has a two-hour schedule and supports manual dispatch for diagnostics. Schedule executions can be delayed by GitHub. The task list is intentionally finite and pre-authorized; completion of that queue is **not** completion of CalOS.
+The workflow has a two-hour schedule and supports manual dispatch for diagnostics. Schedule executions can be delayed by GitHub. The task list is intentionally finite and pre-authorized; completion of that queue is **not** completion of CalOS. The protected-status/frontend-hardening slice was already underway in PR #13, so the pilot deliberately starts with the tokenized UI-kit work after that PR is closed.
 
 ## One-time activation (done by the account owner)
 
