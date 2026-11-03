@@ -1,0 +1,9 @@
+# Codex task — CalOS scoped WP-1A-1d generic read-only data views
+
+Work from the current checked-out reviewed staging code and finish a **non-operational, display-only**, enterprise data-view package within @calos/ui-kit. Read AGENTS.md, accepted ADR-0001 A1–A4/0015 B1–B6/0026, docs/phase1a/01_DESIGN_SYSTEM.md and the reviewed code present in apps/web and packages/ts/ui-kit.
+
+Implement composable typed, accessible generic DataTable and DetailList primitives, plus loading, empty, no-results, error and read-only states. Favor semantic HTML and native keyboard behavior; avoid introducing unapproved table virtualization or a grid library. Test at 320px, 768px and desktop, in en/he and light/dark, with logical CSS, text overflow, bidirectional identifiers, and accessible table headings/captions/sorting controls when applicable. Sorting is for locally supplied readonly strings/identifiers only; no network queries or persistent state. Component props must be generic and contain no instrument/manufacturer/model conditional branches.
+
+Demonstration data must be synthetic *UI-only labels* and not physical measurements, tolerances, standards, calibration intervals or traceable evidence. Do not add backend, Builder, schema-hint registration, persistent authoring, workflow approval, real hardware controls or operational publishing. No new dependencies, remote assets, font binaries, browser storage, API or external fetches. Preserve the current Test/SIMULATION-only frame and no-JS fallback; never weaken boundaries, bundle guards, safety lints or accepted ADRs. Never change workflow YAML, governance documents, tools/autonomy, root dependency policy or paths outside the trusted task allowlist. Work locally, validate full existing frontend tests, return a patch only; do not perform GitHub writes or merge.
+
+If work requires policy/architecture changes or non-allowlisted files, state the blocker and stop rather than bypassing it.
