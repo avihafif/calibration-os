@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "policy": "Only sandboxed, non-operational CalOS frontend work may auto-integrate. No Production, real instruments, operational trust, signing, approvals, metrology data or gate changes.",
+  "max_attempts_per_task": 3,
+  "tasks": [
+    {
+      "id": "wp1a1b-design-tokens",
+      "title": "WP-1A-1b tokenized light/dark UI kit",
+      "prompt_file": "docs/autonomy/prompts/wp1a1b-design-tokens.md",
+      "depends_on": [],
+      "allowed_paths": [
+        "apps/web/src/",
+        "apps/web/package.json",
+        "packages/ts/ui-kit/",
+        "tests/frontend/",
+        "pnpm-lock.yaml"
+      ]
+    },
+    {
+      "id": "wp1a1b-responsive-a11y",
+      "title": "WP-1A-1b responsive RTL accessible application shell",
+      "prompt_file": "docs/autonomy/prompts/wp1a1b-responsive-a11y.md",
+      "depends_on": [
+        "wp1a1b-design-tokens"
+      ],
+      "allowed_paths": [
+        "apps/web/src/",
+        "apps/web/package.json",
+        "packages/ts/ui-kit/",
+        "tests/frontend/",
+        "pnpm-lock.yaml"
+      ]
+    },
+    {
+      "id": "offline-station-proposal",
+      "title": "Offline-first station architecture gap analysis only",
+      "prompt_file": "docs/autonomy/prompts/offline-station-proposal.md",
+      "depends_on": [
+        "wp1a1b-responsive-a11y"
+      ],
+      "allowed_paths": [
+        "docs/autonomy/research/"
+      ]
+    }
+  ]
+}
