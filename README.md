@@ -53,6 +53,14 @@ development infrastructure, not an approved offline desktop distribution.
 See [hardening findings](docs/wp-1a-1b/HARDENING.md). CSP remains an external
 deployment blocker until HTTP headers and browser tests prove enforcement.
 
+The separate stacked WP-1A-1b UI Kit PR adds the real reusable
+[`packages/ts/ui-kit`](packages/ts/ui-kit) and responsive AppFrame. It uses
+the approved light/dark tokens, system fonts, protected status colors,
+accessible controls and in-memory theme switching. The app now demonstrates
+English/Hebrew × light/dark at desktop, tablet and mobile sizes; keyboard
+drawer and command palette, no-JS status fallback and local static hosting
+remain within the frontend-only scope. See the [UI Kit review evidence](docs/wp-1a-1b/UI_KIT.md).
+
 Run from the repository root with Node `22.22.2` or newer and pnpm `11.25.0`:
 
 ```powershell

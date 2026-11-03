@@ -14,7 +14,7 @@ services must be reached through approved injected host ports.
 | F-06 | Demo fixture import and Docker copy removed; bundle gate rejects fixture markers. | Test and Production Rehearsal artifact checks |
 | F-07 | Closed direct dependency versions, per-package external import allow-list, source-root restrictions, dynamic import/asset/DOM/storage restrictions and stronger UI-string lint. | 76 negative probes; CycloneDX, licence and OSV gate |
 | F-08 | Pseudo-locales expand platform prose at least 40%; Test-only browser selector exercises both directions at 320/768/1440 px. | Unit and Playwright tests |
-| F-09 | System fonts remain; color and primitive migration belongs to the separate UI Kit/AppFrame PR. | No font assets in the web bundle |
+| F-09 | System fonts remain; the stacked UI Kit/AppFrame PR migrates the real shell to approved semantic tokens and checks both themes. | Token contrast gate, computed browser colors, no font assets in the bundle |
 
 The [merged PR #12 record](../gate-a0/14_WP-1A-1a_TRANSITIVE_DEPENDENCY_EXCEPTION_RECORD_2026-11-03.md)
 is the authority for the exact transitive dependency exception. No new
