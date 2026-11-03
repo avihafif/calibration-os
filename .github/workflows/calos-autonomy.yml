@@ -19,6 +19,7 @@ jobs:
     timeout-minutes: 55
     permissions:
       contents: read
+      pull-requests: read
     outputs:
       has_task: ${{ steps.select.outputs.has_task }}
       task: ${{ steps.select.outputs.task }}
@@ -38,8 +39,21 @@ jobs:
           fi
       - name: Validate task queue
         run: python3 tools/autonomy/queue.py selftest
+      - name: Avoid parallel development on top of an unfinished PR
+        id: overlap
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          count="$(gh pr list --state open --json number --jq 'length')"
+          if [ "$count" -gt 0 ]; then
+            echo "busy=true" >> "$GITHUB_OUTPUT"
+            echo "An existing PR is open; defer autonomous task selection."
+          else
+            echo "busy=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Select the next trusted task
         id: select
+        if: steps.overlap.outputs.busy != 'true'
         run: python3 tools/autonomy/queue.py select >> "$GITHUB_OUTPUT"
       - uses: pnpm/action-setup@v4
         if: steps.select.outputs.has_task == 'true'
