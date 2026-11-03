@@ -1,9 +1,7 @@
-name: CalOS autonomous frontend pilot
+name: CalOS artifact-only frontend pilot
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "19 */2 * * *"
 
 permissions:
   contents: read
@@ -14,7 +12,7 @@ concurrency:
 
 jobs:
   implement:
-    if: ${{ github.repository == 'avihafif/calibration-os' && vars.CALOS_AUTONOMY_ENABLED == 'true' }}
+    if: ${{ github.repository == 'avihafif/calibration-os' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/automation/calos-artifact-only' }}
     runs-on: ubuntu-latest
     timeout-minutes: 55
     permissions:
@@ -159,8 +157,6 @@ jobs:
     timeout-minutes: 40
     permissions:
       contents: read
-    outputs:
-      verdict: ${{ steps.verdict.outputs.verdict }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -175,7 +171,7 @@ jobs:
           git apply --check "$RUNNER_TEMP/candidate.patch"
           git apply "$RUNNER_TEMP/candidate.patch"
           cp "$RUNNER_TEMP/candidate.patch" candidate-for-review.patch
-      - name: Claude code and safety review
+      - name: Claude reports code findings
         id: claude
         uses: anthropics/claude-code-base-action@beta
         with:
@@ -186,17 +182,16 @@ jobs:
             frontend task. You are reviewing an AI change to a Test/simulation-only
             calibration product. Never invent approvals, run operational tools, or
             treat yourself as a human security/metrology reviewer.
-            Request changes on any high/critical issue, weakened safety boundary,
-            fake review, new network/storage/operational behavior, unapproved
-            dependency, security/test bypass, or missing important tests.
+            Report any weakened safety boundary, new operational behavior, dependency
+            changes, test bypasses, or missing important tests. Report findings only.
+            Do not issue approvals or release decisions.
             You have read-only file tools. Return structured JSON with a short,
             evidence-grounded summary and findings.
           claude_args: >-
             --max-turns 16
             --allowedTools Read,Glob,Grep
-            --json-schema '{"type":"object","properties":{"verdict":{"type":"string","enum":["APPROVE","REQUEST_CHANGES"]},"summary":{"type":"string"},"findings":{"type":"array","items":{"type":"string"}}},"required":["verdict","summary","findings"],"additionalProperties":false}'
-      - name: Validate structured review and retain evidence
-        id: verdict
+            --json-schema '{"type":"object","properties":{"summary":{"type":"string"},"findings":{"type":"array","items":{"type":"string"}}},"required":["summary","findings"],"additionalProperties":false}'
+      - name: Validate structured findings and retain evidence
         env:
           CLAUDE_JSON: ${{ steps.claude.outputs.structured_output }}
         run: |
@@ -205,7 +200,6 @@ jobs:
           import os
           from pathlib import Path
           result = json.loads(os.environ["CLAUDE_JSON"])
-          assert result["verdict"] in {"APPROVE", "REQUEST_CHANGES"}
           assert isinstance(result["summary"], str) and result["summary"].strip()
           assert isinstance(result["findings"], list)
           Path("review.json").write_text(json.dumps(result, indent=2) + "\n")
@@ -217,75 +211,3 @@ jobs:
           name: calos-independent-agent-review
           path: review.json
           retention-days: 30
-
-  integrate:
-    needs: [implement, verify, review]
-    if: ${{ needs.implement.outputs.has_task == 'true' && needs.verify.result == 'success' && needs.review.outputs.verdict == 'APPROVE' }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.implement.outputs.base_sha }}
-          persist-credentials: true
-      - uses: actions/download-artifact@v4
-        with:
-          name: calos-candidate
-          path: ${{ runner.temp }}
-      - uses: actions/download-artifact@v4
-        with:
-          name: calos-independent-agent-review
-          path: ${{ runner.temp }}
-      - name: Integrate approved patch to non-operational staging branch only
-        env:
-          TASK_ID: ${{ needs.implement.outputs.task }}
-          BASE_SHA: ${{ needs.implement.outputs.base_sha }}
-          RUN_ID: ${{ github.run_id }}
-        run: |
-          test "$(git rev-parse HEAD)" = "$BASE_SHA"
-          git checkout -B autonomy/integration
-          git apply --check "$RUNNER_TEMP/candidate.patch"
-          git apply "$RUNNER_TEMP/candidate.patch"
-          git add -A
-          python3 tools/autonomy/queue.py check --task "$TASK_ID"
-          python3 tools/autonomy/queue.py record --task "$TASK_ID" --result success --run-id "$RUN_ID"
-          mkdir -p .calos-autonomy/reviews
-          cp "$RUNNER_TEMP/review.json" ".calos-autonomy/reviews/$TASK_ID.json"
-          git add .calos-autonomy
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m "autonomy(staging): $TASK_ID (tested, agent-reviewed)"
-          git push origin HEAD:refs/heads/autonomy/integration
-
-  record_failure:
-    needs: [implement, verify, review]
-    if: ${{ always() && needs.implement.outputs.has_task == 'true' && (needs.implement.result != 'success' || needs.verify.result != 'success' || needs.review.outputs.verdict != 'APPROVE') }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Checkout current staging state
-        run: |
-          if git ls-remote --exit-code --heads origin autonomy/integration >/dev/null 2>&1; then
-            git fetch --no-tags origin refs/heads/autonomy/integration
-            git checkout -B autonomy/integration FETCH_HEAD
-          else
-            git checkout -b autonomy/integration
-          fi
-      - name: Record bounded retry without merging rejected code
-        env:
-          TASK_ID: ${{ needs.implement.outputs.task }}
-          RUN_ID: ${{ github.run_id }}
-        run: |
-          python3 tools/autonomy/queue.py record --task "$TASK_ID" --result failure --run-id "$RUN_ID"
-          git add .calos-autonomy/state.json
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m "autonomy(staging): record failed attempt for $TASK_ID"
-          git push origin HEAD:refs/heads/autonomy/integration
