@@ -240,3 +240,98 @@ test("mobile navigation and command palette work by keyboard", async ({
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(page.locator("[data-frame-badges]")).toBeVisible();
 });
+
+test("synthetic form is interactive, localized, accessible and fully local", async ({
+  page,
+}) => {
+  const unexpectedRequests: string[] = [];
+  await page.route("**/*", async (route) => {
+    const url = new URL(route.request().url());
+    if (
+      url.origin !== "http://127.0.0.1:4184" ||
+      !(
+        url.pathname === "/" ||
+        url.pathname === "/favicon.ico" ||
+        url.pathname === "/status.css" ||
+        url.pathname.startsWith("/assets/")
+      )
+    ) {
+      unexpectedRequests.push(route.request().url());
+      await route.abort();
+      return;
+    }
+    await route.continue();
+  });
+  await page.addInitScript(() => {
+    for (const name of [
+      "localStorage",
+      "sessionStorage",
+      "indexedDB",
+    ] as const) {
+      Object.defineProperty(window, name, {
+        get() {
+          throw new Error("BROWSER_STORAGE_FORBIDDEN");
+        },
+      });
+    }
+  });
+  await page.goto("/");
+  await page.setViewportSize({ width: 1440, height: 900 });
+  for (const [locale, theme, labels] of [
+    [
+      "en",
+      "light",
+      {
+        name: "Display name",
+        decimal: "Decimal text sample",
+        category: "Preview category",
+        confirm: "I understand this is a synthetic preview",
+        validate: "Validate preview",
+        reset: "Reset fields",
+        success: "The local preview fields are valid. Nothing was saved.",
+      },
+    ],
+    [
+      "he",
+      "dark",
+      {
+        name: "שם לתצוגה",
+        decimal: "דוגמת טקסט עשרוני",
+        category: "קטגוריית תצוגה מקדימה",
+        confirm: "ברור לי שזו תצוגה מדומה",
+        validate: "בדיקת התצוגה",
+        reset: "איפוס השדות",
+        success: "השדות בתצוגה המקומית תקינים. דבר לא נשמר.",
+      },
+    ],
+  ] as const) {
+    await page.locator("#language").selectOption(locale);
+    await page.locator("#theme").selectOption(theme);
+    const name = page.getByRole("textbox", { name: labels.name });
+    await expect(name).toBeVisible();
+    await page.getByRole("button", { name: labels.validate }).click();
+    await expect(name).toHaveAttribute("aria-invalid", "true");
+    await name.fill("Synthetic UI");
+    const decimal = page.getByRole("textbox", { name: labels.decimal });
+    await decimal.fill("1e3");
+    await expect(decimal).toHaveAttribute("aria-invalid", "true");
+    await decimal.fill("12345678901234567890.00000000001");
+    await page
+      .getByRole("combobox", { name: labels.category })
+      .selectOption("interface");
+    await page.getByRole("checkbox", { name: labels.confirm }).check();
+    await page.getByRole("button", { name: labels.validate }).click();
+    await expect(page.getByText(labels.success)).toBeVisible();
+    await expect(page.getByRole("note")).toBeVisible();
+    const axe = await new AxeBuilder({ page }).analyze();
+    expect(axe.violations).toEqual([]);
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.screenshot({
+      path: `artifacts/screenshots/form-${locale}-${theme}.png`,
+      fullPage: true,
+    });
+    await page.getByRole("button", { name: labels.reset }).click();
+    await expect(name).toHaveValue("");
+  }
+  expect(unexpectedRequests).toEqual([]);
+});

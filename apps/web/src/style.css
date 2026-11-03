@@ -61,6 +61,23 @@ body {
   color: var(--warn);
   font-weight: 650;
 }
+.form-demo {
+  max-inline-size: 51.25rem;
+  margin-block-start: var(--space-8);
+}
+.form-demo-description {
+  margin-block: 0 var(--space-4);
+  color: var(--text-muted);
+}
+.form-demo-grid {
+  display: grid;
+  gap: var(--space-4);
+}
+.form-demo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
 @media (max-width: 43.75rem) {
   .technical-list {
     grid-template-columns: 1fr;
