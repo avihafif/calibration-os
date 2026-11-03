@@ -68,10 +68,27 @@ const allowedLicenses = new Set([
   "MPL-2.0",
 ]);
 const allowedMpl = new Set(["@axe-core/playwright", "axe-core"]);
+const approvedTransitiveException = new Map([
+  ["minimatch", "11.0.1"],
+  ["@isaacs/nonrecursive-glob-match", "1.0.3"],
+]);
+const seenExceptions = new Set();
 for (const component of bom.components) {
   const name = component.group
     ? `${component.group}/${component.name}`
     : component.name;
+  if (approvedTransitiveException.has(name)) {
+    if (
+      component.version !== approvedTransitiveException.get(name) ||
+      component.scope !== "excluded" ||
+      seenExceptions.has(name)
+    ) {
+      throw new Error(
+        `UNAPPROVED_TRANSITIVE_EXCEPTION: ${name}@${component.version}`,
+      );
+    }
+    seenExceptions.add(name);
+  }
   const ids = (component.licenses ?? []).map((entry) => entry.license?.id);
   if (ids.length === 0 || ids.some((id) => !allowedLicenses.has(id))) {
     throw new Error(
@@ -88,6 +105,9 @@ for (const component of bom.components) {
   if (ids.includes("MPL-2.0") && component.scope !== "excluded") {
     throw new Error(`MPL_COMPONENT_IN_RUNTIME: ${name}`);
   }
+}
+if (seenExceptions.size !== approvedTransitiveException.size) {
+  throw new Error("APPROVED_TRANSITIVE_EXCEPTION_MISSING");
 }
 
 const queries = bom.components.map((component) => ({

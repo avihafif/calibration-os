@@ -1,3 +1,8 @@
 packages:
   - 'apps/web'
   - 'packages/ts/*'
+
+# Owner-approved, one-time ADR-0026 release-age exception for the
+# GHSA-g3hv-75wg-m249 transitive fix. Keep all direct dependency pins unchanged.
+overrides:
+  minimatch: 11.0.1

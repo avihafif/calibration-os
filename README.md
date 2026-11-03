@@ -75,6 +75,9 @@ application are [English](docs/wp-1a-1a/en.png) and
 [Hebrew](docs/wp-1a-1a/he.png). The development SBOM is generated locally
 and not committed. See the implementation PR for exact audit results.
 
+The narrow transitive advisory remediation and its one-time release-age
+exception are recorded in the [WP-1A-1a dependency evidence](docs/wp-1a-1a/DEPENDENCY_EVIDENCE.md).
+
 ## Windows PowerShell setup
 
 Prerequisites: Git, Python (bootstrap interpreter), Node.js 22+, pnpm 11.25.0,

@@ -131,8 +131,11 @@ React demonstration and `packages/ts/i18n` pass `pnpm check:ts`,
 `pnpm build:web`, `node tools/check_frontend_bundle.mjs` and
 `pnpm test:e2e` (one English/Hebrew keyboard, RTL and accessibility browser
 test). `pnpm test:schema-vectors` and the existing Python checks pass. The
-frontend supply-chain gates are checked independently at installation and
-remain required in CI. These checks do not open Gate A0 or enable Builder,
+frozen pnpm install, `pnpm audit`, OSV and licence gates pass on the
+228-component CycloneDX SBOM. The two exact transitive release-age exceptions
+are recorded in [WP-1A-1a dependency evidence](docs/wp-1a-1a/DEPENDENCY_EVIDENCE.md)
+and remain subject to CI and independent PR review. These checks do not open
+Gate A0 or enable Builder,
 operational signing, storage, hardware or calibration capabilities.
 
 ## 7. Style
