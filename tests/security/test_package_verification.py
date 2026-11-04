@@ -69,7 +69,7 @@ class VerificationTests(unittest.TestCase):
         return PackageVerifier(
             TEST_ID,
             self.parser,
-            JwtAuthenticator(TEST_ID, self.auth_trust),
+            JwtAuthenticator(TEST_ID, self.auth_trust, lambda: self.now),
             trust or self.package_trust,
             "0.1.0",
             lambda: self.now,
@@ -182,6 +182,13 @@ class VerificationTests(unittest.TestCase):
                 self.assert_rejected("UNAUTHENTICATED", self.envelope(), bad_token)
 
     def test_jwt_claim_issuer_audience_and_key_rejections(self) -> None:
+        # Model a slow CI worker without sleeping: PyJWT sees wall time, while
+        # the authenticator's injected clock must still reject now + 1 second.
+        self.now -= timedelta(minutes=2)
+        self.verify(
+            self.envelope(),
+            self.token(nbf=int(self.now.timestamp()), iat=int(self.now.timestamp())),
+        )
         for changes in (
             {"iss": "wrong-issuer"},
             {"aud": "wrong-audience"},
@@ -200,6 +207,13 @@ class VerificationTests(unittest.TestCase):
         self.assert_rejected(
             "UNAUTHENTICATED", self.envelope(), self.signed_token(self.claims(), kid="unknown")
         )
+        wrong_signature = "Bearer " + jwt.encode(
+            self.claims(),
+            Ed25519PrivateKey.generate(),
+            algorithm="EdDSA",
+            headers={"kid": "auth-key", "typ": "JWT"},
+        )
+        self.assert_rejected("UNAUTHENTICATED", self.envelope(), wrong_signature)
         revoked_auth = JwtAuthenticator(
             TEST_ID,
             replace(self.auth_trust, revoked_key_ids=frozenset({"auth-key"})),
@@ -217,6 +231,11 @@ class VerificationTests(unittest.TestCase):
         self.assert_rejected("PACKAGE_EXPIRED", self.envelope(expires_at=instant))
         self.assert_rejected(
             "UNAUTHENTICATED", self.envelope(), self.token(exp=int(self.now.timestamp()))
+        )
+        self.assert_rejected(
+            "UNAUTHENTICATED",
+            self.envelope(),
+            self.token(exp=int((self.now - timedelta(seconds=1)).timestamp())),
         )
         with self.assertRaises(VerificationError) as caught:
             self.verifier(replace(self.package_trust, expires_at=self.now)).verify(
