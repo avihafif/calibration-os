@@ -166,6 +166,19 @@ passed all five jobs at code head `df58828`; the [design-prototype run
 also passed. This does not establish CSP enforcement,
 desktop packaging, offline synchronization or operational readiness.
 
+**WP-1A-1c local verification (2026-11-03, Windows worktree):** the generic
+form controls and Test-only interactive demonstration pass strict TypeScript,
+browser typing, ESLint, changed-file Prettier, logical CSS, 77 negative
+boundary probes, design tokens (24 contrast pairs), R-4 vectors, 32 frontend
+unit tests and six Playwright tests. Test and Production Rehearsal static
+bundles pass, with the Test form absent from the latter. The frozen 228-component
+CycloneDX inventory passes licence and OSV checks (zero advisories); `pnpm
+audit` reports no known vulnerabilities. Python regression passes 35 core and
+14 security tests, Ruff, mypy and four import contracts. Full-tree Windows
+Prettier reports CRLF warnings on untouched baseline files; changed files
+pass. CI status belongs to the implementation PR. No Builder, persistence,
+operational action, external deployment or desktop host is enabled.
+
 ## 7. Style
 - Python ≥ 3.12, `mypy --strict` on core packages, `ruff`; Pydantic v2 models generated from `schemas/` where applicable; no global mutable state in the runtime; time/IDs/random via injected ports.
 - TypeScript `strict`; no `any` in `ui-runtime`/`editor-core`; React function components; state via query cache + editor command stack; all text via i18n; logical CSS properties only.

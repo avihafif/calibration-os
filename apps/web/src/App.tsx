@@ -12,6 +12,7 @@ import {
   Notification,
   type Theme,
 } from "@calos/ui-kit";
+import { SyntheticFormDemo } from "./SyntheticFormDemo";
 
 const environmentKind =
   import.meta.env.VITE_ENVIRONMENT_KIND === "production_rehearsal"
@@ -98,6 +99,7 @@ export function App({ workspace }: { workspace?: ReactNode }) {
               </div>
             </Card>
           </div>
+          {environmentKind === "test" && <SyntheticFormDemo locale={locale} />}
           {messageReviewStatus(locale, "app.title") === "needs_review" && (
             <p className="review-note">{t("app.review")}</p>
           )}

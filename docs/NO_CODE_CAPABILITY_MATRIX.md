@@ -184,6 +184,14 @@ Its local host seam accepts injected content and navigation; there is no
 Builder, metadata-backed screen, lifecycle action or operational station
 integration yet. Rows 4.1–4.5 remain unimplemented.
 
+**WP-1A-1c form-control status:** TextField, TextArea, string-only decimal
+input, native Select and Checkbox are generic trusted platform **DEV**
+primitives. The Test-only form demonstrates local validation and reset with
+synthetic UI text, not a metadata-backed `UiForm` or instrument-model editor.
+Production Rehearsal excludes the interactive form. Row 4.1 remains a future
+No-Code configuration capability; no new configuration kind or operator screen
+is implemented.
+
 ## 7. Summary
 
 | Class | Count (this version) | Comment |

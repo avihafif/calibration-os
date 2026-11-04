@@ -44,6 +44,12 @@ const forbidden = [
 ];
 for (const script of scripts) {
   const source = readFileSync(resolve(assetDir, script), "utf8");
+  if (
+    deployment === "production_rehearsal" &&
+    /preview-name|preview-decimal|preview-confirm/u.test(source)
+  ) {
+    throw new Error("TEST_FORM_IN_PRODUCTION_REHEARSAL_BUNDLE");
+  }
   for (const pattern of forbidden) {
     if (pattern.test(source))
       throw new Error(`FORBIDDEN_WEB_BUNDLE_CODE: ${script}: ${pattern}`);

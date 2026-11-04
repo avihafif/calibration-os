@@ -1,4 +1,7 @@
 import { useEffect, useRef, type ReactNode } from "react";
+import { TextField } from "./form-controls";
+
+export { Select, type SelectOption } from "./form-controls";
 
 export type Tone = "ok" | "warn" | "error" | "info" | "simulation";
 export type Theme = "light" | "dark";
@@ -49,80 +52,16 @@ export function Input({
   error?: string;
   required?: boolean;
 }) {
-  const descriptionId = hint || error ? `${id}-description` : undefined;
   return (
-    <div className="ui-field">
-      <label htmlFor={id}>
-        {label}
-        {required && <span aria-hidden="true"> *</span>}
-      </label>
-      <input
-        id={id}
-        value={value}
-        required={required}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={descriptionId}
-        onChange={(event) => onChange(event.currentTarget.value)}
-      />
-      {(hint || error) && (
-        <p
-          id={descriptionId}
-          className={error ? "ui-field-error" : "ui-field-hint"}
-        >
-          {error ?? hint}
-        </p>
-      )}
-    </div>
-  );
-}
-
-export interface SelectOption {
-  value: string;
-  label: string;
-}
-export function Select({
-  id,
-  label,
-  value,
-  onChange,
-  options,
-  hint,
-  error,
-}: {
-  id: string;
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  options: readonly SelectOption[];
-  hint?: string;
-  error?: string;
-}) {
-  const descriptionId = hint || error ? `${id}-description` : undefined;
-  return (
-    <div className="ui-field">
-      <label htmlFor={id}>{label}</label>
-      <select
-        id={id}
-        value={value}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={descriptionId}
-        onChange={(event) => onChange(event.currentTarget.value)}
-      >
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-      {(hint || error) && (
-        <p
-          id={descriptionId}
-          className={error ? "ui-field-error" : "ui-field-hint"}
-        >
-          {error ?? hint}
-        </p>
-      )}
-    </div>
+    <TextField
+      id={id}
+      label={label}
+      value={value}
+      onChange={onChange}
+      hint={hint}
+      error={error}
+      required={required}
+    />
   );
 }
 

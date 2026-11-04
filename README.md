@@ -43,7 +43,7 @@ terminology is marked `needs_review`; full Gate A0 and H-2/GA0-16 remain
 closed. The Product Owner's [limited PR #10 process exception](https://github.com/avihafif/calibration-os/pull/10#issuecomment-6587505382)
 covered entry to this slice only. PRs #11 and #12 are merged.
 
-The WP-1A-1b hardening branch adds bounded Unicode-safe technical display,
+WP-1A-1b adds bounded Unicode-safe technical display,
 closed third-party import and source-root boundaries, static Test/Simulation
 markings that survive JavaScript failure, an error-safe React content boundary,
 and stronger pseudo-locale checks. The web build has no runtime API requests,
@@ -53,13 +53,20 @@ development infrastructure, not an approved offline desktop distribution.
 See [hardening findings](docs/wp-1a-1b/HARDENING.md). CSP remains an external
 deployment blocker until HTTP headers and browser tests prove enforcement.
 
-The separate stacked WP-1A-1b UI Kit PR adds the real reusable
+The WP-1A-1b UI Kit adds the real reusable
 [`packages/ts/ui-kit`](packages/ts/ui-kit) and responsive AppFrame. It uses
 the approved light/dark tokens, system fonts, protected status colors,
 accessible controls and in-memory theme switching. The app now demonstrates
 English/Hebrew × light/dark at desktop, tablet and mobile sizes; keyboard
 drawer and command palette, no-JS status fallback and local static hosting
 remain within the frontend-only scope. See the [UI Kit review evidence](docs/wp-1a-1b/UI_KIT.md).
+
+WP-1A-1c adds generic controlled TextField, TextArea, exact-decimal
+NumberTextField, Select and Checkbox components. A Test-only interactive form
+inside AppFrame uses synthetic, non-metrological UI data and React memory only.
+It can be typed into, validated and reset; it creates no draft, approval or
+record. Production Rehearsal omits the form from its compiled script. See
+[form-control evidence and screenshots](docs/wp-1a-1c/FORM_CONTROLS.md).
 
 Run from the repository root with Node `22.22.2` or newer and pnpm `11.25.0`:
 

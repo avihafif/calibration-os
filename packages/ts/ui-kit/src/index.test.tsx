@@ -69,9 +69,7 @@ describe("UI Kit primitives", () => {
     render(<Form />);
     const input = screen.getByRole("textbox", { name: t("app.identifier") });
     expect(input.getAttribute("aria-invalid")).toBe("true");
-    expect(input.getAttribute("aria-describedby")).toBe(
-      "sample-input-description",
-    );
+    expect(input.getAttribute("aria-describedby")).toBe("sample-input-error");
     await user.type(input, "CALOS");
     expect((input as HTMLInputElement).value).toBe("CALOS");
     await user.selectOptions(
