@@ -83,11 +83,12 @@ pnpm test:e2e
 | Test and Production Rehearsal bundle checks | Passed; Test form excluded from Production Rehearsal script |
 | Python core/security, Ruff, mypy, imports | 35 + 14 tests passed; Ruff check/format passed, mypy strict passed on 18 files, 4/4 import contracts held |
 | Frozen offline pnpm install, CycloneDX, licences, OSV, audit | 228 components; approved licences, zero OSV findings and no known npm vulnerabilities |
+| GitHub Actions at `05b475f` | [Phase 0A run 164](https://github.com/avihafif/calibration-os/actions/runs/41784859667): 5/5 jobs passed, including Windows and Ubuntu Python, TypeScript, browser and Compose rehearsal. [Design prototype run 133](https://github.com/avihafif/calibration-os/actions/runs/41784859935): passed |
 
 The full-tree Prettier command on this Windows checkout flags 26 untouched
 baseline files because their checkout line endings are CRLF. The changed-file
-check passes; Linux CI must confirm the full-tree gate. PR #22 is open, so
-final integration against its JWT timing fix is pending its merge.
+check and Linux CI full-tree gate pass. PR #22 is open, so final integration
+against its JWT timing fix is pending its merge.
 
 ## Known limitations
 
