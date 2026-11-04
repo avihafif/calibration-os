@@ -64,7 +64,7 @@ export const enMessages = Object.freeze({
   "form.required": "This field is required.",
   "form.requiredLabel": "Required",
   "form.decimalInvalid":
-    "Enter a plain decimal using digits and an optional period; no exponent or unit.",
+    "Enter a plain decimal of at most 128 characters using digits and an optional period; no exponent or unit.",
   "form.validate": "Validate preview",
   "form.reset": "Reset fields",
   "form.valid": "The local preview fields are valid. Nothing was saved.",
@@ -136,7 +136,7 @@ export const heMessages = Object.freeze({
   "form.required": "שדה חובה.",
   "form.requiredLabel": "חובה",
   "form.decimalInvalid":
-    "יש להזין ספרות ונקודה עשרונית אופציונלית, ללא מעריך או יחידה.",
+    "יש להזין מספר עשרוני פשוט באורך של עד 128 תווים, עם ספרות ונקודה עשרונית אופציונלית, ללא מעריך או יחידה.",
   "form.validate": "בדיקת התצוגה",
   "form.reset": "איפוס השדות",
   "form.valid": "השדות בתצוגה המקומית תקינים. דבר לא נשמר.",

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { createSystemI18n } from "@calos/i18n";
@@ -92,16 +92,24 @@ describe("enterprise form controls", () => {
   it("uses string-only decimal text with no exponent, comma or binary rounding", async () => {
     const precise = "123456789012345678901234567890.00000000000000000000001";
     expect(isExactDecimalText(precise)).toBe(true);
-    for (const invalid of [
+    const invalidDecimals = [
       "1e3",
+      "+1",
       "1,5",
       "NaN",
       " 1",
       "01",
       ".5",
       "1.",
+      "-",
+      "--1",
+      "\u202e1",
+      "\u0661\u0662\u0663",
+      "\uff11\uff12",
+      "1\u200e",
       "1".repeat(129),
-    ]) {
+    ];
+    for (const invalid of invalidDecimals) {
       expect(isExactDecimalText(invalid)).toBe(false);
     }
     const user = userEvent.setup();
@@ -122,6 +130,15 @@ describe("enterprise form controls", () => {
     expect(input.getAttribute("type")).toBe("text");
     expect(input.getAttribute("inputmode")).toBe("decimal");
     expect(input.getAttribute("dir")).toBe("ltr");
+    for (const invalid of invalidDecimals) {
+      fireEvent.change(input, { target: { value: invalid } });
+      expect((input as HTMLInputElement).value).toBe(invalid);
+      expect(input.getAttribute("aria-invalid")).toBe("true");
+      expect(screen.getByRole("alert").textContent).toBe(
+        t("form.decimalInvalid"),
+      );
+    }
+    fireEvent.change(input, { target: { value: "" } });
     await user.type(input, "1e3");
     expect((input as HTMLInputElement).value).toBe("1e3");
     expect(screen.getByRole("alert").textContent).toBe(
@@ -131,6 +148,71 @@ describe("enterprise form controls", () => {
     await user.type(input, precise);
     expect((input as HTMLInputElement).value).toBe(precise);
     expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("preserves all 200 pasted digits and reports the length error", async () => {
+    const user = userEvent.setup();
+    function Harness() {
+      const [value, setValue] = useState("");
+      return (
+        <NumberTextField
+          id="long-decimal"
+          label={t("form.decimal")}
+          value={value}
+          onChange={setValue}
+          decimalError={t("form.decimalInvalid")}
+        />
+      );
+    }
+    render(<Harness />);
+    const input = screen.getByRole("textbox", {
+      name: t("form.decimal"),
+    }) as HTMLInputElement;
+    const pasted = "9".repeat(200);
+    await user.click(input);
+    await user.paste(pasted);
+    expect(input.hasAttribute("maxlength")).toBe(false);
+    expect(input.value).toBe(pasted);
+    expect(input.getAttribute("aria-invalid")).toBe("true");
+    expect(input.getAttribute("aria-errormessage")).toBe("long-decimal-error");
+    expect(screen.getByRole("alert").textContent).toBe(
+      t("form.decimalInvalid"),
+    );
+    expect(isExactDecimalText(pasted)).toBe(false);
+  });
+
+  it("round-trips 200 deterministic decimal strings without coercion", () => {
+    function Harness() {
+      const [value, setValue] = useState("");
+      return (
+        <NumberTextField
+          id="round-trip"
+          label={t("form.decimal")}
+          value={value}
+          onChange={setValue}
+          decimalError={t("form.decimalInvalid")}
+        />
+      );
+    }
+    render(<Harness />);
+    const input = screen.getByRole("textbox", {
+      name: t("form.decimal"),
+    }) as HTMLInputElement;
+    let seed = 0x23a91c;
+    for (let index = 0; index < 200; index += 1) {
+      seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+      const whole = String((seed % 900000000) + 1);
+      const fraction = String((seed >>> 4) % 100000).padStart(5, "0");
+      const decimal = `${index % 2 === 0 ? "-" : ""}${whole}.${fraction}${"0".repeat(index % 5)}`;
+      expect(isExactDecimalText(decimal)).toBe(true);
+      fireEvent.change(input, { target: { value: decimal } });
+      expect(input.value).toBe(decimal);
+      expect(input.getAttribute("aria-invalid")).toBeNull();
+    }
+    for (const decimal of ["0.000", "-123.4500"]) {
+      fireEvent.change(input, { target: { value: decimal } });
+      expect(input.value).toBe(decimal);
+    }
   });
 
   it("associates textarea help and respects read-only state", () => {

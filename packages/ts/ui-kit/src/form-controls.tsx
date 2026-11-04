@@ -15,7 +15,7 @@ interface TextControl extends FieldPresentation {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
-  maxLength?: number;
+  maxLength?: number | null;
 }
 
 function descriptionIds({
@@ -88,7 +88,7 @@ export function TextField(
         type="text"
         value={value}
         placeholder={placeholder}
-        maxLength={maxLength}
+        maxLength={maxLength ?? undefined}
         inputMode={inputMode}
         dir={inputDir}
         required={required}
@@ -125,17 +125,16 @@ export function isExactDecimalText(value: string): boolean {
 
 export function NumberTextField(props: TextControl & { decimalError: string }) {
   const error =
-    props.error ??
-    (props.value !== "" && !isExactDecimalText(props.value)
+    props.value !== "" && !isExactDecimalText(props.value)
       ? props.decimalError
-      : undefined);
+      : props.error;
   return (
     <TextField
       {...props}
       error={error}
       inputMode="decimal"
       inputDir="ltr"
-      maxLength={128}
+      maxLength={null}
     />
   );
 }
@@ -164,7 +163,7 @@ export function TextArea(props: TextControl & { rows?: number }) {
           onChange(event.currentTarget.value)
         }
         placeholder={placeholder}
-        maxLength={maxLength}
+        maxLength={maxLength ?? undefined}
         rows={rows}
         required={required}
         disabled={disabled}

@@ -244,6 +244,9 @@ test("mobile navigation and command palette work by keyboard", async ({
 test("synthetic form is interactive, localized, accessible and fully local", async ({
   page,
 }) => {
+  await page.context().grantPermissions(["clipboard-read", "clipboard-write"], {
+    origin: "http://127.0.0.1:4184",
+  });
   const unexpectedRequests: string[] = [];
   await page.route("**/*", async (route) => {
     const url = new URL(route.request().url());
@@ -315,6 +318,17 @@ test("synthetic form is interactive, localized, accessible and fully local", asy
     const decimal = page.getByRole("textbox", { name: labels.decimal });
     await decimal.fill("1e3");
     await expect(decimal).toHaveAttribute("aria-invalid", "true");
+    const pastedDecimal = "9".repeat(200);
+    await decimal.fill("");
+    await decimal.focus();
+    await page.evaluate(
+      async (text) => navigator.clipboard.writeText(text),
+      pastedDecimal,
+    );
+    await page.keyboard.press("Control+V");
+    await expect(decimal).toHaveValue(pastedDecimal);
+    await expect(decimal).toHaveAttribute("aria-invalid", "true");
+    await expect(page.locator("#preview-decimal-error")).toContainText("128");
     await decimal.fill("12345678901234567890.00000000001");
     await page
       .getByRole("combobox", { name: labels.category })
