@@ -1,6 +1,6 @@
 # CalOS specification set — index
 
-Status: Draft 0.3 (No-Code-First; Q-13 and Q-14 resolved — ADR-0023/0024). **Specification only — no application code yet.**
+Status: Draft 0.3 (No-Code-First; Q-13 and Q-14 resolved — ADR-0023/0024). This is a specification index; the repository also contains a simulation-only skeleton, not an operational implementation.
 
 | Document | Purpose |
 |---|---|
@@ -20,6 +20,7 @@ Status: Draft 0.3 (No-Code-First; Q-13 and Q-14 resolved — ADR-0023/0024). **S
 | [UI_UX_SPEC](UI_UX_SPEC.md) | Shells, tokens, responsive, he/en RTL, screens, accessibility |
 | [IMPLEMENTATION_ROADMAP](IMPLEMENTATION_ROADMAP.md) | Phases, VS-1 & AC-NC acceptance, test strategy, risks |
 | [adr/](adr/README.md) | Architecture decision records (incl. OpenTAP evaluation ADR-0002; **ADR-0023 safety ownership & hardware limits; ADR-0024 separate Test/Production deployments**) |
+| [spikes/](spikes/SP-3_LOCAL_API_SECURITY_DESIGN.md) | Proposed, non-operational SP-3 Local API security study and [negative-test matrix](spikes/SP-3_NEGATIVE_TEST_MATRIX.md); no SP-3 tests are implemented or passed |
 | [../AGENTS.md](../AGENTS.md) | Rules for AI agents and contributors |
 
 Reading order for newcomers: NO_CODE_ARCHITECTURE → ARCHITECTURE → PRODUCT_REQUIREMENTS → BUILDER spec → the rest.
