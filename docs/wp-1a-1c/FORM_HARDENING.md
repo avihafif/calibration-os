@@ -19,7 +19,7 @@ this table reports implementation evidence and does not ratify new architecture.
 | A10 Test-only bundle guard | Implemented | Distinct sentinel is required in Test build and rejected in Production Rehearsal. The bundle checker executes its own negative injection probe and preserves prior preview-ID rejection. |
 | A11 decimal prop type | Implemented | `NumberTextField` omits `maxLength` from its public props and always sends `null` to the underlying text field; no native truncation. |
 | A12 memory reset | Implemented | Browser test verifies Reset and full reload clear the local form. No storage or network calls added. |
-| A13 evidence | Local pass; PR CI pending | Local checks below passed. GitHub Windows/Linux, browser and Compose jobs must pass on the PR head before review completion. |
+| A13 evidence | Implemented; review pending | Local checks below passed. GitHub CI status and run links are maintained in the PR description; a documented independent review remains required. |
 
 `NumberTextField` intentionally preserves every browser-provided string. Its
 128 UTF-16-code-unit syntax limit is a **validation** limit; the input has no
@@ -71,7 +71,7 @@ and operational trust remain closed.
   correctly rejected it. A network-enabled frozen install restored metadata
   without changing the lockfile or dependencies, and the final gate passed.
 
-Full-tree Prettier on this Windows checkout still flags untouched CRLF
+Full-tree Prettier on this Windows checkout still flags 23 untouched CRLF
 baseline files; changed files pass. Docker Compose startup is verified by
-GitHub CI, not by this local host. Final PR CI evidence will be linked in the
-pull request description.
+GitHub CI, not by this local host. The PR description carries current CI
+run links and conclusions.
