@@ -16,7 +16,7 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  min-block-size: 2rem;
+  min-block-size: var(--control-target-size);
   padding: var(--space-1) var(--space-3);
   border: 1px solid var(--border);
   border-radius: var(--radius-control);
@@ -56,7 +56,7 @@
 .ui-field input,
 .ui-field select,
 .ui-field textarea {
-  min-block-size: 2.25rem;
+  min-block-size: var(--control-target-size);
   inline-size: 100%;
   min-inline-size: 0;
   border: 1px solid var(--border);
@@ -86,20 +86,21 @@
 .ui-required {
   margin-inline-start: var(--space-1);
   color: var(--error);
+  font-size: 0.8125rem;
 }
 .ui-field-messages:empty {
   display: none;
 }
 .ui-checkbox-row {
   display: flex;
-  align-items: start;
+  align-items: center;
   gap: var(--space-2);
 }
 .ui-checkbox-row input[type="checkbox"] {
-  inline-size: 1.125rem;
-  min-block-size: 1.125rem;
-  block-size: 1.125rem;
-  margin: var(--space-1) 0 0;
+  inline-size: var(--control-target-size);
+  min-block-size: var(--control-target-size);
+  block-size: var(--control-target-size);
+  margin: 0;
   accent-color: var(--primary);
   flex: none;
 }
@@ -117,6 +118,46 @@
 }
 .ui-field-error {
   color: var(--error);
+}
+.ui-form-summary {
+  border: 2px solid var(--error);
+  border-radius: var(--radius-control);
+  background: var(--error-bg);
+  padding: var(--space-3) var(--space-4);
+}
+.ui-form-summary-title {
+  margin: 0;
+  font-weight: 700;
+}
+.ui-form-summary ul {
+  margin-block: var(--space-2) 0;
+  padding-inline-start: var(--space-6);
+}
+.ui-form-summary a {
+  color: var(--text);
+  text-decoration: underline;
+  overflow-wrap: anywhere;
+}
+@media (forced-colors: active) {
+  .ui-button,
+  .ui-field input,
+  .ui-field select,
+  .ui-field textarea,
+  .ui-form-summary {
+    border-color: CanvasText;
+  }
+  .ui-field [aria-invalid="true"],
+  .ui-form-summary {
+    border-color: Highlight;
+  }
+  .ui-required,
+  .ui-field-error,
+  .ui-form-summary a {
+    color: CanvasText;
+  }
+  .calos-app :focus-visible {
+    outline-color: Highlight !important;
+  }
 }
 .ui-badge {
   display: inline-flex;

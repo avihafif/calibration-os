@@ -23,11 +23,30 @@ if (
   throw new Error("PRODUCTION_REHEARSAL_FIXTURE_COPY_FORBIDDEN");
 }
 const scripts = readdirSync(assetDir).filter((name) => name.endsWith(".js"));
+const testFormSentinel = "CALOS_SYNTHETIC_FORM_DEMO_ONLY";
+function assertNoTestForm(source) {
+  if (
+    source.includes(testFormSentinel) ||
+    /preview-name|preview-decimal|preview-confirm/u.test(source)
+  ) {
+    throw new Error("TEST_FORM_IN_PRODUCTION_REHEARSAL_BUNDLE");
+  }
+}
+let negativeProbeRejected = false;
+try {
+  assertNoTestForm(`isolated-probe:${testFormSentinel}`);
+} catch (error) {
+  negativeProbeRejected =
+    error instanceof Error &&
+    error.message === "TEST_FORM_IN_PRODUCTION_REHEARSAL_BUNDLE";
+}
+if (!negativeProbeRejected) throw new Error("TEST_FORM_EXCLUSION_PROBE_FAILED");
 if (
   readdirSync(assetDir).some((name) => /\.(?:woff2?|ttf|otf|eot)$/iu.test(name))
 )
   throw new Error("UNAPPROVED_FONT_ASSET");
 if (scripts.length === 0) throw new Error("WEB_BUNDLE_MISSING");
+let testFormFound = false;
 const forbidden = [
   /\beval\s*\(/u,
   /\bnew\s+Function\s*\(/u,
@@ -44,17 +63,15 @@ const forbidden = [
 ];
 for (const script of scripts) {
   const source = readFileSync(resolve(assetDir, script), "utf8");
-  if (
-    deployment === "production_rehearsal" &&
-    /preview-name|preview-decimal|preview-confirm/u.test(source)
-  ) {
-    throw new Error("TEST_FORM_IN_PRODUCTION_REHEARSAL_BUNDLE");
-  }
+  if (source.includes(testFormSentinel)) testFormFound = true;
+  if (deployment === "production_rehearsal") assertNoTestForm(source);
   for (const pattern of forbidden) {
     if (pattern.test(source))
       throw new Error(`FORBIDDEN_WEB_BUNDLE_CODE: ${script}: ${pattern}`);
   }
 }
+if (deployment === "test" && !testFormFound)
+  throw new Error("TEST_FORM_SENTINEL_MISSING_FROM_TEST_BUNDLE");
 process.stdout.write(
   `Web bundle forbidden-code and fixture exclusion passed: ${scripts.length} script(s).\n`,
 );

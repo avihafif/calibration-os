@@ -349,3 +349,143 @@ test("synthetic form is interactive, localized, accessible and fully local", asy
   }
   expect(unexpectedRequests).toEqual([]);
 });
+
+test("form errors appear on blur and summary links move keyboard focus", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const decimal = page.getByRole("textbox", { name: "Decimal text sample" });
+  await decimal.fill("1e3");
+  await expect(decimal).not.toHaveAttribute("aria-invalid", "true");
+  await decimal.blur();
+  await expect(decimal).toHaveAttribute("aria-invalid", "true");
+  await page.getByRole("button", { name: "Validate preview" }).click();
+  const summary = page.locator(".ui-form-summary");
+  await expect(summary).toBeFocused();
+  await summary.getByRole("link", { name: /Display name/u }).click();
+  await expect(
+    page.getByRole("textbox", { name: "Display name" }),
+  ).toBeFocused();
+  await page.getByRole("button", { name: "Reset fields" }).click();
+  await expect(decimal).toHaveValue("");
+  await expect(summary).toHaveCount(0);
+  await decimal.fill("123.4500");
+  await page.reload();
+  await expect(decimal).toHaveValue("");
+});
+
+test("Hebrew physical KeyK shortcut opens the command palette", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.locator("#language").selectOption("he");
+  await page.evaluate(() =>
+    window.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "ל",
+        code: "KeyK",
+        ctrlKey: true,
+        bubbles: true,
+      }),
+    ),
+  );
+  await expect(
+    page.getByRole("dialog", { name: "חלונית פקודות" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("textbox", { name: "חיפוש בניווט" }),
+  ).toBeFocused();
+  await page.keyboard.press("Escape");
+  await page.evaluate(() =>
+    window.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "ל",
+        code: "KeyK",
+        metaKey: true,
+        bubbles: true,
+      }),
+    ),
+  );
+  await expect(
+    page.getByRole("dialog", { name: "חלונית פקודות" }),
+  ).toBeVisible();
+});
+
+test("form error state is accessible in both directions, themes, widths and forced colors", async ({
+  page,
+}) => {
+  await page.goto("/");
+  for (const width of [320, 768, 1440]) {
+    await page.setViewportSize({ width, height: 800 });
+    for (const locale of ["en", "he"] as const) {
+      await page.locator("#language").selectOption(locale);
+      for (const theme of ["light", "dark"] as const) {
+        await page.locator("#theme").selectOption(theme);
+        await page
+          .getByRole("button", {
+            name: locale === "en" ? "Validate preview" : "בדיקת התצוגה",
+          })
+          .click();
+        await expect(page.locator(".ui-form-summary")).toBeVisible();
+        const dimensions = await page.evaluate(() => ({
+          scroll: document.documentElement.scrollWidth,
+          viewport: window.innerWidth,
+          buttonHeight: document
+            .querySelector<HTMLButtonElement>(".form-demo-actions button")!
+            .getBoundingClientRect().height,
+          inputHeight: document
+            .querySelector<HTMLInputElement>("#preview-name")!
+            .getBoundingClientRect().height,
+          selectHeight: document
+            .querySelector<HTMLSelectElement>("#preview-category")!
+            .getBoundingClientRect().height,
+          checkboxHeight: document
+            .querySelector<HTMLInputElement>("#preview-confirm")!
+            .getBoundingClientRect().height,
+        }));
+        expect(dimensions.scroll).toBeLessThanOrEqual(dimensions.viewport);
+        expect(dimensions.buttonHeight).toBeGreaterThanOrEqual(44);
+        expect(dimensions.inputHeight).toBeGreaterThanOrEqual(44);
+        expect(dimensions.selectHeight).toBeGreaterThanOrEqual(44);
+        expect(dimensions.checkboxHeight).toBeGreaterThanOrEqual(44);
+        const axe = await new AxeBuilder({ page }).analyze();
+        expect(axe.violations).toEqual([]);
+        await page
+          .getByRole("button", {
+            name: locale === "en" ? "Reset fields" : "איפוס השדות",
+          })
+          .click();
+      }
+    }
+  }
+  await page.emulateMedia({ forcedColors: "active" });
+  await page.getByRole("button", { name: "בדיקת התצוגה" }).click();
+  await expect(page.locator(".ui-form-summary")).toBeVisible();
+  await page.locator("#preview-name").focus();
+  const styles = await page.locator("#preview-name").evaluate((element) => ({
+    border: getComputedStyle(element).borderColor,
+    outline: getComputedStyle(element).outlineStyle,
+  }));
+  expect(styles.border).not.toBe("rgba(0, 0, 0, 0)");
+  expect(styles.outline).not.toBe("none");
+});
+
+test("pseudo-locales keep the error form within the viewport", async ({
+  page,
+}) => {
+  await page.goto("/");
+  for (const locale of ["en-XA", "he-XB"] as const) {
+    await page.locator("#language").selectOption(locale);
+    for (const width of [320, 768, 1440]) {
+      await page.setViewportSize({ width, height: 800 });
+      await page.locator(".form-demo-actions button").first().click();
+      await expect(page.locator(".ui-form-summary")).toBeVisible();
+      const dimensions = await page.evaluate(() => ({
+        scroll: document.documentElement.scrollWidth,
+        viewport: innerWidth,
+      }));
+      expect(dimensions.scroll).toBeLessThanOrEqual(dimensions.viewport);
+      await page.locator(".form-demo-actions button").last().click();
+    }
+  }
+});

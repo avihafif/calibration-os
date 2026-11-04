@@ -33,6 +33,7 @@
   --space-12: 3rem;
   --radius-control: 0.25rem;
   --radius-panel: 0.5rem;
+  --control-target-size: 2.75rem;
   color: var(--text);
   background: var(--bg);
   font:

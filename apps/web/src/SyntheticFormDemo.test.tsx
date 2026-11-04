@@ -11,10 +11,22 @@ describe("synthetic form demonstration", () => {
     const user = userEvent.setup();
     render(<SyntheticFormDemo locale="en" />);
     await user.click(screen.getByRole("button", { name: "Validate preview" }));
-    expect(screen.getAllByText("This field is required.").length).toBe(4);
+    expect(screen.getByRole("status").textContent).toContain(
+      "Check the highlighted fields",
+    );
+    expect(
+      screen.getAllByText("This field is required.").length,
+    ).toBeGreaterThanOrEqual(4);
+    expect(document.activeElement).toBe(screen.getByRole("status"));
     await user.type(
       screen.getByRole("textbox", { name: "Display name" }),
       "Synthetic UI",
+    );
+    expect(screen.getByRole("status").textContent).not.toContain(
+      "Display name: This field is required.",
+    );
+    expect(screen.getByRole("status").textContent).toContain(
+      "Preview category: This field is required.",
     );
     await user.type(
       screen.getByRole("textbox", { name: "Description" }),
@@ -58,10 +70,38 @@ describe("synthetic form demonstration", () => {
     const user = userEvent.setup();
     render(<SyntheticFormDemo locale="he" />);
     await user.click(screen.getByRole("button", { name: "בדיקת התצוגה" }));
-    expect(screen.getAllByText("שדה חובה.").length).toBe(4);
+    expect(screen.getAllByText("שדה חובה.").length).toBeGreaterThanOrEqual(4);
     const decimal = screen.getByRole("textbox", { name: "דוגמת טקסט עשרוני" });
     expect(decimal.getAttribute("dir")).toBe("ltr");
+    expect(decimal.getAttribute("autocomplete")).toBe("off");
+    const name = screen.getByRole("textbox", { name: "שם לתצוגה" });
+    expect(name.getAttribute("dir")).toBe("auto");
+    expect(name.getAttribute("lang")).toBe("he");
+    expect(screen.getAllByText("חובה").length).toBe(4);
     await user.type(decimal, "1e3");
-    expect(screen.getByText(/ללא מעריך או יחידה/u)).toBeTruthy();
+    expect(screen.getAllByText(/ללא מעריך או יחידה/u).length).toBeGreaterThan(
+      0,
+    );
+  });
+
+  it("shows a field error on blur, not each keystroke, then clears React memory on reset", async () => {
+    const user = userEvent.setup();
+    render(<SyntheticFormDemo locale="en" />);
+    const name = screen.getByRole("textbox", { name: "Display name" });
+    await user.click(name);
+    await user.tab();
+    expect(name.getAttribute("aria-invalid")).toBe("true");
+    const decimal = screen.getByRole("textbox", {
+      name: "Decimal text sample",
+    }) as HTMLInputElement;
+    await user.type(decimal, "1e3");
+    expect(decimal.value).toBe("1e3");
+    expect(decimal.getAttribute("aria-invalid")).toBeNull();
+    await user.tab();
+    expect(decimal.getAttribute("aria-invalid")).toBe("true");
+    expect(screen.queryByRole("alert")).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Reset fields" }));
+    expect(decimal.value).toBe("");
+    expect(decimal.getAttribute("aria-invalid")).toBeNull();
   });
 });
