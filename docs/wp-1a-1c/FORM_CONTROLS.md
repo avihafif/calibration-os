@@ -87,8 +87,13 @@ pnpm test:e2e
 
 The full-tree Prettier command on this Windows checkout flags 26 untouched
 baseline files because their checkout line endings are CRLF. The changed-file
-check and Linux CI full-tree gate pass. PR #22 is open, so final integration
-against its JWT timing fix is pending its merge.
+check passes; Linux CI passed the full-tree gate on the earlier correction
+head. PR #22 merged into main as `f1e5ab8`, and this branch merged that main
+head without conflicts. The injected JWT test clock and the decimal-input
+fixes are both present. On the integrated branch, local checks passed 35 core
+and 14 security tests, 34 frontend unit tests, six Playwright tests, the Test
+and Production Rehearsal bundle guards, and the 228-component supply-chain
+gate. Current-head GitHub CI evidence is recorded in PR #20.
 
 ## Known limitations
 
