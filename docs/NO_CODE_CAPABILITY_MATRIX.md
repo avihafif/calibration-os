@@ -204,9 +204,8 @@ the classifications in rows 4.1–4.5; see
 `StatePanel` and `FindingsList` are trusted platform **DEV** primitives for
 display only. The Test-only demonstration uses synthetic UI labels. It does not
 render authored metadata, interpret schemas, persist records or add an
-operational view. The display-only `Finding` type is generated from a closed
-DTO schema and proved structurally in the web composition root; no finding-key
-namespace or operational validator is selected. See
+operational view. The `FindingsList` accepts a local display shape; a shared
+Finding contract and finding-key namespace remain separate decisions. See
 [`docs/wp-1a-1d/READ_ONLY_VIEWS.md`](wp-1a-1d/READ_ONLY_VIEWS.md).
 
 ## 7. Summary

@@ -8,6 +8,7 @@ import {
   DisplayText,
   FindingsList,
   StatePanel,
+  safeDisplayText,
   sortDisplayRows,
   type DataColumn,
 } from "./data-views";
@@ -22,12 +23,15 @@ const columns: readonly DataColumn<Row>[] = [
   {
     id: "id",
     header: "ID",
+    sortKind: "text",
+    rowHeader: true,
     sortValue: (row) => row.id,
     render: (row) => <DisplayText value={row.id} technical />,
   },
   {
     id: "label",
     header: "Label",
+    sortKind: "text",
     sortValue: (row) => row.label,
     render: (row) => <DisplayText value={row.label} />,
   },
@@ -48,6 +52,7 @@ describe("DataTable", () => {
         rowId={(row) => row.id}
         sort={{ columnId: "id", direction: "ascending" }}
         onSortChange={onSortChange}
+        sortStatus="Sorted by ID, ascending"
         sortLabel={(header, direction) => `${header} ${direction}`}
       />,
     );
@@ -170,6 +175,112 @@ describe("DataTable", () => {
       ),
     ).toThrow("UNKNOWN_SORT_COLUMN");
   });
+
+  it("cycles ascending, descending and source order with one live status", async () => {
+    const user = userEvent.setup();
+    const onSortChange = vi.fn();
+    const props = {
+      caption: "Entries",
+      scrollLabel: "Scrollable entries",
+      columns,
+      rows,
+      rowId: (row: Row) => row.id,
+      onSortChange,
+      sortLabel: (
+        _header: string,
+        direction: "ascending" | "descending" | undefined,
+      ) => direction ?? "source order",
+      sortStatus: "Sorted ascending",
+    };
+    const { rerender, container } = render(
+      <DataTable
+        {...props}
+        sort={{ columnId: "id", direction: "ascending" }}
+      />,
+    );
+    expect(container.querySelectorAll('[role="status"]')).toHaveLength(1);
+    await user.click(screen.getByRole("button", { name: "descending" }));
+    expect(onSortChange).toHaveBeenLastCalledWith({
+      columnId: "id",
+      direction: "descending",
+    });
+    rerender(
+      <DataTable
+        {...props}
+        sort={{ columnId: "id", direction: "descending" }}
+        sortStatus="Sorted descending"
+      />,
+    );
+    await user.click(screen.getByRole("button", { name: "source order" }));
+    expect(onSortChange).toHaveBeenLastCalledWith(undefined);
+    rerender(
+      <DataTable {...props} sort={undefined} sortStatus="Source order" />,
+    );
+    expect(screen.getByRole("status").textContent).toBe("Source order");
+    expect(container.querySelectorAll("th[aria-sort]")).toHaveLength(0);
+  });
+
+  it("requires an explicit decimal comparator and opts into numeric collation", () => {
+    const values = ["1.10", "1.9", "-10", "-9", "10", "9", "0.5"].map(
+      (value) => ({ value }),
+    );
+    const exactStringCompare = vi.fn((left: string, right: string) =>
+      left.localeCompare(right),
+    );
+    const decimal: DataColumn<(typeof values)[number]> = {
+      id: "decimal",
+      header: "Decimal",
+      sortKind: "exact-decimal",
+      sortValue: (row) => row.value,
+      compare: exactStringCompare,
+      render: (row) => row.value,
+    };
+    sortDisplayRows(values, decimal, "ascending", "en");
+    expect(
+      exactStringCompare.mock.calls.some(
+        ([left, right]) =>
+          [left, right].includes("1.10") && [left, right].includes("1.9"),
+      ),
+    ).toBe(true);
+    const text: DataColumn<(typeof values)[number]> = {
+      ...decimal,
+      sortKind: "text",
+      compare: undefined,
+      numeric: false,
+    };
+    expect(
+      sortDisplayRows(values, text, "ascending", "en")
+        .map((row) => row.value)
+        .indexOf("1.10"),
+    ).toBeLessThan(
+      sortDisplayRows(values, text, "ascending", "en")
+        .map((row) => row.value)
+        .indexOf("1.9"),
+    );
+    const numeric: DataColumn<(typeof values)[number]> = {
+      ...text,
+      numeric: true,
+    };
+    expect(
+      sortDisplayRows(values, numeric, "ascending", "en")
+        .map((row) => row.value)
+        .indexOf("1.10"),
+    ).toBeGreaterThan(
+      sortDisplayRows(values, numeric, "ascending", "en")
+        .map((row) => row.value)
+        .indexOf("1.9"),
+    );
+    expect(() =>
+      sortDisplayRows(
+        values,
+        { ...decimal, compare: undefined } as unknown as DataColumn<
+          (typeof values)[number]
+        >,
+        "ascending",
+        "en",
+      ),
+    ).toThrow("DECIMAL_COMPARATOR_MISSING");
+  });
 });
 
 /** @req DV-04, DV-05 */
@@ -195,9 +306,15 @@ describe("DetailList and StatePanel", () => {
         t("views.identifier"),
       );
       expect(container.querySelector("bdi")?.getAttribute("dir")).toBe("ltr");
+      expect(container.querySelector(".ui-display-text")?.textContent).toBe(
+        value,
+      );
       expect(
-        container.querySelector(".ui-display-text")?.getAttribute("title"),
-      ).toBe(value);
+        container.querySelector(".ui-display-text")?.hasAttribute("tabindex"),
+      ).toBe(false);
+      expect(
+        container.querySelector(".ui-display-text")?.hasAttribute("aria-label"),
+      ).toBe(false);
       unmount();
     }
   });
@@ -215,9 +332,9 @@ describe("DetailList and StatePanel", () => {
       const panel = container.querySelector("section")!;
       expect(panel.getAttribute("role")).toBe(
         {
-          loading: "status",
+          loading: null,
           empty: "note",
-          "no-results": "region",
+          "no-results": "status",
           error: "alert",
           "read-only": "group",
         }[state],
@@ -225,6 +342,8 @@ describe("DetailList and StatePanel", () => {
       expect(panel.getAttribute("aria-busy")).toBe(
         state === "loading" ? "true" : null,
       );
+      if (state === "loading")
+        expect(panel.querySelector('[role="status"]')).toBeTruthy();
       expect(panel.textContent).toContain(t("views.stateReadOnly"));
       expect(panel.querySelector('svg[aria-hidden="true"]')).toBeTruthy();
     },
@@ -245,6 +364,22 @@ describe("DetailList and StatePanel", () => {
       );
     },
   );
+
+  it("exposes the full hostile technical text without hidden tab stops", () => {
+    const hostile = "AB\u202eCD\u2066EF\u2069\u0000😀";
+    const { container } = render(<DisplayText value={hostile} technical />);
+    expect(container.querySelector("bdi")?.textContent).toBe(
+      "AB⟦U+202E⟧CD⟦U+2066⟧EF⟦U+2069⟧⟦U+0000⟧😀",
+    );
+    expect(
+      container.querySelector(".ui-display-text")?.hasAttribute("tabindex"),
+    ).toBe(false);
+    expect(
+      container.querySelector(".ui-display-text")?.hasAttribute("aria-label"),
+    ).toBe(false);
+    expect(container.textContent).not.toContain("\u202e");
+    expect(safeDisplayText("\ud800")).toBe("⟦U+D800⟧");
+  });
 });
 
 /** @req DV-06 */
@@ -274,20 +409,84 @@ describe("FindingsList", () => {
             },
           ]}
           severityLabel={(severity) => severity}
-          stageLabel={(stage) => stage}
+          stageLabel={(stage) => {
+            if (stage === "other") throw new Error("untranslated stage");
+            return stage;
+          }}
           formatMessage={() => t("views.findingMessage")}
-          navigateLabel={(code) => t("views.navigate", { code })}
+          navigateLabel={(code, pointer) =>
+            t("views.navigate", { code, pointer })
+          }
           onNavigate={onNavigate}
         />,
       );
       expect(container.querySelectorAll(".ui-findings-group")).toHaveLength(2);
-      expect(container.querySelectorAll("bdi[dir=ltr]")).toHaveLength(2);
+      expect(container.querySelectorAll("bdi[dir=ltr]")).toHaveLength(4);
       await user.click(
         screen.getByRole("button", {
-          name: t("views.navigate", { code: "E_SAMPLE" }),
+          name: t("views.navigate", { code: "E_SAMPLE", pointer: "/a" }),
         }),
       );
       expect(onNavigate).toHaveBeenCalledWith("/a");
     },
   );
+
+  it("orders severity groups, keeps stages intact and falls back per failed message", async () => {
+    const onNavigate = vi.fn();
+    const rawPointer = "/a\u202eb";
+    const { container } = render(
+      <FindingsList
+        findings={[
+          {
+            code: "DUP",
+            severity: "warning",
+            stage: "one\u0000two",
+            pointer: { value: "/first" },
+            message: { key: "missing.one" },
+          },
+          {
+            code: "DUP",
+            severity: "error",
+            stage: "three",
+            pointer: { value: rawPointer },
+            message: { key: "missing.two" },
+          },
+          {
+            code: "DUP",
+            severity: "warning",
+            stage: "one\u0000two",
+            pointer: { value: "/second" },
+            message: { key: "missing.three" },
+          },
+          {
+            code: "BAD",
+            severity: "bogus" as "error",
+            stage: "other",
+            pointer: { value: "/unknown" },
+            message: { key: "missing.four" },
+          },
+        ]}
+        severityLabel={(severity) => severity}
+        stageLabel={(stage) => stage}
+        formatMessage={() => {
+          throw new Error("missing translation");
+        }}
+        navigateLabel={(code, pointer) => `Go ${code} ${pointer}`}
+        onNavigate={onNavigate}
+      />,
+    );
+    const groups = container.querySelectorAll(".ui-findings-group");
+    expect(groups).toHaveLength(3);
+    expect(groups[0]?.classList.contains("ui-findings-error")).toBe(true);
+    expect(groups[1]?.textContent).toContain("bogus");
+    expect(groups[2]?.textContent).toContain("one⟦U+0000⟧two");
+    expect(groups[2]?.querySelectorAll("li")).toHaveLength(2);
+    expect(container.textContent).toContain("missing.two");
+    expect(container.textContent).toContain("/a⟦U+202E⟧b");
+    const user = userEvent.setup();
+    await user.click(
+      screen.getByRole("button", { name: "Go DUP /a⟦U+202E⟧b" }),
+    );
+    expect(onNavigate).toHaveBeenCalledWith(rawPointer);
+  });
 });

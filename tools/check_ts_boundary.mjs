@@ -1,4 +1,4 @@
-import { readdirSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { ESLint } from "eslint";
 import {
   allowedImports,
@@ -188,6 +188,34 @@ const hardeningProbes = [
 ];
 for (const [file, source, rule] of hardeningProbes) {
   await probe(file, source, rule);
+  tested += 1;
+}
+function assertNoDisplayNumberCoercion(source) {
+  if (/\b(?:Number|parseFloat|parseInt)\s*\(/u.test(source)) {
+    throw new Error("UI_KIT_NUMERIC_COERCION_FORBIDDEN");
+  }
+}
+for (const name of readdirSync("packages/ts/ui-kit/src")) {
+  if (!/\.tsx?$/u.test(name) || /\.(?:test|spec)\.tsx?$/u.test(name)) continue;
+  assertNoDisplayNumberCoercion(
+    readFileSync(`packages/ts/ui-kit/src/${name}`, "utf8"),
+  );
+}
+for (const probeSource of [
+  "Number(value)",
+  "parseFloat(value)",
+  "parseInt(value)",
+]) {
+  try {
+    assertNoDisplayNumberCoercion(probeSource);
+    throw new Error("NUMERIC_COERCION_NEGATIVE_PROBE_FAILED");
+  } catch (error) {
+    if (
+      !(error instanceof Error) ||
+      error.message !== "UI_KIT_NUMERIC_COERCION_FORBIDDEN"
+    )
+      throw error;
+  }
   tested += 1;
 }
 process.stdout.write(

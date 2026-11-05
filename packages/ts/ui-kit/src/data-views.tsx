@@ -1,4 +1,4 @@
-import { useId, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import type { SupportedLocale } from "@calos/i18n";
 
 export type SortDirection = "ascending" | "descending";
@@ -8,16 +8,18 @@ export type SortState = Readonly<{
 }>;
 
 type ColumnSort<Row> =
-  | { sortValue?: never; sortKind?: never; compare?: never }
+  | { sortValue?: never; sortKind?: never; compare?: never; numeric?: never }
   | {
       sortValue: (row: Row) => string;
-      sortKind?: "text";
+      sortKind: "text";
       compare?: (left: string, right: string) => number;
+      numeric?: boolean;
     }
   | {
       sortValue: (row: Row) => string;
       sortKind: "exact-decimal";
       compare: (left: string, right: string) => number;
+      numeric?: never;
     };
 
 export type DataColumn<Row> = Readonly<
@@ -25,6 +27,7 @@ export type DataColumn<Row> = Readonly<
     id: string;
     header: string;
     render: (row: Row) => ReactNode;
+    rowHeader?: boolean;
   } & ColumnSort<Row>
 >;
 
@@ -39,7 +42,9 @@ export function sortDisplayRows<Row>(
   if (!sortValue) throw new Error("SORT_VALUE_MISSING");
   if (column.sortKind === "exact-decimal" && !column.compare)
     throw new Error("DECIMAL_COMPARATOR_MISSING");
-  const collator = new Intl.Collator(locale, { numeric: true });
+  const collator = new Intl.Collator(locale, {
+    numeric: column.numeric ?? false,
+  });
   const compare = column.compare ?? collator.compare;
   return rows
     .map((row, index) => ({ row, index }))
@@ -52,7 +57,29 @@ export function sortDisplayRows<Row>(
     .map(({ row }) => row);
 }
 
-/** @req DV-05: a focusable, copy-safe full-value alternative for clipped text. */
+/** @req DV-05: make control characters visible without changing the source value. */
+export function safeDisplayText(value: string): string {
+  let visible = "";
+  for (const scalar of value) {
+    const point = scalar.codePointAt(0)!;
+    if (
+      point <= 0x1f ||
+      (point >= 0x7f && point <= 0x9f) ||
+      point === 0x61c ||
+      (point >= 0x200e && point <= 0x200f) ||
+      (point >= 0x202a && point <= 0x202e) ||
+      (point >= 0x2066 && point <= 0x2069) ||
+      (point >= 0xd800 && point <= 0xdfff)
+    ) {
+      visible += `⟦U+${point.toString(16).toUpperCase().padStart(4, "0")}⟧`;
+    } else {
+      visible += scalar;
+    }
+  }
+  return visible;
+}
+
+/** @req DV-05: full-value, selectable text with an LTR isolate for technical data. */
 export function DisplayText({
   value,
   technical = false,
@@ -60,17 +87,13 @@ export function DisplayText({
   value: string;
   technical?: boolean;
 }) {
+  const visible = safeDisplayText(value);
   return (
-    <span
-      className="ui-display-text"
-      tabIndex={0}
-      title={value}
-      aria-label={value}
-    >
+    <span className="ui-display-text">
       {technical ? (
-        <bdi dir="ltr">{value}</bdi>
+        <bdi dir="ltr">{visible}</bdi>
       ) : (
-        <span dir="auto">{value}</span>
+        <span dir="auto">{visible}</span>
       )}
     </span>
   );
@@ -86,6 +109,7 @@ export function DataTable<Row>({
   sort,
   onSortChange,
   sortLabel,
+  sortStatus,
 }: {
   caption: string;
   scrollLabel: string;
@@ -93,10 +117,10 @@ export function DataTable<Row>({
   rows: readonly Row[];
   rowId: (row: Row) => string;
   sort?: SortState;
-  onSortChange?: (sort: SortState) => void;
-  sortLabel?: (header: string, direction: SortDirection) => string;
+  onSortChange?: (sort: SortState | undefined) => void;
+  sortLabel?: (header: string, direction: SortDirection | undefined) => string;
+  sortStatus?: string;
 }) {
-  const captionId = useId();
   const columnIds = columns.map((column) => column.id);
   if (
     columnIds.some((id) => !id) ||
@@ -110,65 +134,106 @@ export function DataTable<Row>({
   ) {
     throw new Error("UNKNOWN_SORT_COLUMN");
   }
+  if (columns.filter((column) => column.rowHeader).length > 1) {
+    throw new Error("MULTIPLE_ROW_HEADERS");
+  }
+  if (onSortChange && (!sortLabel || !sortStatus)) {
+    throw new Error("SORT_ACCESSIBILITY_TEXT_MISSING");
+  }
   const rowIds = rows.map(rowId);
   if (rowIds.some((id) => !id) || new Set(rowIds).size !== rowIds.length) {
     throw new Error("DUPLICATE_OR_EMPTY_ROW_ID");
   }
   return (
-    <div
-      className="ui-table-scroll"
-      tabIndex={0}
-      role="region"
-      aria-label={scrollLabel}
-    >
-      <table className="ui-data-table">
-        <caption id={captionId}>{caption}</caption>
-        <thead>
-          <tr>
-            {columns.map((column) => {
-              const active = sort?.columnId === column.id;
-              const next: SortDirection =
-                active && sort?.direction === "ascending"
-                  ? "descending"
-                  : "ascending";
-              return (
-                <th
-                  key={column.id}
-                  scope="col"
-                  aria-sort={active ? sort.direction : undefined}
-                >
-                  {column.sortValue && onSortChange && sortLabel ? (
-                    <button
-                      type="button"
-                      className="ui-table-sort"
-                      onClick={() =>
-                        onSortChange({ columnId: column.id, direction: next })
-                      }
-                      aria-label={sortLabel(column.header, next)}
-                    >
-                      <span>{column.header}</span>
-                      <span className="ui-sort-arrow" aria-hidden="true">
-                        {active && sort?.direction === "descending" ? "↓" : "↑"}
-                      </span>
-                    </button>
-                  ) : (
-                    column.header
-                  )}
-                </th>
-              );
-            })}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row, index) => (
-            <tr key={rowIds[index]} data-row-id={rowIds[index]}>
-              {columns.map((column) => (
-                <td key={column.id}>{column.render(row)}</td>
-              ))}
+    <div className="ui-table-wrapper">
+      <div className="ui-table-heading" aria-hidden="true">
+        {caption}
+      </div>
+      {sortStatus && (
+        <p className="ui-table-sort-status" role="status" aria-live="polite">
+          {sortStatus}
+        </p>
+      )}
+      <div
+        className="ui-table-scroll"
+        tabIndex={0}
+        role="region"
+        aria-label={scrollLabel}
+      >
+        <table className="ui-data-table">
+          <caption className="ui-table-caption-sr-only">{caption}</caption>
+          <thead>
+            <tr>
+              {columns.map((column) => {
+                const active = sort?.columnId === column.id;
+                const next: SortDirection | undefined =
+                  active && sort?.direction === "ascending"
+                    ? "descending"
+                    : active && sort?.direction === "descending"
+                      ? undefined
+                      : "ascending";
+                return (
+                  <th
+                    key={column.id}
+                    scope="col"
+                    aria-sort={active ? sort.direction : undefined}
+                  >
+                    {column.sortValue && onSortChange && sortLabel ? (
+                      <button
+                        type="button"
+                        className="ui-table-sort"
+                        onClick={() =>
+                          onSortChange(
+                            next
+                              ? { columnId: column.id, direction: next }
+                              : undefined,
+                          )
+                        }
+                        aria-label={sortLabel(column.header, next)}
+                      >
+                        <span>{column.header}</span>
+                        <svg
+                          className="ui-sort-arrow"
+                          aria-hidden="true"
+                          viewBox="0 0 16 16"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.7"
+                        >
+                          {active && sort?.direction === "ascending" ? (
+                            <path d="m3 10 5-5 5 5" />
+                          ) : active && sort?.direction === "descending" ? (
+                            <path d="m3 6 5 5 5-5" />
+                          ) : (
+                            <path d="m3 6 5 5 5-5m-10 0 5-5 5 5" />
+                          )}
+                        </svg>
+                      </button>
+                    ) : (
+                      column.header
+                    )}
+                  </th>
+                );
+              })}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {rows.map((row, index) => (
+              <tr key={rowIds[index]} data-row-id={rowIds[index]}>
+                {columns.map((column) =>
+                  column.rowHeader ? (
+                    <th key={column.id} scope="row">
+                      {column.render(row)}
+                    </th>
+                  ) : (
+                    <td key={column.id}>{column.render(row)}</td>
+                  ),
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
@@ -217,19 +282,17 @@ export function StatePanel({
     "read-only": "M5 10V7a7 7 0 0 1 14 0v3m-14 0h14v10H5z",
   };
   const roles = {
-    loading: "status",
+    loading: undefined,
     empty: "note",
-    "no-results": "region",
+    "no-results": "status",
     error: "alert",
     "read-only": "group",
-  } as const satisfies Record<PanelState, string>;
+  } as const satisfies Record<PanelState, string | undefined>;
   return (
     <section
       className={`ui-state-panel ui-state-${state}`}
       role={roles[state]}
-      aria-label={
-        state === "no-results" || state === "read-only" ? title : undefined
-      }
+      aria-label={state === "read-only" ? title : undefined}
       aria-busy={state === "loading" ? true : undefined}
     >
       <svg
@@ -242,7 +305,7 @@ export function StatePanel({
       >
         <path d={shapes[state]} />
       </svg>
-      <div>
+      <div role={state === "loading" ? "status" : undefined}>
         <strong>{title}</strong>
         <p>{description}</p>
       </div>
@@ -272,41 +335,106 @@ export function FindingsList({
   severityLabel: (severity: DisplayFinding["severity"]) => string;
   stageLabel: (stage: string) => string;
   formatMessage: (message: DisplayFinding["message"]) => string;
-  navigateLabel: (code: string) => string;
+  navigateLabel: (code: string, pointer: string) => string;
   onNavigate: (pointer: string) => void;
 }) {
-  const groups = new Map<string, DisplayFinding[]>();
+  type FindingGroup = {
+    severity: string;
+    stage: string;
+    findings: DisplayFinding[];
+  };
+  const groups = new Map<string, FindingGroup>();
   for (const finding of findings) {
-    const key = `${finding.severity}\u0000${finding.stage}`;
-    groups.set(key, [...(groups.get(key) ?? []), finding]);
+    const key = JSON.stringify([finding.severity, finding.stage]);
+    const group = groups.get(key);
+    if (group) group.findings.push(finding);
+    else
+      groups.set(key, {
+        severity: finding.severity,
+        stage: finding.stage,
+        findings: [finding],
+      });
+  }
+  const severityRank = (severity: string): number =>
+    severity === "error"
+      ? 0
+      : severity === "warning"
+        ? 1
+        : severity === "info"
+          ? 2
+          : 0;
+  const ordered = [...groups].sort(
+    ([, left], [, right]) =>
+      severityRank(left.severity) - severityRank(right.severity),
+  );
+  function resolvedLabel(
+    value: string,
+    resolve: (value: string) => string,
+  ): string {
+    try {
+      const label = resolve(value);
+      if (label.trim()) return label;
+    } catch {
+      // Preserve the visible source identifier if host localization is missing.
+    }
+    return value;
+  }
+  function groupLabel(group: FindingGroup): string {
+    const known =
+      group.severity === "error" ||
+      group.severity === "warning" ||
+      group.severity === "info";
+    const normalized = known ? group.severity : "error";
+    const severity = resolvedLabel(normalized, (value) =>
+      severityLabel(value as DisplayFinding["severity"]),
+    );
+    const unknown = known ? "" : ` · ${safeDisplayText(group.severity)}`;
+    const stage = resolvedLabel(group.stage, stageLabel);
+    return `${safeDisplayText(severity)}${unknown} · ${safeDisplayText(stage)}`;
+  }
+  function messageText(finding: DisplayFinding): string {
+    try {
+      const rendered = formatMessage(finding.message);
+      if (rendered.trim()) return rendered;
+    } catch {
+      // A missing host translation is shown by its stable key for this row.
+    }
+    return finding.message.key || finding.code;
   }
   return (
     <div className="ui-findings-list">
-      {[...groups].map(([key, group]) => {
-        const [severity, stage] = key.split("\u0000") as [
-          DisplayFinding["severity"],
-          string,
-        ];
+      {ordered.map(([key, group]) => {
+        const severity =
+          group.severity === "warning" || group.severity === "info"
+            ? group.severity
+            : "error";
+        const label = groupLabel(group);
         return (
           <section
             key={key}
             className={`ui-findings-group ui-findings-${severity}`}
-            aria-label={`${severityLabel(severity)} · ${stageLabel(stage)}`}
           >
-            <h3>
-              {severityLabel(severity)} · {stageLabel(stage)}
-            </h3>
+            <h3>{label}</h3>
             <ul>
-              {group.map((finding, index) => (
-                <li key={`${finding.code}:${finding.pointer}:${index}`}>
+              {group.findings.map((finding, index) => (
+                <li
+                  key={JSON.stringify([
+                    finding.code,
+                    finding.pointer.value,
+                    index,
+                  ])}
+                >
                   <DisplayText value={finding.code} technical />
-                  <span>{formatMessage(finding.message)}</span>
+                  <span>{safeDisplayText(messageText(finding))}</span>
+                  <DisplayText value={finding.pointer.value} technical />
                   <button
                     type="button"
                     className="ui-button ui-button-quiet"
                     onClick={() => onNavigate(finding.pointer.value)}
                   >
-                    {navigateLabel(finding.code)}
+                    {safeDisplayText(
+                      navigateLabel(finding.code, finding.pointer.value),
+                    )}
                   </button>
                 </li>
               ))}

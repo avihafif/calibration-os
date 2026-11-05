@@ -54,6 +54,7 @@ describe("compiled system localization", () => {
             identifier: "demo-id_42",
             header: "demo-header",
             code: "demo-code",
+            pointer: "/demo",
           }),
         ).toBeTruthy();
       }
