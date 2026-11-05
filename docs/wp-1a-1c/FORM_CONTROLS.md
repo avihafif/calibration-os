@@ -1,6 +1,6 @@
 # WP-1A-1c — interactive form controls
 
-Status: Test/Simulation frontend foundation; PR #20 awaits final review. No
+Status: Test/Simulation frontend foundation; PR #20 merged. No
 operational calibration, metadata editing, persistence or publication.
 
 ## Implemented scope
@@ -43,11 +43,9 @@ an architecture or governance decision.
 | FC-11 No-Code boundary | Partial | Controls accept generic props and interpret no schema or editor hint. Existing 77 boundary probes pass; proposed dedicated source probes are absent. |
 | FC-12 Synthetic demonstration | Partial | Test-only, memory-only interaction and reset exist. A reload-clears-state browser assertion is not yet present. |
 
-The unimplemented parts of these **proposed** criteria are candidates for a
-separate, approved work package. They are not silently treated as PR #20 merge
-requirements. The required pre-merge fixes for this PR are the decimal
-truncation regression, accurate coverage reporting, and integration checks
-after PR #22 merges.
+The approved follow-up hardening is tracked in
+[FORM_HARDENING.md](FORM_HARDENING.md). The FC coverage above records PR #20
+at its merge; it does not retroactively change that PR's acceptance scope.
 
 ## Screenshots
 
@@ -95,11 +93,11 @@ and 14 security tests, 34 frontend unit tests, six Playwright tests, the Test
 and Production Rehearsal bundle guards, and the 228-component supply-chain
 gate. Current-head GitHub CI evidence is recorded in PR #20.
 
-## Known limitations
+## Known limitations at PR #20 merge
 
-- The Hebrew command-palette shortcut uses `event.key`, which can fail under
-  a Hebrew keyboard layout. Error summary/focus behavior, density tokens and
-  forced-colors support are not implemented.
+- The subsequent [WP-1A-1c-2 hardening](FORM_HARDENING.md) addresses the
+  Hebrew command-palette shortcut, error summary/focus behavior, 44 px form
+  targets and forced-colors support. This section records the PR #20 baseline.
 - Real screen-reader behavior and Windows Edge behavior have not been manually
   verified. Browser automation uses Chromium; axe results do not substitute
   for those manual checks.

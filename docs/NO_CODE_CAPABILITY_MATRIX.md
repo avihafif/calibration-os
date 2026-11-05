@@ -192,6 +192,14 @@ Production Rehearsal excludes the interactive form. Row 4.1 remains a future
 No-Code configuration capability; no new configuration kind or operator screen
 is implemented.
 
+**WP-1A-1c-2 hardening status:** generic field IDs, localized required text,
+focusable error summary, blur validation, bidi and forced-colors support are
+trusted platform **DEV** additions to those controls. The Test demonstration
+remains memory-only and its compiled sentinel is rejected from Production
+Rehearsal. This does not implement a metadata-driven form renderer or change
+the classifications in rows 4.1–4.5; see
+[`docs/wp-1a-1c/FORM_HARDENING.md`](wp-1a-1c/FORM_HARDENING.md).
+
 ## 7. Summary
 
 | Class | Count (this version) | Comment |

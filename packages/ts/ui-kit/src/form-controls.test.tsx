@@ -5,6 +5,8 @@ import { useState } from "react";
 import { createSystemI18n } from "@calos/i18n";
 import {
   Checkbox,
+  FormSummary,
+  Input,
   NumberTextField,
   Select,
   TextArea,
@@ -34,8 +36,10 @@ describe("enterprise form controls", () => {
     expect(input.getAttribute("aria-describedby")).toBe("name-hint name-error");
     expect(input.getAttribute("aria-errormessage")).toBe("name-error");
     expect(input.getAttribute("aria-invalid")).toBe("true");
+    expect(input.getAttribute("dir")).toBe("auto");
     expect(input.hasAttribute("required")).toBe(true);
-    expect(screen.getByRole("alert").textContent).toBe(t("form.required"));
+    expect(screen.getByText(t("form.required"))).toBeTruthy();
+    expect(screen.getByText(t("form.requiredLabel"))).toBeTruthy();
   });
 
   it("supports typing, read-only, and disabled text states", async () => {
@@ -107,6 +111,9 @@ describe("enterprise form controls", () => {
       "\u0661\u0662\u0663",
       "\uff11\uff12",
       "1\u200e",
+      "1\r\n",
+      "1\n",
+      "1\ud800",
       "1".repeat(129),
     ];
     for (const invalid of invalidDecimals) {
@@ -122,6 +129,7 @@ describe("enterprise form controls", () => {
           value={value}
           onChange={setValue}
           decimalError={t("form.decimalInvalid")}
+          showDecimalError
         />
       );
     }
@@ -131,23 +139,24 @@ describe("enterprise form controls", () => {
     expect(input.getAttribute("inputmode")).toBe("decimal");
     expect(input.getAttribute("dir")).toBe("ltr");
     for (const invalid of invalidDecimals) {
+      if (invalid.includes("\n")) continue; // HTML text inputs strip newlines before React receives them.
       fireEvent.change(input, { target: { value: invalid } });
       expect((input as HTMLInputElement).value).toBe(invalid);
       expect(input.getAttribute("aria-invalid")).toBe("true");
-      expect(screen.getByRole("alert").textContent).toBe(
+      expect(screen.getByText(t("form.decimalInvalid")).textContent).toBe(
         t("form.decimalInvalid"),
       );
     }
     fireEvent.change(input, { target: { value: "" } });
     await user.type(input, "1e3");
     expect((input as HTMLInputElement).value).toBe("1e3");
-    expect(screen.getByRole("alert").textContent).toBe(
+    expect(screen.getByText(t("form.decimalInvalid")).textContent).toBe(
       t("form.decimalInvalid"),
     );
     await user.clear(input);
     await user.type(input, precise);
     expect((input as HTMLInputElement).value).toBe(precise);
-    expect(screen.queryByRole("alert")).toBeNull();
+    expect(screen.queryByText(t("form.decimalInvalid"))).toBeNull();
   });
 
   it("preserves all 200 pasted digits and reports the length error", async () => {
@@ -161,6 +170,7 @@ describe("enterprise form controls", () => {
           value={value}
           onChange={setValue}
           decimalError={t("form.decimalInvalid")}
+          showDecimalError
         />
       );
     }
@@ -175,7 +185,7 @@ describe("enterprise form controls", () => {
     expect(input.value).toBe(pasted);
     expect(input.getAttribute("aria-invalid")).toBe("true");
     expect(input.getAttribute("aria-errormessage")).toBe("long-decimal-error");
-    expect(screen.getByRole("alert").textContent).toBe(
+    expect(screen.getByText(t("form.decimalInvalid")).textContent).toBe(
       t("form.decimalInvalid"),
     );
     expect(isExactDecimalText(pasted)).toBe(false);
@@ -191,6 +201,7 @@ describe("enterprise form controls", () => {
           value={value}
           onChange={setValue}
           decimalError={t("form.decimalInvalid")}
+          showDecimalError
         />
       );
     }
@@ -230,6 +241,7 @@ describe("enterprise form controls", () => {
       name: t("form.summary"),
     }) as HTMLTextAreaElement;
     expect(input.readOnly).toBe(true);
+    expect(input.getAttribute("dir")).toBe("auto");
     expect(input.getAttribute("aria-describedby")).toBe("summary-hint");
     rerender(
       <TextArea
@@ -260,6 +272,7 @@ describe("enterprise form controls", () => {
         placeholder={t("form.choose")}
         options={[{ value: "general", label: t("form.categoryFirst") }]}
         required
+        requiredLabel={t("form.requiredLabel")}
         readOnly
       />,
     );
@@ -332,5 +345,163 @@ describe("enterprise form controls", () => {
     expect(disabled.getAttribute("aria-describedby")).toBe(
       "confirm-hint confirm-error",
     );
+  });
+
+  it("generates distinct IDs and keeps caller-provided IDs", () => {
+    const { container } = render(
+      <>
+        <TextField
+          label={t("form.name")}
+          value=""
+          onChange={vi.fn()}
+          hint={t("form.nameHint")}
+        />
+        <TextField label={t("form.name")} value="" onChange={vi.fn()} />
+        <TextArea label={t("form.summary")} value="" onChange={vi.fn()} />
+        <Select
+          label={t("form.category")}
+          value=""
+          onChange={vi.fn()}
+          options={[]}
+        />
+        <Checkbox
+          label={t("form.confirm")}
+          checked={false}
+          onChange={vi.fn()}
+        />
+        <TextField
+          id="chosen"
+          label={t("form.name")}
+          value=""
+          onChange={vi.fn()}
+        />
+      </>,
+    );
+    const controls = [...container.querySelectorAll("input,textarea,select")];
+    const ids = controls.map((control) => control.id);
+    expect(ids.every(Boolean)).toBe(true);
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(ids).toContain("chosen");
+    expect(document.getElementById(`${ids[0]}-hint`)).toBeTruthy();
+  });
+
+  it("summary links focus their invalid controls without field-level live alerts", async () => {
+    const user = userEvent.setup();
+    const urlBefore = window.location.href;
+    const historyBefore = window.history.length;
+    render(
+      <>
+        <FormSummary
+          title={t("form.invalid")}
+          findings={[
+            { id: "name", label: t("form.name"), message: t("form.required") },
+          ]}
+        />
+        <TextField
+          id="name"
+          label={t("form.name")}
+          value=""
+          error={t("form.required")}
+          onChange={vi.fn()}
+        />
+      </>,
+    );
+    expect(screen.queryByRole("alert")).toBeNull();
+    await user.click(
+      screen.getByRole("link", {
+        name: `${t("form.name")}: ${t("form.required")}`,
+      }),
+    );
+    expect(document.activeElement?.id).toBe("name");
+    expect(window.location.href).toBe(urlBefore);
+    expect(window.history.length).toBe(historyBefore);
+  });
+
+  it("requires non-empty localized text for every required field", () => {
+    type MissingTextLabel = {
+      id: string;
+      label: string;
+      value: string;
+      onChange: (value: string) => void;
+      required: true;
+    };
+    type MissingSelectLabel = MissingTextLabel & { options: readonly [] };
+    type MissingCheckboxLabel = {
+      label: string;
+      checked: boolean;
+      onChange: (checked: boolean) => void;
+      required: true;
+    };
+    type MissingNumberLabel = MissingTextLabel & {
+      decimalError: string;
+      showDecimalError: boolean;
+    };
+    const rejected: [
+      MissingTextLabel extends Parameters<typeof TextField>[0] ? true : false,
+      MissingTextLabel extends Parameters<typeof TextArea>[0] ? true : false,
+      MissingTextLabel extends Parameters<typeof Input>[0] ? true : false,
+      MissingNumberLabel extends Parameters<typeof NumberTextField>[0]
+        ? true
+        : false,
+      MissingSelectLabel extends Parameters<typeof Select>[0] ? true : false,
+      MissingCheckboxLabel extends Parameters<typeof Checkbox>[0]
+        ? true
+        : false,
+    ] = [false, false, false, false, false, false];
+    expect(rejected).toEqual([false, false, false, false, false, false]);
+    const he = createSystemI18n("he").format;
+    render(
+      <TextField
+        label={he("form.name")}
+        value=""
+        onChange={vi.fn()}
+        required
+        requiredLabel={he("form.requiredLabel")}
+      />,
+    );
+    expect(screen.getByText("חובה")).toBeTruthy();
+    expect(
+      screen
+        .getByRole("textbox", { name: he("form.name") })
+        .hasAttribute("required"),
+    ).toBe(true);
+    expect(() =>
+      render(
+        <TextField
+          label={t("form.name")}
+          value=""
+          onChange={vi.fn()}
+          required
+          requiredLabel=" "
+        />,
+      ),
+    ).toThrow("REQUIRED_LABEL_MISSING");
+  });
+
+  it("keeps decimal validation hidden until the caller enables it", () => {
+    const props = {
+      label: t("form.decimal"),
+      value: "1e3",
+      onChange: vi.fn(),
+      decimalError: t("form.decimalInvalid"),
+    };
+    const { rerender } = render(
+      <NumberTextField {...props} showDecimalError={false} />,
+    );
+    expect(screen.getByRole("textbox").getAttribute("aria-invalid")).toBeNull();
+    rerender(<NumberTextField {...props} showDecimalError />);
+    expect(screen.getByRole("textbox").getAttribute("aria-invalid")).toBe(
+      "true",
+    );
+  });
+
+  it("does not expose a maxLength prop on NumberTextField", () => {
+    type NoMaxLength = "maxLength" extends keyof Parameters<
+      typeof NumberTextField
+    >[0]
+      ? false
+      : true;
+    const noMaxLength: NoMaxLength = true;
+    expect(noMaxLength).toBe(true);
   });
 });

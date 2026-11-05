@@ -50,7 +50,10 @@ export function AppFrame({
   }, [drawerOpen]);
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+      if (
+        (event.ctrlKey || event.metaKey) &&
+        (event.key.toLowerCase() === "k" || event.code === "KeyK")
+      ) {
         event.preventDefault();
         setPaletteOpen(true);
       } else if (event.key === "Escape" && drawerOpen) {
