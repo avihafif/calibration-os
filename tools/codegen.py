@@ -23,6 +23,7 @@ SCHEMAS = (
     ("manufacturer/v1.schema.json", "Manufacturer", "manufacturer"),
     ("package-manifest/v1.schema.json", "PackageManifest", "package_manifest"),
     ("schema-proof/v1.schema.json", "SchemaProof", "schema_proof"),
+    ("finding/v1.schema.json", "Finding", "finding"),
 )
 PY_DIR = ROOT / "packages" / "py" / "calos_metadata" / "calos_metadata" / "generated"
 TS_DIR = ROOT / "packages" / "ts" / "domain-types" / "src"
