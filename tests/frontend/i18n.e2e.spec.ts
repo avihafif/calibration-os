@@ -335,7 +335,9 @@ test("synthetic form is interactive, localized, accessible and fully local", asy
       .selectOption("interface");
     await page.getByRole("checkbox", { name: labels.confirm }).check();
     await page.getByRole("button", { name: labels.validate }).click();
-    await expect(page.getByText(labels.success)).toBeVisible();
+    await expect(
+      page.locator(".ui-notice-ok").getByText(labels.success),
+    ).toBeVisible();
     await expect(page.getByRole("note")).toBeVisible();
     const axe = await new AxeBuilder({ page }).analyze();
     expect(axe.violations).toEqual([]);
@@ -362,10 +364,24 @@ test("form errors appear on blur and summary links move keyboard focus", async (
   await page.getByRole("button", { name: "Validate preview" }).click();
   const summary = page.locator(".ui-form-summary");
   await expect(summary).toBeFocused();
-  await summary.getByRole("link", { name: /Display name/u }).click();
+  const locationBefore = await page.evaluate(() => ({
+    href: window.location.href,
+    history: window.history.length,
+  }));
+  await page.keyboard.press("Tab");
+  await expect(
+    summary.getByRole("link", { name: /Display name/u }),
+  ).toBeFocused();
+  await page.keyboard.press("Enter");
   await expect(
     page.getByRole("textbox", { name: "Display name" }),
   ).toBeFocused();
+  expect(
+    await page.evaluate(() => ({
+      href: window.location.href,
+      history: window.history.length,
+    })),
+  ).toEqual(locationBefore);
   await page.getByRole("button", { name: "Reset fields" }).click();
   await expect(decimal).toHaveValue("");
   await expect(summary).toHaveCount(0);
@@ -409,6 +425,75 @@ test("Hebrew physical KeyK shortcut opens the command palette", async ({
   await expect(
     page.getByRole("dialog", { name: "חלונית פקודות" }),
   ).toBeVisible();
+  await page.keyboard.press("Escape");
+  await page.evaluate(() =>
+    window.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "k",
+        code: "KeyV",
+        ctrlKey: true,
+        bubbles: true,
+      }),
+    ),
+  );
+  await expect(
+    page.getByRole("dialog", { name: "חלונית פקודות" }),
+  ).toBeVisible();
+});
+
+test("the persistent live region changes only on submit, never while typing", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    const live = document.querySelector(".ui-form-announcement")!;
+    const additions: string[] = [];
+    const observer = new MutationObserver((records) => {
+      for (const record of records) {
+        for (const node of record.addedNodes) {
+          if (node instanceof HTMLSpanElement)
+            additions.push(node.textContent ?? "");
+        }
+      }
+    });
+    observer.observe(live, { childList: true, subtree: true });
+    (
+      window as typeof window & { calosTestAnnouncements?: string[] }
+    ).calosTestAnnouncements = additions;
+  });
+  const additions = () =>
+    page.evaluate(
+      () =>
+        (window as typeof window & { calosTestAnnouncements?: string[] })
+          .calosTestAnnouncements ?? [],
+    );
+  await page.getByRole("button", { name: "Validate preview" }).click();
+  await expect.poll(async () => (await additions()).length).toBe(1);
+  await page.getByRole("textbox", { name: "Display name" }).fill("Synthetic");
+  await page.getByRole("textbox", { name: "Decimal text sample" }).fill("1e3");
+  expect(await additions()).toHaveLength(1);
+  await page.getByRole("button", { name: "Validate preview" }).click();
+  await expect.poll(async () => (await additions()).length).toBe(2);
+  expect((await additions())[0]).toBe((await additions())[1]);
+});
+
+test("sticky safety marking does not overlap a focused form summary", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 768, height: 400 });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Validate preview" }).click();
+  const summary = page.locator(".ui-form-summary");
+  await expect(summary).toBeFocused();
+  const positions = await page.evaluate(() => ({
+    summaryTop: document
+      .querySelector(".ui-form-summary")!
+      .getBoundingClientRect().top,
+    markingBottom: document
+      .querySelector(".protected-markings")!
+      .getBoundingClientRect().bottom,
+  }));
+  expect(positions.summaryTop).toBeGreaterThanOrEqual(positions.markingBottom);
 });
 
 test("form error state is accessible in both directions, themes, widths and forced colors", async ({
@@ -468,6 +553,28 @@ test("form error state is accessible in both directions, themes, widths and forc
   }));
   expect(styles.border).not.toBe("rgba(0, 0, 0, 0)");
   expect(styles.outline).not.toBe("none");
+  await page.locator("#preview-category").focus();
+  await page.keyboard.press("Tab");
+  await expect(page.locator("#preview-confirm")).toBeFocused();
+  const checkboxRing = await page
+    .locator("#preview-confirm")
+    .evaluate((element) => getComputedStyle(element).outlineWidth);
+  expect(Number.parseFloat(checkboxRing)).toBeGreaterThanOrEqual(2);
+  await page.keyboard.press("Tab");
+  const submit = page.getByRole("button", { name: "בדיקת התצוגה" });
+  await expect(submit).toBeFocused();
+  const buttonRing = await submit.evaluate(
+    (element) => getComputedStyle(element).outlineWidth,
+  );
+  expect(Number.parseFloat(buttonRing)).toBeGreaterThanOrEqual(2);
+  await page.locator(".ui-form-summary").focus();
+  await page.keyboard.press("Tab");
+  const summaryLink = page.locator(".ui-form-summary a").first();
+  await expect(summaryLink).toBeFocused();
+  const linkRing = await summaryLink.evaluate(
+    (element) => getComputedStyle(element).outlineWidth,
+  );
+  expect(Number.parseFloat(linkRing)).toBeGreaterThanOrEqual(2);
 });
 
 test("pseudo-locales keep the error form within the viewport", async ({

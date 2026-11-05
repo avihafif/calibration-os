@@ -4,6 +4,7 @@ import {
   Button,
   Card,
   Checkbox,
+  FormAnnouncement,
   FormSummary,
   NumberTextField,
   Notification,
@@ -36,9 +37,14 @@ export function SyntheticFormDemo({ locale }: { locale: SupportedLocale }) {
   const [touched, setTouched] = useState<
     Partial<Record<keyof PreviewFields, boolean>>
   >({});
-  const [submissionId, setSubmissionId] = useState(0);
   const summaryRef = useRef<HTMLDivElement>(null);
   const [result, setResult] = useState<"valid" | "invalid" | null>(null);
+  const [announcement, setAnnouncement] = useState<{
+    id: number;
+    locale: SupportedLocale;
+    message: string;
+    result: "valid" | "invalid";
+  } | null>(null);
   const t = useMemo(() => createSystemI18n(locale).format, [locale]);
   const requiredError = t("form.required");
   const errors = {
@@ -67,8 +73,8 @@ export function SyntheticFormDemo({ locale }: { locale: SupportedLocale }) {
       message: errors[key]!,
     }));
   useEffect(() => {
-    if (submissionId > 0 && result === "invalid") summaryRef.current?.focus();
-  }, [submissionId, result]);
+    if (announcement?.result === "invalid") summaryRef.current?.focus();
+  }, [announcement]);
   const visit = (key: keyof PreviewFields) =>
     setTouched((current) => ({ ...current, [key]: true }));
   const update = <K extends keyof PreviewFields>(
@@ -81,14 +87,23 @@ export function SyntheticFormDemo({ locale }: { locale: SupportedLocale }) {
   const validate = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setAttempted(true);
-    setSubmissionId((current) => current + 1);
-    setResult(Object.values(errors).some(Boolean) ? "invalid" : "valid");
+    const nextResult = Object.values(errors).some(Boolean)
+      ? "invalid"
+      : "valid";
+    setResult(nextResult);
+    setAnnouncement((current) => ({
+      id: (current?.id ?? 0) + 1,
+      locale,
+      message: t(nextResult === "valid" ? "form.valid" : "form.invalid"),
+      result: nextResult,
+    }));
   };
   const reset = () => {
     setFields(emptyFields);
     setAttempted(false);
     setTouched({});
     setResult(null);
+    setAnnouncement(null);
   };
   const requiredLabel = t("form.requiredLabel");
 
@@ -100,6 +115,12 @@ export function SyntheticFormDemo({ locale }: { locale: SupportedLocale }) {
       <Card title={t("form.title")}>
         <p className="form-demo-description">{t("form.description")}</p>
         <form noValidate onSubmit={validate} className="form-demo-grid">
+          <FormAnnouncement
+            submissionId={announcement?.id ?? 0}
+            message={
+              announcement?.locale === locale ? announcement.message : undefined
+            }
+          />
           {result === "invalid" && (
             <FormSummary
               ref={summaryRef}
@@ -175,7 +196,9 @@ export function SyntheticFormDemo({ locale }: { locale: SupportedLocale }) {
             <Button onClick={reset}>{t("form.reset")}</Button>
           </div>
           {result === "valid" && (
-            <Notification tone="ok">{t("form.valid")}</Notification>
+            <Notification tone="ok" announce={false}>
+              {t("form.valid")}
+            </Notification>
           )}
         </form>
       </Card>

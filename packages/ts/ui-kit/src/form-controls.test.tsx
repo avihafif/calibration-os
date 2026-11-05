@@ -6,6 +6,7 @@ import { createSystemI18n } from "@calos/i18n";
 import {
   Checkbox,
   FormSummary,
+  Input,
   NumberTextField,
   Select,
   TextArea,
@@ -271,6 +272,7 @@ describe("enterprise form controls", () => {
         placeholder={t("form.choose")}
         options={[{ value: "general", label: t("form.categoryFirst") }]}
         required
+        requiredLabel={t("form.requiredLabel")}
         readOnly
       />,
     );
@@ -385,6 +387,8 @@ describe("enterprise form controls", () => {
 
   it("summary links focus their invalid controls without field-level live alerts", async () => {
     const user = userEvent.setup();
+    const urlBefore = window.location.href;
+    const historyBefore = window.history.length;
     render(
       <>
         <FormSummary
@@ -409,6 +413,69 @@ describe("enterprise form controls", () => {
       }),
     );
     expect(document.activeElement?.id).toBe("name");
+    expect(window.location.href).toBe(urlBefore);
+    expect(window.history.length).toBe(historyBefore);
+  });
+
+  it("requires non-empty localized text for every required field", () => {
+    type MissingTextLabel = {
+      id: string;
+      label: string;
+      value: string;
+      onChange: (value: string) => void;
+      required: true;
+    };
+    type MissingSelectLabel = MissingTextLabel & { options: readonly [] };
+    type MissingCheckboxLabel = {
+      label: string;
+      checked: boolean;
+      onChange: (checked: boolean) => void;
+      required: true;
+    };
+    type MissingNumberLabel = MissingTextLabel & {
+      decimalError: string;
+      showDecimalError: boolean;
+    };
+    const rejected: [
+      MissingTextLabel extends Parameters<typeof TextField>[0] ? true : false,
+      MissingTextLabel extends Parameters<typeof TextArea>[0] ? true : false,
+      MissingTextLabel extends Parameters<typeof Input>[0] ? true : false,
+      MissingNumberLabel extends Parameters<typeof NumberTextField>[0]
+        ? true
+        : false,
+      MissingSelectLabel extends Parameters<typeof Select>[0] ? true : false,
+      MissingCheckboxLabel extends Parameters<typeof Checkbox>[0]
+        ? true
+        : false,
+    ] = [false, false, false, false, false, false];
+    expect(rejected).toEqual([false, false, false, false, false, false]);
+    const he = createSystemI18n("he").format;
+    render(
+      <TextField
+        label={he("form.name")}
+        value=""
+        onChange={vi.fn()}
+        required
+        requiredLabel={he("form.requiredLabel")}
+      />,
+    );
+    expect(screen.getByText("חובה")).toBeTruthy();
+    expect(
+      screen
+        .getByRole("textbox", { name: he("form.name") })
+        .hasAttribute("required"),
+    ).toBe(true);
+    expect(() =>
+      render(
+        <TextField
+          label={t("form.name")}
+          value=""
+          onChange={vi.fn()}
+          required
+          requiredLabel=" "
+        />,
+      ),
+    ).toThrow("REQUIRED_LABEL_MISSING");
   });
 
   it("keeps decimal validation hidden until the caller enables it", () => {

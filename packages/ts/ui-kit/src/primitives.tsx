@@ -1,5 +1,5 @@
 import { useEffect, useRef, type ReactNode } from "react";
-import { TextField } from "./form-controls";
+import { TextField, type RequiredFieldState } from "./form-controls";
 
 export { Select, type SelectOption } from "./form-controls";
 
@@ -35,34 +35,17 @@ export function Button({
   );
 }
 
-export function Input({
-  id,
-  label,
-  value,
-  onChange,
-  hint,
-  error,
-  required = false,
-}: {
-  id: string;
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  hint?: string;
-  error?: string;
-  required?: boolean;
-}) {
-  return (
-    <TextField
-      id={id}
-      label={label}
-      value={value}
-      onChange={onChange}
-      hint={hint}
-      error={error}
-      required={required}
-    />
-  );
+export function Input(
+  props: {
+    id: string;
+    label: string;
+    value: string;
+    onChange: (value: string) => void;
+    hint?: string;
+    error?: string;
+  } & RequiredFieldState,
+) {
+  return <TextField {...props} />;
 }
 
 const toneIcon: Readonly<Record<Tone, string>> = Object.freeze({
@@ -99,14 +82,16 @@ export function Card({
 export function Notification({
   tone,
   children,
+  announce = true,
 }: {
   tone: Tone;
   children: ReactNode;
+  announce?: boolean;
 }) {
   return (
     <div
       className={`ui-notice ui-notice-${tone}`}
-      role={tone === "error" ? "alert" : "status"}
+      role={announce ? (tone === "error" ? "alert" : "status") : undefined}
     >
       <span aria-hidden="true">{toneIcon[tone]}</span>
       <span>{children}</span>

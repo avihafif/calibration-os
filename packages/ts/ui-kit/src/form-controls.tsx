@@ -1,26 +1,30 @@
 import { forwardRef, useId, type ChangeEvent } from "react";
 
-interface FieldPresentation {
+export type RequiredFieldState =
+  | { required: true; requiredLabel: string }
+  | { required?: false; requiredLabel?: never };
+
+type FieldPresentation = {
   id?: string;
   label: string;
   hint?: string;
   error?: string;
-  required?: boolean;
-  requiredLabel?: string;
   disabled?: boolean;
   readOnly?: boolean;
   onBlur?: () => void;
-}
+} & RequiredFieldState;
 
 type ResolvedField = FieldPresentation & { id: string };
 
-interface TextControl extends FieldPresentation {
+type TextControl = FieldPresentation & {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
   maxLength?: number | null;
   lang?: string;
-}
+};
+
+type WithoutMaxLength<T> = T extends unknown ? Omit<T, "maxLength"> : never;
 
 function descriptionIds({
   id,
@@ -32,6 +36,9 @@ function descriptionIds({
 }
 
 function FieldLabel({ id, label, required, requiredLabel }: ResolvedField) {
+  if (required && !requiredLabel.trim()) {
+    throw new Error("REQUIRED_LABEL_MISSING");
+  }
   return (
     <label htmlFor={id} className="ui-field-label">
       {label}
@@ -125,7 +132,7 @@ export function isExactDecimalText(value: string): boolean {
 }
 
 export function NumberTextField(
-  props: Omit<TextControl, "maxLength"> & {
+  props: WithoutMaxLength<TextControl> & {
     decimalError: string;
     showDecimalError: boolean;
   },
@@ -136,15 +143,18 @@ export function NumberTextField(
     !isExactDecimalText(props.value)
       ? props.decimalError
       : props.error;
-  return (
-    <TextField
-      {...props}
-      error={error}
-      inputMode="decimal"
-      inputDir="ltr"
-      autoComplete="off"
-      maxLength={null}
-    />
+  const control = {
+    ...props,
+    error,
+    inputMode: "decimal" as const,
+    inputDir: "ltr" as const,
+    autoComplete: "off",
+    maxLength: null,
+  };
+  return props.required ? (
+    <TextField {...control} required requiredLabel={props.requiredLabel} />
+  ) : (
+    <TextField {...control} required={false} requiredLabel={undefined} />
   );
 }
 
@@ -309,27 +319,24 @@ export interface FormFinding {
   message: string;
 }
 
-/** @req FR-UI-02, NFR-10: one polite announcement; field messages remain non-live. */
+/** @req FR-UI-02, NFR-10: focusable, non-live summary of current findings. */
 export const FormSummary = forwardRef<
   HTMLDivElement,
   { title: string; findings: readonly FormFinding[] }
 >(function FormSummary({ title, findings }, ref) {
   if (findings.length === 0) return null;
   return (
-    <div
-      className="ui-form-summary"
-      ref={ref}
-      tabIndex={-1}
-      role="status"
-      aria-live="polite"
-    >
+    <div className="ui-form-summary" ref={ref} tabIndex={-1}>
       <p className="ui-form-summary-title">{title}</p>
       <ul>
         {findings.map(({ id, label, message }) => (
           <li key={id}>
             <a
               href={`#${id}`}
-              onClick={() => document.getElementById(id)?.focus()}
+              onClick={(event) => {
+                event.preventDefault();
+                document.getElementById(id)?.focus();
+              }}
             >
               {label}: {message}
             </a>
@@ -339,3 +346,23 @@ export const FormSummary = forwardRef<
     </div>
   );
 });
+
+/** @req FR-UI-02, NFR-10: a stable live region receives one outcome per submit. */
+export function FormAnnouncement({
+  submissionId,
+  message,
+}: {
+  submissionId: number;
+  message?: string;
+}) {
+  return (
+    <div
+      className="ui-form-announcement"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    >
+      {message && <span key={submissionId}>{message}</span>}
+    </div>
+  );
+}
