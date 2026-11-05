@@ -2,9 +2,7 @@
   "name": "calos-workspace",
   "private": true,
   "packageManager": "pnpm@11.25.0",
-  "engines": {
-    "node": ">=22.22.2"
-  },
+  "engines": { "node": ">=22.22.2" },
   "scripts": {
     "check:ts": "pnpm --filter @calos/domain-types check && pnpm --filter @calos/i18n check && pnpm --filter @calos/ui-kit check && pnpm --filter @calos/web check",
     "build:web": "pnpm --filter @calos/web build",
