@@ -1,6 +1,9 @@
 .ui-table-scroll {
+  inline-size: 100%;
+  min-inline-size: 0;
   max-inline-size: 100%;
   overflow: auto;
+  contain: inline-size;
   border: 1px solid var(--line);
   border-radius: var(--radius-panel);
 }
