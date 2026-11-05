@@ -3,7 +3,6 @@
   min-inline-size: 0;
   max-inline-size: 100%;
   overflow: auto;
-  contain: inline-size;
   border: 1px solid var(--line);
   border-radius: var(--radius-panel);
 }
@@ -129,12 +128,16 @@
 }
 .ui-findings-list {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-3);
+  min-inline-size: 0;
 }
 .ui-findings-group {
+  min-inline-size: 0;
   padding: var(--space-3);
   border-inline-start: 3px solid var(--info);
   background: var(--surface);
+  overflow-wrap: anywhere;
 }
 .ui-findings-error {
   border-color: var(--error);
@@ -145,9 +148,11 @@
 .ui-findings-group h3 {
   margin: 0 0 var(--space-2);
   font-size: 1rem;
+  overflow-wrap: anywhere;
 }
 .ui-findings-group ul {
   margin: 0;
+  min-inline-size: 0;
   padding-inline-start: var(--space-4);
 }
 .ui-findings-group li {
@@ -157,6 +162,14 @@
   gap: var(--space-2);
   padding-block: var(--space-1);
   overflow-wrap: anywhere;
+}
+.ui-findings-group li > * {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+.ui-findings-group li > button {
+  max-inline-size: 100%;
+  white-space: normal;
 }
 @media (max-width: 43.75rem) {
   .ui-detail-item {

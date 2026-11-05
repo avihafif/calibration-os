@@ -80,6 +80,16 @@ test("read-only views reflow, sort and remain keyboard accessible in every local
       });
     }
   }
+  await page.locator("#language").selectOption("en-XA");
+  await page.setViewportSize({ width: 320, height: 900 });
+  await page.locator(".data-demo").evaluate((element) => {
+    (element as HTMLElement).style.fontSize = "1.25rem";
+  });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
   await page.locator("#language").selectOption("en");
   const demo = page.locator(".data-demo");
   await expect(
