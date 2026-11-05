@@ -78,6 +78,8 @@ test("read-only views reflow, sort and remain keyboard accessible in every local
     }
     if (locale === "en" || locale === "he") {
       await page.locator("#theme").selectOption("light");
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
       await page.screenshot({
         path: `artifacts/screenshots/data-app-${locale}.png`,
         fullPage: true,
