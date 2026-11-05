@@ -36,10 +36,27 @@ test("read-only views reflow, sort and remain keyboard accessible in every local
               scrollWidth: element?.scrollWidth,
             };
           });
+          const demoRight = document
+            .querySelector(".data-demo")!
+            .getBoundingClientRect().right;
+          const offenders = [...document.querySelectorAll(".data-demo *")]
+            .filter(
+              (element) =>
+                !element.closest(".ui-table-scroll") &&
+                element.getBoundingClientRect().right > demoRight,
+            )
+            .slice(0, 12)
+            .map((element) => ({
+              tag: element.tagName,
+              className: element.className,
+              right: element.getBoundingClientRect().right,
+              text: element.textContent?.slice(0, 55),
+            }));
           return {
             viewport: innerWidth,
             scroll: document.documentElement.scrollWidth,
             bounds,
+            offenders,
           };
         });
         expect(
