@@ -18,11 +18,34 @@ test("read-only views reflow, sort and remain keyboard accessible in every local
         await expect(
           page.locator(".protected-marking.simulation"),
         ).toBeVisible();
+        const dimensions = await page.evaluate(() => {
+          const bounds = [
+            ".calos-app",
+            ".frame-workspace",
+            ".data-demo",
+            ".ui-table-scroll",
+            ".ui-data-table",
+          ].map((selector) => {
+            const element = document.querySelector(selector);
+            const rect = element?.getBoundingClientRect();
+            return {
+              selector,
+              left: rect?.left,
+              right: rect?.right,
+              clientWidth: element?.clientWidth,
+              scrollWidth: element?.scrollWidth,
+            };
+          });
+          return {
+            viewport: innerWidth,
+            scroll: document.documentElement.scrollWidth,
+            bounds,
+          };
+        });
         expect(
-          await page.evaluate(
-            () => document.documentElement.scrollWidth <= innerWidth,
-          ),
-        ).toBe(true);
+          dimensions.scroll,
+          JSON.stringify({ locale, theme, width, dimensions }),
+        ).toBeLessThanOrEqual(dimensions.viewport);
         if (locale === "en" || locale === "he") {
           await demo.screenshot({
             path: `artifacts/screenshots/data-${locale}-${theme}-${width}.png`,
