@@ -78,6 +78,115 @@ async function reportSkipFocusFailure(page: Page): Promise<void> {
   });
 }
 
+/** Hold a real browser notification until after a user has moved focus. */
+async function delayNavigationEvent(
+  page: Page,
+  delayed: "hashchange" | "popstate",
+): Promise<void> {
+  await page.addInitScript((eventType) => {
+    const nativeAdd = window.addEventListener.bind(window);
+    const pending: Array<() => void> = [];
+    const delayedWindow = window as Window & {
+      __calosPendingNavigation?: () => number;
+      __calosReleaseNavigation?: () => void;
+    };
+    delayedWindow.__calosPendingNavigation = () => pending.length;
+    delayedWindow.__calosReleaseNavigation = () => {
+      for (const deliver of pending.splice(0)) deliver();
+    };
+    window.addEventListener = ((
+      name: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | AddEventListenerOptions,
+    ) => {
+      if (listener === null) return;
+      if (name !== eventType) return nativeAdd(name, listener, options);
+      return nativeAdd(
+        name,
+        (event: Event) => {
+          pending.push(() => {
+            if (typeof listener === "function") listener.call(window, event);
+            else listener.handleEvent(event);
+          });
+        },
+        options,
+      );
+    }) as typeof window.addEventListener;
+  }, delayed);
+}
+
+async function releaseNavigationEvent(page: Page): Promise<void> {
+  await page.evaluate(async () => {
+    const delayedWindow = window as Window & {
+      __calosReleaseNavigation?: () => void;
+    };
+    delayedWindow.__calosReleaseNavigation?.();
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => resolve()),
+    );
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => resolve()),
+    );
+  });
+}
+
+for (const delayed of ["hashchange", "popstate"] as const) {
+  for (const focusMove of ["tab", "skip", "pointer"] as const) {
+    test(`late ${delayed} preserves user ${focusMove} focus`, async ({
+      page,
+    }) => {
+      await delayNavigationEvent(page, delayed);
+      await page.goto("/#/overview");
+      await page
+        .getByRole("navigation", { name: "Primary navigation" })
+        .getByRole("link", { name: "Technical text" })
+        .click();
+      await expect(page).toHaveURL(/#\/technical$/u);
+      await expect(
+        page.getByRole("heading", { level: 1, name: "Technical text" }),
+      ).toBeFocused();
+      const historyBeforeFocus = await page.evaluate(() => history.length);
+      expect(
+        await page.evaluate(() => {
+          const delayedWindow = window as Window & {
+            __calosPendingNavigation?: () => number;
+          };
+          return delayedWindow.__calosPendingNavigation?.() ?? 0;
+        }),
+      ).toBeGreaterThan(0);
+      if (focusMove === "tab") {
+        await page.keyboard.press("Tab");
+      } else if (focusMove === "skip") {
+        await page.getByRole("link", { name: "Skip to content" }).focus();
+        await page.keyboard.press("Enter");
+        await expect(page.getByRole("main")).toBeFocused();
+      } else {
+        await page
+          .getByRole("button", { name: "Increase sample count" })
+          .click();
+      }
+      const chosenFocus = await page.evaluate(
+        () => document.activeElement?.outerHTML,
+      );
+      expect(chosenFocus).toBeTruthy();
+      await expect(page.getByRole("heading", { level: 1 })).not.toBeFocused();
+      await releaseNavigationEvent(page);
+      await expect(page).toHaveURL(/#\/technical$/u);
+      expect(await page.evaluate(() => history.length)).toBe(
+        historyBeforeFocus,
+      );
+      if (focusMove === "skip") {
+        await expect(page.getByRole("main")).toBeFocused();
+      } else {
+        expect(
+          await page.evaluate(() => document.activeElement?.outerHTML),
+        ).toBe(chosenFocus);
+        await expect(page.getByRole("heading", { level: 1 })).not.toBeFocused();
+      }
+    });
+  }
+}
+
 /** @req OF-02, P1A-AC-05: Native hash links preserve history, title and focus. */
 test("routes are bilingual, history-aware and focus the page heading", async ({
   page,

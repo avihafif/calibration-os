@@ -1,7 +1,7 @@
 # WP-1A-1e-A implementation evidence
 
-Status: **PR #28 merged at `7b0bbd9`; P28-14 follow-up on
-`codex/p28-14-skip-focus` awaits review.** This is a frontend-only simulation
+Status: **PR #28 merged at `7b0bbd9`; issue #31 follow-up is PR #32 on
+`codex/p28-14-skip-focus` and awaits a fresh independent review.** This is a frontend-only simulation
 milestone, not a host integration or operational calibration capability. The
 follow-up does not merge or approve any governance gate.
 
@@ -135,6 +135,38 @@ the callback order. Four focused browser cases passed **32/32** repeated local
 runs; the full local browser suite passed **29/29**. A fresh first-attempt
 Linux `push` and `pull_request` run on the new SHA is required before closure.
 
+### PR #32 independent-review corrections (P32-01–03)
+
+Claude's [review of `c33a022`](https://github.com/avihafif/calibration-os/pull/32#issuecomment-6683741527)
+confirmed the Skip Link correction and first-attempt green CI, but found that a
+late notification could still steal focus after ordinary Tab navigation. The
+review also identified the dynamic test-origin assertion and the lack of a
+real delayed-event test. These findings remain open on `c33a022`; the changes
+below are the proposed closure and require review of their exact new SHA.
+
+| Finding | Correction | Regression evidence |
+|---|---|---|
+| P32-01 | One controller owns deferred heading focus. Capture-phase keyboard and pointer input marks the URL on which the user acted. A frame or late notification for that URL cannot reclaim focus; input on the prior URL still allows the new heading to focus. The controller also deduplicates a previously focused heading/URL and cancels superseded frames. Unlike the reference branch, it handles input after a silent URL change but before the first browser event; that case initially failed the preserved Skip Link test. | `navigation-focus.test.ts` covers duplicate notifications, input before/after navigation, silent `pushState`, rapid routes, render rearming and disposal. `routing.e2e.spec.ts` keeps its strict original Skip Link and Back/Forward assertions. |
+| P32-02 | The two network-isolation tests still allow only their one configured origin and the original four static paths. A new guard rejects any `baseURL` other than an exact `http://127.0.0.1:<port>/` loopback preview, including `localhost`, non-loopback hosts, credentials and extra path/query/hash. This permits an isolated local port without accepting an external origin. | `i18n.e2e.spec.ts` negative origin test and the existing network/storage isolation assertions. |
+| P32-03 | Browser tests hold a real `hashchange` or `popstate` listener callback until after the route heading focuses and the user moves focus by Tab, Skip Link or pointer. They release the queued notification and wait for exactly two animation frames, with no polling or timeout increase. | Six controlled cases (two event types × three focus actions), plus the original synthetic same-route and rapid-history tests. |
+
+**Local correction run (Windows Chromium, before final CI):** strict TypeScript
+and browser typing passed; Vitest **13 files, 140 tests** passed; the full
+Playwright suite passed **36/36** (including the six new controlled cases).
+ESLint, 90 architecture-boundary probes, logical CSS, 24 design-token contrast
+pairs and the R-4 cross-language vectors passed. Test and Production Rehearsal
+builds and bundle exclusion checks both passed. Python Phase 0A checks passed
+**35 core + 14 security tests**, Ruff check/format, strict mypy (18 files),
+four import contracts, static deployment isolation, codegen and secret scan.
+`pnpm audit` reported no known vulnerabilities. The Windows-local pnpm SBOM
+omitted licence fields and the licence checker rejected it; the Linux CI
+SBOM/licence/OSV step must be observed on the final commit. Full-tree Windows
+Prettier flagged 28 untouched baseline CRLF files; all five changed TS/TSX
+files passed the targeted Prettier check. The local browser run used an
+untracked loopback port-5185 config because another worktree owns 4184; the
+config was removed before commit. No workflow, dependency, policy or bundle
+gate was changed.
+
 **Focus timing investigation.** The earlier assertion sampled immediately after a
 keyboard event, while Chromium's native focus scrolling and the sticky
 marking's ResizeObserver offset can settle across paint frames. The review
@@ -157,10 +189,10 @@ router test and two other pre-existing `.test.ts` suites. No existing-test
 assertion was removed, inverted or relaxed. The P28-14 correction wraps the
 existing skip-link assertion only to emit diagnostics on failure and adds a
 separate rapid-navigation test. Two existing network-isolation tests in
-`i18n.e2e.spec.ts` now derive their **single allowed origin** from Playwright's
-configured `baseURL`, which is the same `127.0.0.1:4184` in CI and permits
-an isolated local preview port; the allowed paths and negative assertions
-are unchanged. The earlier PR implementation changed route
+`i18n.e2e.spec.ts` derive their **single allowed origin** from Playwright's
+configured `baseURL`; PR #32 now requires that URL to be an exact loopback
+preview origin before accepting it. The allowed static paths and negative
+assertions remain unchanged. The earlier PR implementation changed route
 entry URLs to `/#/data` and `/#/forms`, introduced `selectDisplay` for mobile
 settings, and adjusted form tab order for the new shell; those remain in the
 PR and are not represented as new baseline behavior. The new routing and

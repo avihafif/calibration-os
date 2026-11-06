@@ -2,6 +2,36 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
 
+function loopbackPreviewOrigin(baseURL: string | undefined): string {
+  if (!baseURL) throw new Error("BROWSER_BASE_URL_REQUIRED");
+  const url = new URL(baseURL);
+  if (
+    url.protocol !== "http:" ||
+    url.hostname !== "127.0.0.1" ||
+    url.port === "" ||
+    url.username !== "" ||
+    url.password !== "" ||
+    url.pathname !== "/" ||
+    url.search !== "" ||
+    url.hash !== ""
+  )
+    throw new Error("BROWSER_LOOPBACK_ORIGIN_REQUIRED");
+  return url.origin;
+}
+
+test("network isolation rejects a non-loopback preview origin", () => {
+  for (const origin of [
+    "https://example.com/",
+    "http://localhost:4184/",
+    "http://192.0.2.1:4184/",
+    "http://127.0.0.1/",
+    "http://127.0.0.1:4184/other",
+  ])
+    expect(() => loopbackPreviewOrigin(origin)).toThrow(
+      "BROWSER_LOOPBACK_ORIGIN_REQUIRED",
+    );
+});
+
 async function openCompactSettings(page: Page) {
   const disclosure = page.locator(".frame-settings-button");
   if (
@@ -15,8 +45,7 @@ test("English and Hebrew demonstration is keyboard-accessible and network-isolat
   page,
   baseURL,
 }) => {
-  if (!baseURL) throw new Error("BROWSER_BASE_URL_REQUIRED");
-  const localOrigin = new URL(baseURL).origin;
+  const localOrigin = loopbackPreviewOrigin(baseURL);
   const violations: string[] = [];
   await page.route("**/*", async (route) => {
     const url = new URL(route.request().url());
@@ -264,8 +293,7 @@ test("synthetic form is interactive, localized, accessible and fully local", asy
   page,
   baseURL,
 }) => {
-  if (!baseURL) throw new Error("BROWSER_BASE_URL_REQUIRED");
-  const localOrigin = new URL(baseURL).origin;
+  const localOrigin = loopbackPreviewOrigin(baseURL);
   await page.context().grantPermissions(["clipboard-read", "clipboard-write"], {
     origin: localOrigin,
   });

@@ -17,6 +17,10 @@ import {
 import { SyntheticFormDemo } from "./SyntheticFormDemo";
 import { SyntheticDataViewsDemo } from "./SyntheticDataViewsDemo";
 import { useHashRoute } from "./router";
+import {
+  createNavigationFocus,
+  type NavigationFocus,
+} from "./navigation-focus";
 import { buildRoutes } from "./routes";
 import {
   createFakeHostStatusPort,
@@ -60,32 +64,31 @@ export function App({ workspace }: { workspace?: ReactNode }) {
   const title = t(currentRoute?.titleKey ?? "route.notFound");
   const headingRef = useRef<HTMLHeadingElement>(null);
   const previousRoute = useRef<string | null>(null);
-  const routeFocusFrame = useRef<number | null>(null);
-  const skipFocusHash = useRef<string | null>(null);
+  const navigationFocus = useRef<NavigationFocus | null>(null);
 
   useEffect(() => {
-    // History traversal still needs heading focus when two rapid transitions
-    // collapse to the same rendered route id.
-    const onNavigation = () => {
-      // A delayed notification for the route whose skip link was activated
-      // must not take focus back from main.
-      if (skipFocusHash.current === window.location.hash) return;
-      skipFocusHash.current = null;
-      if (routeFocusFrame.current !== null)
-        window.cancelAnimationFrame(routeFocusFrame.current);
-      routeFocusFrame.current = window.requestAnimationFrame(() => {
-        headingRef.current?.focus();
-        window.scrollTo(0, 0);
-        routeFocusFrame.current = null;
-      });
-    };
-    window.addEventListener("hashchange", onNavigation);
-    window.addEventListener("popstate", onNavigation);
+    const controller = createNavigationFocus({
+      heading: () => headingRef.current,
+      scrollToTop: () => window.scrollTo(0, 0),
+      href: () => window.location.href,
+      requestFrame: (callback) => window.requestAnimationFrame(callback),
+      cancelFrame: (handle) => window.cancelAnimationFrame(handle),
+    });
+    navigationFocus.current = controller;
+    const onPopState = () => controller.navigated("popstate");
+    const onHashChange = () => controller.navigated("hashchange");
+    const onInteraction = () => controller.interacted();
+    window.addEventListener("hashchange", onHashChange);
+    window.addEventListener("popstate", onPopState);
+    window.addEventListener("keydown", onInteraction, true);
+    window.addEventListener("pointerdown", onInteraction, true);
     return () => {
-      window.removeEventListener("hashchange", onNavigation);
-      window.removeEventListener("popstate", onNavigation);
-      if (routeFocusFrame.current !== null)
-        window.cancelAnimationFrame(routeFocusFrame.current);
+      window.removeEventListener("hashchange", onHashChange);
+      window.removeEventListener("popstate", onPopState);
+      window.removeEventListener("keydown", onInteraction, true);
+      window.removeEventListener("pointerdown", onInteraction, true);
+      controller.dispose();
+      navigationFocus.current = null;
     };
   }, []);
 
@@ -100,6 +103,9 @@ export function App({ workspace }: { workspace?: ReactNode }) {
     if (previousRoute.current !== null && previousRoute.current !== routeId) {
       window.scrollTo(0, 0);
       setSampleCount(2);
+      // Route effects re-arm focus after the new heading commits and a closing
+      // dialog restores focus. The controller rejects duplicate notifications.
+      navigationFocus.current?.navigated("render");
     }
     previousRoute.current = routeId;
   }, [activeId]);
@@ -121,11 +127,7 @@ export function App({ workspace }: { workspace?: ReactNode }) {
       activeId={activeId}
       skipHref={window.location.hash || "#/overview"}
       onSkipToContent={() => {
-        skipFocusHash.current = window.location.hash;
-        if (routeFocusFrame.current !== null) {
-          window.cancelAnimationFrame(routeFocusFrame.current);
-          routeFocusFrame.current = null;
-        }
+        navigationFocus.current?.interacted();
       }}
       hostStatus={hostStatus}
       onSameRoute={() => {
