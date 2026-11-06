@@ -54,3 +54,12 @@
 | E-24 | `wp-1a-1d/N1_ACCEPTANCE_CRITERIA.md` §3, §4 | Stale statements corrected (the HS-02 sentence was fixed by E-04, PR #28 exists, the recommended order is superseded by [`SEQUENCE_AND_A2.md`](SEQUENCE_AND_A2.md)). Criteria N1-01 to N1-16 are unchanged. |
 | E-25 | `wp-1a-1d/N1_INVISIBLE_UNICODE_REMEDIATION_PROPOSAL.md` N-D2 | The row omitted `timeZoneLabel`, which rule R7 and HS-02 include. |
 | E-26 | `SEQUENCE_AND_A2.md` (new) | Release sequencing, a file-ownership matrix that keeps branches from overlapping, the re-review protocol for PR #28, and acceptance criteria and a handoff prompt for WP-1A-1e-A2. |
+
+## 5. Errata 3 (after PR #28 merged and issue #31 was investigated)
+
+| ID | Where | Change |
+|---|---|---|
+| E-27 | `SEQUENCE_AND_A2.md` §1 | PR #28 is merged; new step 1a for the P28-14 fix (issue #31, PR #32), before N1 and A2. |
+| E-28 | `SEQUENCE_AND_A2.md` §4 | Re-reviews read the full diff between consecutive heads, not a path-filtered one. |
+| E-29 | `SEQUENCE_AND_A2.md` A2-01, A2-03, A2-05, A2-10 and allowed paths | Calendar validity for `wallUtc`; a fixed reason precedence for the disabled action; the existing live-region unit assertions may change only as listed; A2-10 reflects that the host-sentinel gate is already in `main`; `data-views.css` is allowed for A2 only if the scroll region is capped (D-A2-3). |
+| E-30 | `N1_ACCEPTANCE_CRITERIA.md` N1-13 | Probe count baseline is 90, not 80. |
