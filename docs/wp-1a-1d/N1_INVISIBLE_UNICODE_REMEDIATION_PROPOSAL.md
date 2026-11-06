@@ -27,6 +27,8 @@
 Two further properties of the current notation:
 
 * **The notation is ambiguous.** `⟦` (U+27E6) and `⟧` (U+27E7) are not escaped, so a value that literally contains `⟦U+200E⟧` renders identically to a value containing U+200E (measured: collision `true`). The escape format is not injective.
+* **ASCII spaces collapse.** `.ui-display-text` uses `white-space: normal`, so `A B`, `A     B` and ` A B ` occupy the same width (measured 26 px each in Chrome 156 and Edge 156; 62 px for the five-space value under `pre-wrap`). Different identifiers can look identical without any hidden character.
+* **A third copy of the control set exists.** `packages/ts/i18n/src/format.ts` (`forbiddenTechnicalControls`, used by `assertTechnicalText`, `formatQuantity` unit text and `isolateLtr`) has the same incomplete list with a *reject* policy. It accepts `k<U+200B>Ω` and a BOM-prefixed unit today. The decimal path is not affected: `decimalPattern` is anchored ASCII.
 * **Equivalent but different strings** (NFC `é` versus NFD `e`+U+0301; `Ω` U+2126 versus U+03A9) render identically. This is a different problem (§6) and is **not** solved by escaping.
 
 Unit symbols and Hebrew points are *correct* today and must stay unchanged: `µ Ω ° ± × −` and Hebrew niqqud all pass through (measured `true`).
@@ -38,7 +40,7 @@ Unit symbols and Hebrew points are *correct* today and must stay unchanged: `µ 
 3. The notation must be **injective**: two different values never render the same.
 4. One classifier, two policies: **display = escape** (data tables, free text from instruments); **identity-field input = reject** (see §4 R7). Never silently strip.
 5. Deterministic and reviewable: a small pinned table for the format/ignorable/separator classes, so a browser or Node upgrade cannot silently change what is hidden.
-6. `DisplayText` is for technical text only. It must not be used for localized prose, where ZWNJ/ZWJ are legitimate; the docs and the component comment say so.
+6. **Two policies, named.** `technical` (identifiers, codes, pointers, versions: strict) and `prose` (localized or authored sentences, labels, button text: today's set plus the tag block). The current code applies `safeDisplayText` to **both** kinds of text (message, stage, severity and button labels in `FindingsList`), and the pseudo-locales wrap every string in `⟦ … ··⟧`; a single strict policy would therefore break them (see §4 R2 and the review).
 
 ## 3. Options considered
 
@@ -54,12 +56,14 @@ Unit symbols and Hebrew points are *correct* today and must stay unchanged: `µ 
 | ID | Rule |
 |---|---|
 | R1 | Escape every Cc, Cf, Cs, Co, Cn, Zl, Zp and every Zs other than U+0020, plus every `Default_Ignorable_Code_Point`, the variation selectors and the tag block (U+E0000–E007F). |
-| R2 | Escape `⟦` U+27E6 and `⟧` U+27E7 themselves (`⟦U+27E6⟧`), so the notation is injective. Consequence: the function is **not idempotent by design**; it is applied exactly once, at the display boundary. |
+| R2 | **Technical policy only:** escape `⟦` U+27E6 and `⟧` U+27E7 themselves (`⟦U+27E6⟧`), so the notation is injective. Not applied to prose: the pseudo-locales (en-XA, he-XB) deliberately wrap text in those brackets (`packages/ts/i18n/src/index.ts`), and applying R2 to prose breaks two existing tests (measured in the review). Consequence: the technical function is **not idempotent by design**; it is applied exactly once, at the display boundary. |
 | R3 | Keep the format `⟦U+XXXX⟧` (upper-case hex, at least four digits) so existing tests and screenshots remain valid. |
 | R4 | Leave unchanged: ASCII printable, all other letters, digits, marks (Mn/Mc, including Hebrew niqqud and cantillation), punctuation and symbols (including `µ Ω ° ± × −`). NFC/NFD are **not** normalised. |
-| R5 | Data: a small pinned range table for Cf, Default_Ignorable, variation selectors, tags, Zs/Zl/Zp (28 contiguous ranges, 4 224 code points, measured on Unicode 17.0; generated once from the Unicode version named in the file header and committed). `Co`, `Cn`, `Cs` use `\p{…}` at runtime; their drift direction is benign (a newly assigned character may appear as itself). A **tripwire unit test** compares the table with the engine's `\p{Cf}`, `\p{Default_Ignorable_Code_Point}` and `\p{Z}` classes and fails with an explicit message ("review the Unicode update") when the engine knows a code point the table lacks. |
+| R5 | Data: a small pinned range table for Cf, Default_Ignorable, variation selectors, tags, Zs/Zl/Zp (28 contiguous ranges, 4 224 code points, measured on Unicode 17.0; generated once from the Unicode version named in the file header and committed). `Co`, `Cn`, `Cs` use `\p{…}` at runtime; their drift direction is benign (a newly assigned character may appear as itself). A **tripwire unit test** compares the table with the engine's `\p{Cf}`, `\p{Default_Ignorable_Code_Point}` and `\p{Z}` classes and fails with an explicit message ("review the Unicode update") when the engine knows a code point the table lacks (one direction only: an older engine, such as CI's Node 22.22.2, passes). Counts in tests come from the **pinned table**, never from the engine (engines differ: Chrome 156, Edge 156 and Node 26 report Cf 170 / Cn 814 730 / Co 137 468; Python 3.11 with Unicode 14 reports Cf 163 / Cn 829 834). |
 | R6 | Export a pure `findNonDisplayableCodePoints(value): readonly number[]` from the same module (no behaviour change for existing exports). `safeDisplayText` is implemented on top of it. |
-| R7 | **Identity fields use reject, not escape.** In WP-1A-1e HS-02, `agentVersion` and `deploymentId` are accepted only if `findNonDisplayableCodePoints` is empty **and** the value matches printable ASCII (`^[\x20-\x7E]{1,N}$`); otherwise the field becomes `unknown`. This amends HS-02 (which currently says "stripped with `safeDisplayText`"; that function never strips). Config keys and procedure identifiers are already ASCII slugs by AGENTS.md §7 and need no display rule beyond R1–R2. |
+| R7 | **Identity fields use reject, not escape.** In WP-1A-1e HS-02, `agentVersion`, `deploymentId` and `timeZoneLabel` are accepted only if they match printable ASCII without leading, trailing or repeated spaces (`^[\x21-\x7E]+(?: [\x21-\x7E]+)*$`, length-capped); otherwise the field becomes `unknown`. This needs no classifier, because ASCII excludes every hidden character. This amends HS-02 (which currently says "stripped with `safeDisplayText`"; that function never strips). Config keys and procedure identifiers are already ASCII slugs by AGENTS.md §7 and need no display rule beyond R1–R2. |
+| R9 | **Space fidelity.** Technical text keeps runs of ASCII spaces visible: `white-space: pre-wrap` (with the existing `overflow-wrap: anywhere`) on the technical `bdi`. Verified to separate `A B` from `A     B` in Chrome and Edge. |
+| R10 | **One classifier, in the lowest layer.** The pinned table and `findNonDisplayableCodePoints` live in `@calos/i18n` (`ui-kit`, `apps/web` and `format.ts` import it; `i18n` imports nothing). `forbiddenTechnicalControls` in `format.ts` is replaced by it, keeping the error codes and every existing accepted input (`Ω`, `µ`, `°C`) unchanged. Never reuse it for search (PS-03). |
 | R8 | Optional (Should): a small localized note "hidden characters shown" beside a value that needed escaping (icon + text, he/en, Hebrew `needs_review`). New strings need the normal review-status mechanism; omit if the owner prefers no new strings in the first PR. |
 
 ## 5. Test plan (for the code PR)
@@ -85,7 +89,12 @@ Unit symbols and Hebrew points are *correct* today and must stay unchanged: `µ 
 | N-D1 | Scope of R1: escape Co and Cn too (blank or tofu otherwise) | Yes |
 | N-D2 | R7: reject (not escape) non-ASCII or non-displayable text in `agentVersion` and `deploymentId` | Yes |
 | N-D3 | R8: add the "hidden characters shown" note in this PR | No (separate review of new strings) |
-| N-D4 | Assign `WP-1A-1d-N1` to Codex and name the independent reviewer | Owner decision |
+| N-D4 | Assign `WP-1A-1d-N1` to Codex and name the independent reviewer | Owner decision, after this proposal is merged |
+| N-D5 | Two named policies, `technical` (R1, R2, R9) and `prose` (today's set plus the tag block U+E0000–E007F) | Yes |
+| N-D6 | Classifier home: `@calos/i18n`, replacing the copy in `format.ts` (R10) | Yes |
+| N-D7 | Space fidelity by CSS `pre-wrap` on technical text (R9) | Yes |
+
+Acceptance criteria for the code PR, the dependency on WP-1A-1e task T4 and the handoff prompt are in [`N1_ACCEPTANCE_CRITERIA.md`](N1_ACCEPTANCE_CRITERIA.md). The independent review of this proposal is on the pull request.
 
 No other approval is involved: no workflow, ADR status, dependency or governance record is touched. A GO here is a planning recommendation, not a security or metrology approval.
 
