@@ -40,7 +40,7 @@ Real host adapter, `fetch`, storage, schemas, a HostStatus contract, `react-rout
 | `apps/web/src/SyntheticDataViewsDemo.tsx` | — | synthetic rows only | — | — |
 | `tests/frontend/**` | routing, host | `data-views.e2e` (additive) | host, routing (additive) | CSP, edge, forced-colors |
 | `tools/check_ts_boundary.mjs` (additive probes) | yes | yes | yes | — |
-| `tools/check_frontend_bundle.mjs` | no (H-4) | no | only after H-4a | maybe |
+| `tools/check_frontend_bundle.mjs` | host sentinel only (additive; needs the owner's H-4a record, see the #28 re-review) | no | only after H-4a | maybe |
 | `package.json` (`check:browser-types` list) | yes | — | yes | `test:e2e:edge` |
 | `.github/workflows/**` | no | no | no | only after H-3, H-5 |
 | `docs/NO_CODE_CAPABILITY_MATRIX.md` | yes | yes | yes | yes |
@@ -58,7 +58,7 @@ I perform this when Codex updates the branch, on a clean checkout of the exact h
 5. **C-4 (if applied).** Edit the hash to `#/`, `#`, empty after load: URL becomes `#/overview`; Ctrl+K then Back: focus is on the `h1`; drawer case unchanged.
 6. **Pseudo-locale responsiveness.** Top-bar height at 320×568 in `en`, `he`, `en-XA`, `he-XB` against SR-02 (140 / 180) or the owner's recorded deviation; no horizontal scroll; `he-XB` with every warning and error state shows no clipping.
 7. **Isolation.** Re-run the Test and Rehearsal probes: Rehearsal has two nav items, three Test routes are NotFound, English and Hebrew only, status unknown, markings intact, no simulator code, scroll height 0 at three viewports; 0 non-local requests; storage and cookies empty.
-8. **Regression probes.** The routing, F6, target-size, overlap, axe and Rehearsal scripts from the PR #28 review, plus all gates with counts (`check:ts`, `check:browser-types`, `lint:ts`, `lint:logical-css`, `test:ts-boundary`, `test:design-tokens`, `test:schema-vectors`, `test:frontend`, `build:web` and bundle gate for both builds, `test:e2e`).
+8. **Regression probes.** The routing, F6, target-size, overlap, axe and Rehearsal scripts from the PR #28 review, plus all gates with counts (`check:ts`, `check:browser-types`, `lint:ts`, `lint:logical-css`, `test:ts-boundary`, `test:design-tokens`, `test:schema-vectors`, `test:frontend`, `build:web` and bundle gate for both builds, `test:e2e`). Also compare the unit-test files that exist (`*.test.ts` and `*.test.tsx` under `packages/ts` and `apps/web/src`) with the files `vitest` actually runs: a test that never executes is not evidence (the first head of PR #28 ran 97 tests and silently skipped three `.test.ts` files; its final head runs 130). Run the browser suite repeatedly (at least 20 repetitions of the history and focus tests under parallel load) and read the CI result of **both** the `push` and the `pull_request` run for the exact SHA.
 9. **Report.** Findings with IDs and severity; what changed since the first review; what is not verified (browser-chrome F6, real screen readers, Edge, High Contrast, CSP, sub-path). It approves nothing.
 
 ## 5. Decisions for the owner
@@ -66,7 +66,7 @@ I perform this when Codex updates the branch, on a clean checkout of the exact h
 | ID | Decision | Recommendation |
 |---|---|---|
 | N-D1 to N-D7 | Record the N-1 decisions (the proposal merged as a proposal only) | Yes to all, with N-D3 = no |
-| D-A2-1 | `SR-02` in `en-XA` (measured 237 px against 180): fix the layout in A2, or relax the pseudo-locale figure by errata | Fix in A2 if the compaction is small; otherwise relax `en-XA` to a measured bound and keep `he-XB` at 180 |
+| D-A2-1 | `SR-02` in `en-XA` (measured 237 px against 180): fix the layout in A2, or relax the pseudo-locale figure by errata | Fix in A2 if the compaction is small; otherwise relax `en-XA` to a measured bound and keep `he-XB` at 180. **Update:** the corrected head of PR #28 measures 157 px (`en-XA`) and 150 px (`he-XB`), so if it merges only the all-states test of A2-08 remains |
 | D-A2-2 | Include the bundle-gate sentinel in A2 (needs H-4a) or leave it to B | Include in A2 (additive gate, only stronger) |
 | D-A2-3 | Cap the tall scroll container so its focus indicator is not hidden by the sticky status bar (P28-11), or accept and document | Cap it (`max-block-size`) |
 | D-E8, D-E9, H-3, H-4a/b, H-5, H-6 | As in `HUMAN_APPROVALS.md` | Defaults |
@@ -87,11 +87,12 @@ Scope: the T4 items that PR #28 left open, plus the review findings P28-05 to P2
 | A2-07 | `agentVersion`, `deploymentId` and `timeZoneLabel` are displayed (detail view and mobile disclosure) through `DisplayText` with the technical policy from N1 and as LTR isolates; `wallUtc` stays verbatim in `<time dateTime>`. No raw host string reaches the DOM. | unit with hostile values |
 | A2-08 | `SR-02` for `en-XA` per D-A2-1; `SR-05`: `he-XB` and `en-XA` at 320 px with every warning and error state: no clipping, no horizontal scroll. | e2e |
 | A2-09 | Overlap sweep (focus not under the marking or the sticky status bar) at 1280×560, 768×600 and 800×400 on every route, including the data route's scroll region (D-A2-3). | e2e |
-| A2-10 | Gate sentinel for the host demo with presence in Test, absence in Rehearsal and a negative probe, **only if H-4a is given**; otherwise no gate edit and the gap is recorded. | gate |
+| A2-10 | Gate sentinel for the host demo with presence in Test, absence in Rehearsal and a negative probe, **only if H-4a is given**; otherwise no gate edit and the gap is recorded. If PR #28 already carries the host-sentinel gate with a recorded H-4a, this item is satisfied and only the relative-URL part (H-4b) remains. | gate |
 | A2-11 | Rehearsal verification per D-E8: `buildRoutes` unit tests and a documented local measurement (route table, status bar, scroll height at three viewports). | unit, docs |
 | A2-12 | No existing assertion is weakened, replaced or turned into polling; every edit to an existing test is listed in `EVIDENCE_A2.md` with its reason. | review |
 | A2-13 | Out of scope: any adapter, `fetch`, storage, timers, new dependency, workflow edit, forced colors, CSP harness, Edge, favicon, N1 work, protected markings, `status.css`, `index.html`. | diff review |
 | A2-14 | `docs/wp-1a-1e/EVIDENCE_A2.md`: criterion-to-test table, commands with counts, versions, screenshots for the new states (en/he, light/dark, 320/768/1440), the honest list of what is not verified. Additive lint probes with negative probes (counts reported). | review |
+| A2-15 (Should) | A gate fails when a `*.test.ts` or `*.test.tsx` file under `packages/ts/*/src` or `apps/web/src` exists but `pnpm test:frontend` does not execute it (discovered versus executed), with a negative probe. A new gate: the owner approves it before it is added. | gate |
 
 Allowed paths: `packages/ts/ui-kit/src/**` (host and frame files only), `packages/ts/i18n/src/messages.ts` and its tests, `apps/web/src/**`, `tests/frontend/**`, `tools/check_ts_boundary.mjs` (additive), `tools/check_frontend_bundle.mjs` (only after H-4a), `package.json` (`scripts` only), `docs/wp-1a-1e/EVIDENCE_A2.md`, `docs/NO_CODE_CAPABILITY_MATRIX.md`. Everything else is forbidden, as in `CODEX_HANDOFF.md`.
 
@@ -102,7 +103,7 @@ You are implementing WP-1A-1e-A2 for the CalOS repository (avihafif/calibration-
 
 Read first: AGENTS.md; docs/wp-1a-1e/SPECIFICATION.md, TASKS_AND_TESTS.md, HUMAN_APPROVALS.md, ERRATA.md and SEQUENCE_AND_A2.md (section 6 is your acceptance list); docs/wp-1a-1d/N1_INVISIBLE_UNICODE_REMEDIATION_PROPOSAL.md; docs/wp-1a-1e/EVIDENCE.md from PR #28.
 
-Build exactly A2-01 to A2-14. Hard rules: no fetch, XMLHttpRequest, WebSocket, navigator.onLine, history.pushState, Date.now, zero-argument new Date(), timers or polling; no browser storage; no URL state other than #/<route-id>; no new dependency; Hebrew strings stay needs_review; unknown is never OK; a host environment_kind that differs from the build is an error and never changes a protected marking; identity fields are rejected unless they match the R7 pattern; a bundle sentinel is a runtime string literal, never a comment; do not edit, replace or convert to polling any existing assertion and list every edit to an existing test in EVIDENCE_A2.md; do not weaken any lint rule, boundary contract, bundle gate or test; do not skip or retry a failing test. Edit tools/check_frontend_bundle.mjs only if the owner has approved H-4a in the PR thread. Do not edit .github/**, ProtectedFrame.tsx, status.css, index.html, schemas, ADRs or governance documents.
+Build exactly A2-01 to A2-14 (A2-15 only if the owner approves the new gate). Hard rules: no fetch, XMLHttpRequest, WebSocket, navigator.onLine, history.pushState, Date.now, zero-argument new Date(), timers or polling; no browser storage; no URL state other than #/<route-id>; no new dependency; Hebrew strings stay needs_review; unknown is never OK; a host environment_kind that differs from the build is an error and never changes a protected marking; identity fields are rejected unless they match the R7 pattern; a bundle sentinel is a runtime string literal, never a comment; do not edit, replace or convert to polling any existing assertion and list every edit to an existing test in EVIDENCE_A2.md; do not weaken any lint rule, boundary contract, bundle gate or test; do not skip or retry a failing test. Edit tools/check_frontend_bundle.mjs only if the owner has approved H-4a in the PR thread. Do not edit .github/**, ProtectedFrame.tsx, status.css, index.html, schemas, ADRs or governance documents.
 
 Stop and report if a dependency, workflow, schema or protected-marking change seems necessary, if a baseline figure no longer matches, or if an existing test must change to pass.
 
