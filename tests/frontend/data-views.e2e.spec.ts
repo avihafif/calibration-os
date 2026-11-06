@@ -1,18 +1,33 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
+import type { Page } from "@playwright/test";
+
+async function selectDisplay(
+  page: Page,
+  selector: "#language" | "#theme",
+  value: string,
+) {
+  const disclosure = page.locator(".frame-settings-button");
+  if (
+    (await disclosure.isVisible()) &&
+    (await disclosure.getAttribute("aria-expanded")) === "false"
+  )
+    await disclosure.click();
+  await page.locator(selector).selectOption(value);
+}
 
 /** @req DV-01..DV-07, P1A-AC-09: static Test-only view matrix. */
 test("read-only views reflow, sort and remain keyboard accessible in every locale", async ({
   page,
 }) => {
   test.setTimeout(180000);
-  await page.goto("/");
+  await page.goto("/#/data");
   for (const locale of ["en", "he", "en-XA", "he-XB"] as const) {
-    await page.locator("#language").selectOption(locale);
+    await selectDisplay(page, "#language", locale);
     for (const width of [320, 768, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       for (const theme of ["light", "dark"] as const) {
-        await page.locator("#theme").selectOption(theme);
+        await selectDisplay(page, "#theme", theme);
         const demo = page.locator(".data-demo");
         await expect(demo.getByRole("table")).toBeVisible();
         await expect(
@@ -77,7 +92,7 @@ test("read-only views reflow, sort and remain keyboard accessible in every local
       }
     }
     if (locale === "en" || locale === "he") {
-      await page.locator("#theme").selectOption("light");
+      await selectDisplay(page, "#theme", "light");
       await page.evaluate(() => window.scrollTo(0, 0));
       await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
       await page.screenshot({
@@ -86,7 +101,7 @@ test("read-only views reflow, sort and remain keyboard accessible in every local
       });
     }
   }
-  await page.locator("#language").selectOption("en-XA");
+  await selectDisplay(page, "#language", "en-XA");
   await page.setViewportSize({ width: 320, height: 900 });
   await page.locator(".data-demo").evaluate((element) => {
     (element as HTMLElement).style.fontSize = "1.25rem";
@@ -96,7 +111,7 @@ test("read-only views reflow, sort and remain keyboard accessible in every local
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
-  await page.locator("#language").selectOption("en");
+  await selectDisplay(page, "#language", "en");
   const demo = page.locator(".data-demo");
   await expect(
     demo.getByRole("table").locator('tbody th[scope="row"] bdi[dir="ltr"]', {
@@ -162,9 +177,9 @@ test("read-only views reflow, sort and remain keyboard accessible in every local
 test("long identifiers leave another column visible and preserve the full value", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/#/data");
   for (const locale of ["en", "he"] as const) {
-    await page.locator("#language").selectOption(locale);
+    await selectDisplay(page, "#language", locale);
     for (const width of [320, 375, 768]) {
       await page.setViewportSize({ width, height: 900 });
       const geometry = await page.locator(".data-demo").evaluate((demo) => {
@@ -201,7 +216,7 @@ test("long identifiers leave another column visible and preserve the full value"
       expect(identifiers.at(-1)).not.toBe(identifiers.at(-2));
     }
   }
-  await page.locator("#language").selectOption("he");
+  await selectDisplay(page, "#language", "he");
   await page.setViewportSize({ width: 320, height: 900 });
   const region = page.locator(".data-demo .ui-table-scroll");
   await region.focus();
@@ -226,7 +241,7 @@ test("long identifiers leave another column visible and preserve the full value"
 test("keyboard focus clears the protected marking at short viewport heights", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/#/data");
   for (const [locale, width] of [
     ["en", 320],
     ["en-XA", 320],
@@ -234,25 +249,28 @@ test("keyboard focus clears the protected marking at short viewport heights", as
     ["en", 768],
     ["he", 768],
   ] as const) {
-    await page.locator("#language").selectOption(locale);
+    await selectDisplay(page, "#language", locale);
     await page.setViewportSize({ width, height: 400 });
     const controls = page.locator(
       ".data-demo .ui-table-sort, .data-demo tbody button",
     );
     await controls.last().focus();
     for (let index = 0; index < 7; index += 1) {
-      const overlap = await page.evaluate(() => {
-        const marking = document
-          .querySelector(".protected-markings")!
-          .getBoundingClientRect();
-        const focus = document.activeElement!.getBoundingClientRect();
-        return Math.max(
-          0,
-          Math.min(marking.bottom, focus.bottom) -
-            Math.max(marking.top, focus.top),
-        );
-      });
-      expect(overlap, `${locale} ${width} Shift+Tab ${index}`).toBe(0);
+      const overlap = () =>
+        page.evaluate(() => {
+          const marking = document
+            .querySelector(".protected-markings")!
+            .getBoundingClientRect();
+          const focus = document.activeElement!.getBoundingClientRect();
+          return Math.max(
+            0,
+            Math.min(marking.bottom, focus.bottom) -
+              Math.max(marking.top, focus.top),
+          );
+        });
+      await expect
+        .poll(overlap, { message: `${locale} ${width} Shift+Tab ${index}` })
+        .toBe(0);
       await page.keyboard.press("Shift+Tab");
     }
     await page.keyboard.press("Tab");
@@ -275,11 +293,11 @@ test("every state panel has localized text and accessible semantics in both them
   page,
 }) => {
   test.setTimeout(180000);
-  await page.goto("/");
+  await page.goto("/#/data");
   for (const locale of ["en", "he"] as const) {
-    await page.locator("#language").selectOption(locale);
+    await selectDisplay(page, "#language", locale);
     for (const theme of ["light", "dark"] as const) {
-      await page.locator("#theme").selectOption(theme);
+      await selectDisplay(page, "#theme", theme);
       for (const state of [
         "loading",
         "empty",

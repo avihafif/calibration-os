@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   createSystemI18n,
   messageReviewStatus,
@@ -10,38 +10,78 @@ import {
   Button,
   Card,
   Notification,
+  PageHeader,
+  hostStatusSeverity,
   type Theme,
 } from "@calos/ui-kit";
 import { SyntheticFormDemo } from "./SyntheticFormDemo";
 import { SyntheticDataViewsDemo } from "./SyntheticDataViewsDemo";
+import { useHashRoute } from "./router";
+import { buildRoutes } from "./routes";
+import {
+  createFakeHostStatusPort,
+  createUnavailableHostStatusPort,
+  useHostStatus,
+} from "./host/host-status-port";
+import {
+  SyntheticHostStatusDemo,
+  hostPresetStatus,
+  type HostPreset,
+} from "./SyntheticHostStatusDemo";
 
 const environmentKind =
   import.meta.env.VITE_ENVIRONMENT_KIND === "production_rehearsal"
     ? "production_rehearsal"
     : "test";
+const routes = buildRoutes(environmentKind);
+const ids = new Set(routes.map((route) => route.id));
 const platformIdentifier = "CALOS-UI";
 const technicalUnitSymbol = "Ω";
 
-/** @req FR-UI-02, P1A-AC-08, P1A-AC-09: non-operational UI Kit demonstration. */
+/** @req FR-UI-02, OF-02, P1A-AC-05: Route-scoped simulation-only shell. */
 export function App({ workspace }: { workspace?: ReactNode }) {
   const [locale, setLocale] = useState<SupportedLocale>("en");
   const [theme, setTheme] = useState<Theme>("light");
   const [sampleCount, setSampleCount] = useState(2);
+  const [hostPreset, setHostPreset] = useState<HostPreset>("unknown");
+  const hostPort = useMemo(
+    () =>
+      environmentKind === "test"
+        ? createFakeHostStatusPort()
+        : createUnavailableHostStatusPort(),
+    [],
+  );
+  const hostStatus = useHostStatus(hostPort);
   const i18n = useMemo(() => createSystemI18n(locale), [locale]);
   const t = i18n.format;
-  const navigation = [
-    { id: "overview", label: t("shell.overview"), href: "#content" },
-    { id: "technical", label: t("shell.technical"), href: "#technical" },
-  ] as const;
+  const route = useHashRoute(ids);
+  const activeId = route.kind === "route" ? route.id : undefined;
+  const currentRoute = routes.find((item) => item.id === activeId);
+  const title = t(currentRoute?.titleKey ?? "route.notFound");
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const previousRoute = useRef<string | null>(null);
 
   useEffect(() => {
     document.documentElement.lang = locale;
     document.documentElement.dir = i18n.direction;
-    document.title =
-      (environmentKind === "test" ? "TEST" : "PRODUCTION REHEARSAL") +
-      " · SIMULATION ONLY · " +
-      t("app.title");
-  }, [i18n, locale, t]);
+    document.title = `${environmentKind === "test" ? "TEST" : "PRODUCTION REHEARSAL"} · SIMULATION ONLY · ${title} · ${t("app.title")}`;
+  }, [i18n.direction, locale, t, title]);
+
+  useEffect(() => {
+    const routeId = activeId ?? "not-found";
+    if (previousRoute.current !== null && previousRoute.current !== routeId) {
+      headingRef.current?.focus();
+      window.scrollTo(0, 0);
+      setSampleCount(2);
+    }
+    previousRoute.current = routeId;
+  }, [activeId]);
+
+  const navigation = routes.map((item) => ({
+    id: item.id,
+    href: item.href,
+    label: t(item.titleKey),
+  }));
 
   return (
     <AppFrame
@@ -51,18 +91,39 @@ export function App({ workspace }: { workspace?: ReactNode }) {
       onThemeChange={setTheme}
       deployment={environmentKind}
       navigation={navigation}
+      activeId={activeId}
+      skipHref={window.location.hash || "#/overview"}
+      hostStatus={hostStatus}
+      onSameRoute={() => {
+        headingRef.current?.focus();
+        window.scrollTo(0, 0);
+      }}
     >
       {workspace ?? (
         <>
-          <div className="workspace-heading">
-            <div>
-              <p className="workspace-eyebrow">{t("shell.workspace")}</p>
-              <h1>{t("shell.overview")}</h1>
-            </div>
-            <Badge tone="simulation">{t("mode.simulation")}</Badge>
-          </div>
-          <Notification tone="info">{t("app.description")}</Notification>
-          <div id="technical" className="technical-panel">
+          <PageHeader
+            ref={headingRef}
+            title={title}
+            eyebrow={t("shell.workspace")}
+          />
+          <Badge tone="simulation">{t("mode.simulation")}</Badge>
+          {hostStatusSeverity(hostStatus, environmentKind) === "error" && (
+            <Notification tone="error">
+              {hostStatus?.environmentKind !== environmentKind
+                ? t("host.mismatch.body")
+                : t("host.summary.error")}
+            </Notification>
+          )}
+          {route.kind === "unknown" && (
+            <>
+              <Notification tone="info">{t("route.notFoundBody")}</Notification>
+              <a href="#/overview">{t("route.notFoundLink")}</a>
+            </>
+          )}
+          {activeId === "overview" && (
+            <Notification tone="info">{t("app.description")}</Notification>
+          )}
+          {activeId === "technical" && (
             <Card title={t("app.technical")}>
               <dl className="technical-list">
                 <dt>{t("app.identifier")}</dt>
@@ -99,10 +160,33 @@ export function App({ workspace }: { workspace?: ReactNode }) {
                 </Button>
               </div>
             </Card>
-          </div>
-          {environmentKind === "test" && <SyntheticFormDemo locale={locale} />}
-          {environmentKind === "test" && (
+          )}
+          {environmentKind === "test" && activeId === "forms" && (
+            <SyntheticFormDemo locale={locale} />
+          )}
+          {environmentKind === "test" && activeId === "data" && (
             <SyntheticDataViewsDemo locale={locale} />
+          )}
+          {environmentKind === "test" && activeId === "host" && (
+            <SyntheticHostStatusDemo
+              locale={locale}
+              preset={hostPreset}
+              onPresetChange={(next) => {
+                setHostPreset(next);
+                const status = hostPresetStatus(next);
+                if (
+                  status &&
+                  "set" in hostPort &&
+                  typeof hostPort.set === "function"
+                )
+                  hostPort.set(status);
+                else if (
+                  "clear" in hostPort &&
+                  typeof hostPort.clear === "function"
+                )
+                  hostPort.clear();
+              }}
+            />
           )}
           {messageReviewStatus(locale, "app.title") === "needs_review" && (
             <p className="review-note">{t("app.review")}</p>

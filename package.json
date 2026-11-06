@@ -6,7 +6,7 @@
   "scripts": {
     "check:ts": "pnpm --filter @calos/domain-types check && pnpm --filter @calos/i18n check && pnpm --filter @calos/ui-kit check && pnpm --filter @calos/web check",
     "build:web": "pnpm --filter @calos/web build",
-    "check:browser-types": "tsc --noEmit --strict --moduleResolution Bundler --module ESNext --target ES2022 --skipLibCheck playwright.config.ts tests/frontend/i18n.e2e.spec.ts tests/frontend/data-views.e2e.spec.ts",
+    "check:browser-types": "tsc --noEmit --strict --moduleResolution Bundler --module ESNext --target ES2022 --skipLibCheck playwright.config.ts tests/frontend/i18n.e2e.spec.ts tests/frontend/data-views.e2e.spec.ts tests/frontend/routing.e2e.spec.ts tests/frontend/host-status.e2e.spec.ts",
     "lint:ts": "eslint apps/web/src packages/ts/domain-types/src packages/ts/i18n/src packages/ts/ui-kit/src",
     "format:ts": "prettier --write apps/web/src packages/ts/domain-types/src packages/ts/i18n/src packages/ts/ui-kit/src tests/typing/schema_proof.ts tests/frontend tools/*.mjs *.config.mjs playwright.config.ts",
     "format:ts:check": "prettier --check apps/web/src packages/ts/domain-types/src packages/ts/i18n/src packages/ts/ui-kit/src tests/typing/schema_proof.ts tests/frontend tools/*.mjs *.config.mjs playwright.config.ts",

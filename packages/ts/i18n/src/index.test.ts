@@ -17,7 +17,9 @@ describe("compiled system localization", () => {
       Object.keys(enMessages).sort(),
     );
     expect(
-      Object.keys(enMessages).every((key) => /^[a-z]+\.[a-zA-Z]+$/u.test(key)),
+      Object.keys(enMessages).every((key) =>
+        /^[a-z]+(?:\.[a-zA-Z][a-zA-Z0-9]*)+$/u.test(key),
+      ),
     ).toBe(true);
   });
 

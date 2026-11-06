@@ -102,6 +102,48 @@ tested += 1;
 const hardeningProbes = [
   [
     "apps/web/src/boundary-probe.ts",
+    "navigator.onLine;",
+    "calos/no-unsafe-web-api",
+  ],
+  [
+    "apps/web/src/boundary-probe.ts",
+    "history.pushState(null, '', '/');",
+    "calos/no-unsafe-web-api",
+  ],
+  ["apps/web/src/boundary-probe.ts", "Date.now();", "calos/no-unsafe-web-api"],
+  ["apps/web/src/boundary-probe.ts", "new Date();", "calos/no-unsafe-web-api"],
+  [
+    "packages/ts/ui-kit/src/boundary-probe.ts",
+    "navigator.onLine;",
+    "calos/no-unsafe-web-api",
+  ],
+  [
+    "packages/ts/ui-kit/src/boundary-probe.ts",
+    "history.pushState(null, '', '/');",
+    "calos/no-unsafe-web-api",
+  ],
+  [
+    "packages/ts/ui-kit/src/boundary-probe.ts",
+    "Date.now();",
+    "calos/no-unsafe-web-api",
+  ],
+  [
+    "packages/ts/ui-kit/src/boundary-probe.ts",
+    "new Date();",
+    "calos/no-unsafe-web-api",
+  ],
+  [
+    "packages/ts/ui-kit/src/boundary-probe.ts",
+    "window.location;",
+    "calos/no-unsafe-web-api",
+  ],
+  [
+    "packages/ts/ui-kit/src/boundary-probe.ts",
+    "window.history;",
+    "calos/no-unsafe-web-api",
+  ],
+  [
+    "apps/web/src/boundary-probe.ts",
     'import "../../../fixtures/manufacturer/valid.json";',
     "calos/import-boundary",
   ],

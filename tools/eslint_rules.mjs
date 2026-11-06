@@ -136,6 +136,25 @@ export const calosRules = {
           MemberExpression(node) {
             const name = memberName(node);
             if (name !== null && unsafeMembers.has(name)) report(node);
+            const owner =
+              node.object.type === "Identifier"
+                ? node.object.name
+                : node.object.type === "MemberExpression"
+                  ? memberName(node.object)
+                  : null;
+            if (name === "onLine" && owner === "navigator") report(node);
+            if (name === "pushState" && owner === "history") report(node);
+            if (name === "now" && owner === "Date") report(node);
+            if (
+              !/\.(?:test|spec)\.tsx?$/u.test(context.filename) &&
+              context.filename
+                .replaceAll("\\", "/")
+                .includes("packages/ts/ui-kit/") &&
+              (name === "location" ||
+                name === "history" ||
+                name === "navigator")
+            )
+              report(node);
             if (
               node.computed &&
               node.property.type !== "Literal" &&
@@ -153,6 +172,12 @@ export const calosRules = {
               report(node);
           },
           NewExpression(node) {
+            if (
+              node.callee.type === "Identifier" &&
+              node.callee.name === "Date" &&
+              node.arguments.length === 0
+            )
+              report(node);
             if (
               node.callee.type === "Identifier" &&
               [
