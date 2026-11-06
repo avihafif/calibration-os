@@ -6,7 +6,7 @@ import { AppFrame } from "./AppFrame";
 
 afterEach(cleanup);
 
-function mount() {
+function mount(onSkipToContent?: () => void) {
   const label = createSystemI18n("en").format("shell.overview");
   const view = render(
     <AppFrame
@@ -17,6 +17,7 @@ function mount() {
       deployment="test"
       activeId="overview"
       skipHref="#/overview"
+      onSkipToContent={onSkipToContent}
       navigation={[{ id: "overview", label, href: "#/overview" }]}
     >
       <h1>{label}</h1>
@@ -50,6 +51,17 @@ function pressPalette(init: KeyboardEventInit): KeyboardEvent {
 
 /** @req FR-UI-02, P1A-AC-05: Region cycling never activates a control. */
 describe("AppFrame region keyboard model", () => {
+  it("notifies the host before the skip link focuses main", () => {
+    let focusAtNotification: Element | null = null;
+    mount(() => {
+      focusAtNotification = document.activeElement;
+    });
+    const skip = screen.getByRole("link", { name: "Skip to content" });
+    skip.focus();
+    fireEvent.click(skip);
+    expect(focusAtNotification).toBe(skip);
+    expect(document.activeElement).toBe(screen.getByRole("main"));
+  });
   it("moves forward and backward through named region containers", () => {
     const root = mount();
     const regions = [

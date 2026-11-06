@@ -1,10 +1,197 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
+
+/** @req RO-05, P28-14: Keep bounded event evidence if skip focus ever fails in CI. */
+async function recordNavigationFocus(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    const tracedWindow = window as Window & {
+      __calosFocusTrace?: Array<
+        Record<string, string | number | boolean | null>
+      >;
+    };
+    const trace: Array<Record<string, string | number | boolean | null>> = [];
+    let order = 0;
+    tracedWindow.__calosFocusTrace = trace;
+    for (const eventName of [
+      "focusin",
+      "hashchange",
+      "popstate",
+      "click",
+      "keydown",
+    ]) {
+      window.addEventListener(
+        eventName,
+        () => {
+          const active = document.activeElement;
+          trace.push({
+            order: order++,
+            event: eventName,
+            hash: location.hash,
+            history: history.length,
+            active: `${active?.tagName ?? "none"}#${active?.id ?? ""}.${active?.getAttribute("class") ?? ""}`,
+            route:
+              document
+                .querySelector('[aria-current="page"]')
+                ?.getAttribute("href") ?? null,
+            heading: document.querySelector("h1")?.textContent ?? null,
+            mainFocused: active === document.querySelector("main"),
+            inert:
+              document.querySelector(".frame-layout")?.hasAttribute("inert") ??
+              false,
+            dialog: document.querySelector('[role="dialog"]') !== null,
+          });
+          if (trace.length > 80) trace.shift();
+        },
+        true,
+      );
+    }
+  });
+}
+
+async function reportSkipFocusFailure(page: Page): Promise<void> {
+  const snapshot = await page.evaluate(() => {
+    const tracedWindow = window as Window & {
+      __calosFocusTrace?: Array<
+        Record<string, string | number | boolean | null>
+      >;
+    };
+    return {
+      hash: location.hash,
+      history: history.length,
+      active: `${document.activeElement?.tagName ?? "none"}#${document.activeElement?.id ?? ""}`,
+      route: document
+        .querySelector('[aria-current="page"]')
+        ?.getAttribute("href"),
+      heading: document.querySelector("h1")?.textContent,
+      mainFocused: document.activeElement === document.querySelector("main"),
+      inert:
+        document.querySelector(".frame-layout")?.hasAttribute("inert") ?? false,
+      dialog: document.querySelector('[role="dialog"]') !== null,
+      trace: tracedWindow.__calosFocusTrace ?? [],
+    };
+  });
+  const body = JSON.stringify(snapshot, null, 2);
+  console.error(`P28-14 skip-focus diagnostic: ${body}`);
+  await test.info().attach("skip-focus-diagnostic.json", {
+    body,
+    contentType: "application/json",
+  });
+}
+
+/** Hold a real browser notification until after a user has moved focus. */
+async function delayNavigationEvent(
+  page: Page,
+  delayed: "hashchange" | "popstate",
+): Promise<void> {
+  await page.addInitScript((eventType) => {
+    const nativeAdd = window.addEventListener.bind(window);
+    const pending: Array<() => void> = [];
+    const delayedWindow = window as Window & {
+      __calosPendingNavigation?: () => number;
+      __calosReleaseNavigation?: () => void;
+    };
+    delayedWindow.__calosPendingNavigation = () => pending.length;
+    delayedWindow.__calosReleaseNavigation = () => {
+      for (const deliver of pending.splice(0)) deliver();
+    };
+    window.addEventListener = ((
+      name: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | AddEventListenerOptions,
+    ) => {
+      if (listener === null) return;
+      if (name !== eventType) return nativeAdd(name, listener, options);
+      return nativeAdd(
+        name,
+        (event: Event) => {
+          pending.push(() => {
+            if (typeof listener === "function") listener.call(window, event);
+            else listener.handleEvent(event);
+          });
+        },
+        options,
+      );
+    }) as typeof window.addEventListener;
+  }, delayed);
+}
+
+async function releaseNavigationEvent(page: Page): Promise<void> {
+  await page.evaluate(async () => {
+    const delayedWindow = window as Window & {
+      __calosReleaseNavigation?: () => void;
+    };
+    delayedWindow.__calosReleaseNavigation?.();
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => resolve()),
+    );
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => resolve()),
+    );
+  });
+}
+
+for (const delayed of ["hashchange", "popstate"] as const) {
+  for (const focusMove of ["tab", "skip", "pointer"] as const) {
+    test(`late ${delayed} preserves user ${focusMove} focus`, async ({
+      page,
+    }) => {
+      await delayNavigationEvent(page, delayed);
+      await page.goto("/#/overview");
+      await page
+        .getByRole("navigation", { name: "Primary navigation" })
+        .getByRole("link", { name: "Technical text" })
+        .click();
+      await expect(page).toHaveURL(/#\/technical$/u);
+      await expect(
+        page.getByRole("heading", { level: 1, name: "Technical text" }),
+      ).toBeFocused();
+      const historyBeforeFocus = await page.evaluate(() => history.length);
+      expect(
+        await page.evaluate(() => {
+          const delayedWindow = window as Window & {
+            __calosPendingNavigation?: () => number;
+          };
+          return delayedWindow.__calosPendingNavigation?.() ?? 0;
+        }),
+      ).toBeGreaterThan(0);
+      if (focusMove === "tab") {
+        await page.keyboard.press("Tab");
+      } else if (focusMove === "skip") {
+        await page.getByRole("link", { name: "Skip to content" }).focus();
+        await page.keyboard.press("Enter");
+        await expect(page.getByRole("main")).toBeFocused();
+      } else {
+        await page
+          .getByRole("button", { name: "Increase sample count" })
+          .click();
+      }
+      const chosenFocus = await page.evaluate(
+        () => document.activeElement?.outerHTML,
+      );
+      expect(chosenFocus).toBeTruthy();
+      await expect(page.getByRole("heading", { level: 1 })).not.toBeFocused();
+      await releaseNavigationEvent(page);
+      await expect(page).toHaveURL(/#\/technical$/u);
+      expect(await page.evaluate(() => history.length)).toBe(
+        historyBeforeFocus,
+      );
+      if (focusMove === "skip") {
+        await expect(page.getByRole("main")).toBeFocused();
+      } else {
+        expect(
+          await page.evaluate(() => document.activeElement?.outerHTML),
+        ).toBe(chosenFocus);
+        await expect(page.getByRole("heading", { level: 1 })).not.toBeFocused();
+      }
+    });
+  }
+}
 
 /** @req OF-02, P1A-AC-05: Native hash links preserve history, title and focus. */
 test("routes are bilingual, history-aware and focus the page heading", async ({
   page,
 }) => {
+  await recordNavigationFocus(page);
   await page.goto("/");
   await expect(page).toHaveURL(/#\/overview$/u);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Overview");
@@ -24,7 +211,12 @@ test("routes are bilingual, history-aware and focus the page heading", async ({
   }));
   await page.getByRole("link", { name: "Skip to content" }).focus();
   await page.keyboard.press("Enter");
-  await expect(page.getByRole("main")).toBeFocused();
+  try {
+    await expect(page.getByRole("main")).toBeFocused();
+  } catch (error) {
+    await reportSkipFocusFailure(page);
+    throw error;
+  }
   expect(
     await page.evaluate(() => ({ hash: location.hash, count: history.length })),
   ).toEqual(afterRoute);
@@ -37,6 +229,49 @@ test("routes are bilingual, history-aware and focus the page heading", async ({
   await page.locator("#language").selectOption("he");
   await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
   await expect(page).toHaveTitle(/SIMULATION ONLY · טקסט טכני/u);
+});
+
+test("skip-link focus survives delayed same-route events and rapid navigation", async ({
+  page,
+}) => {
+  await recordNavigationFocus(page);
+  await page.goto("/#/overview");
+  await page.evaluate(() => history.pushState(null, "", "#/technical"));
+  const beforeSkip = await page.evaluate(() => ({
+    hash: location.hash,
+    count: history.length,
+  }));
+  await page.getByRole("link", { name: "Skip to content" }).focus();
+  await page.keyboard.press("Enter");
+  await page.evaluate(() =>
+    window.dispatchEvent(new HashChangeEvent("hashchange")),
+  );
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    "Technical text",
+  );
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) => requestAnimationFrame(() => resolve())),
+  );
+  try {
+    await expect(page.getByRole("main")).toBeFocused();
+  } catch (error) {
+    await reportSkipFocusFailure(page);
+    throw error;
+  }
+  expect(
+    await page.evaluate(() => ({ hash: location.hash, count: history.length })),
+  ).toEqual(beforeSkip);
+  await page.evaluate(() => history.back());
+  await expect(page).toHaveURL(/#\/overview$/u);
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Overview" }),
+  ).toBeFocused();
+  await page.evaluate(() => history.forward());
+  await expect(page).toHaveURL(/#\/technical$/u);
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Technical text" }),
+  ).toBeFocused();
 });
 
 test("empty hashes canonicalize after navigation without adding history", async ({

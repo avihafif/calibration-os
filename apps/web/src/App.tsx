@@ -17,6 +17,10 @@ import {
 import { SyntheticFormDemo } from "./SyntheticFormDemo";
 import { SyntheticDataViewsDemo } from "./SyntheticDataViewsDemo";
 import { useHashRoute } from "./router";
+import {
+  createNavigationFocus,
+  type NavigationFocus,
+} from "./navigation-focus";
 import { buildRoutes } from "./routes";
 import {
   createFakeHostStatusPort,
@@ -60,25 +64,31 @@ export function App({ workspace }: { workspace?: ReactNode }) {
   const title = t(currentRoute?.titleKey ?? "route.notFound");
   const headingRef = useRef<HTMLHeadingElement>(null);
   const previousRoute = useRef<string | null>(null);
+  const navigationFocus = useRef<NavigationFocus | null>(null);
 
   useEffect(() => {
-    // History traversal still needs heading focus when two rapid transitions
-    // collapse to the same rendered route id.
-    let frame: number | undefined;
-    const onNavigation = () => {
-      if (frame !== undefined) window.cancelAnimationFrame(frame);
-      frame = window.requestAnimationFrame(() => {
-        headingRef.current?.focus();
-        window.scrollTo(0, 0);
-        frame = undefined;
-      });
-    };
-    window.addEventListener("hashchange", onNavigation);
-    window.addEventListener("popstate", onNavigation);
+    const controller = createNavigationFocus({
+      heading: () => headingRef.current,
+      scrollToTop: () => window.scrollTo(0, 0),
+      href: () => window.location.href,
+      requestFrame: (callback) => window.requestAnimationFrame(callback),
+      cancelFrame: (handle) => window.cancelAnimationFrame(handle),
+    });
+    navigationFocus.current = controller;
+    const onPopState = () => controller.navigated("popstate");
+    const onHashChange = () => controller.navigated("hashchange");
+    const onInteraction = () => controller.interacted();
+    window.addEventListener("hashchange", onHashChange);
+    window.addEventListener("popstate", onPopState);
+    window.addEventListener("keydown", onInteraction, true);
+    window.addEventListener("pointerdown", onInteraction, true);
     return () => {
-      window.removeEventListener("hashchange", onNavigation);
-      window.removeEventListener("popstate", onNavigation);
-      if (frame !== undefined) window.cancelAnimationFrame(frame);
+      window.removeEventListener("hashchange", onHashChange);
+      window.removeEventListener("popstate", onPopState);
+      window.removeEventListener("keydown", onInteraction, true);
+      window.removeEventListener("pointerdown", onInteraction, true);
+      controller.dispose();
+      navigationFocus.current = null;
     };
   }, []);
 
@@ -93,12 +103,9 @@ export function App({ workspace }: { workspace?: ReactNode }) {
     if (previousRoute.current !== null && previousRoute.current !== routeId) {
       window.scrollTo(0, 0);
       setSampleCount(2);
-      // Allow AppFrame to close an open palette and remove its inert backdrop.
-      const frame = window.requestAnimationFrame(() =>
-        headingRef.current?.focus(),
-      );
-      previousRoute.current = routeId;
-      return () => window.cancelAnimationFrame(frame);
+      // Route effects re-arm focus after the new heading commits and a closing
+      // dialog restores focus. The controller rejects duplicate notifications.
+      navigationFocus.current?.navigated("render");
     }
     previousRoute.current = routeId;
   }, [activeId]);
@@ -119,6 +126,9 @@ export function App({ workspace }: { workspace?: ReactNode }) {
       navigation={navigation}
       activeId={activeId}
       skipHref={window.location.hash || "#/overview"}
+      onSkipToContent={() => {
+        navigationFocus.current?.interacted();
+      }}
       hostStatus={hostStatus}
       onSameRoute={() => {
         headingRef.current?.focus();

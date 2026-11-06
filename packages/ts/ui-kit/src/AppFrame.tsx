@@ -30,6 +30,7 @@ export function AppFrame({
   navigation,
   activeId,
   skipHref,
+  onSkipToContent,
   hostStatus,
   onSameRoute,
   children,
@@ -42,6 +43,7 @@ export function AppFrame({
   navigation: readonly FrameNavigationItem[];
   activeId: string | undefined;
   skipHref: string;
+  onSkipToContent?: () => void;
   hostStatus?: HostStatusView;
   onSameRoute?: () => void;
   children: ReactNode;
@@ -195,6 +197,7 @@ export function AppFrame({
           href={skipHref}
           onClick={(event) => {
             event.preventDefault();
+            onSkipToContent?.();
             appRef.current?.querySelector<HTMLElement>("main#content")?.focus();
           }}
         >
