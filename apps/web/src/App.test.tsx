@@ -7,6 +7,7 @@ afterEach(() => {
   cleanup();
   document.documentElement.lang = "en";
   document.documentElement.dir = "ltr";
+  window.history.replaceState(null, "", "/");
 });
 
 /** @req FR-UI-02, P1A-AC-08, P1A-AC-09 */
@@ -41,6 +42,7 @@ describe("React localization demonstration", () => {
     expect(document.documentElement.dir).toBe("rtl");
     expect(screen.getByRole("main").getAttribute("dir")).toBe("rtl");
     expect(screen.getByRole("note").textContent).toContain("הדמיה בלבד");
+    await user.click(screen.getByRole("link", { name: "טקסט טכני" }));
     expect(screen.getByText("שני פריטים לדוגמה")).toBeTruthy();
     await user.click(
       screen.getByRole("button", { name: "הגדלת מספר הפריטים לדוגמה" }),
@@ -55,6 +57,7 @@ describe("React localization demonstration", () => {
       screen.getByRole("combobox", { name: "Language" }),
       "he",
     );
+    await user.click(screen.getByRole("link", { name: "טקסט טכני" }));
     const islands = [...container.querySelectorAll("bdi")];
     expect(islands.length).toBeGreaterThanOrEqual(3);
     expect(
@@ -79,11 +82,27 @@ describe("React localization demonstration", () => {
       document.activeElement,
     );
     await user.tab();
+    expect(screen.getByRole("link", { name: "Forms" })).toBe(
+      document.activeElement,
+    );
+    await user.tab();
+    expect(screen.getByRole("link", { name: "Data views" })).toBe(
+      document.activeElement,
+    );
+    await user.tab();
+    expect(screen.getByRole("link", { name: "Host status" })).toBe(
+      document.activeElement,
+    );
+    await user.tab();
     expect(screen.getByRole("button", { name: "Open navigation" })).toBe(
       document.activeElement,
     );
     await user.tab();
     expect(screen.getByRole("button", { name: /Command palette/u })).toBe(
+      document.activeElement,
+    );
+    await user.tab();
+    expect(screen.getByRole("button", { name: "Display settings" })).toBe(
       document.activeElement,
     );
     await user.tab();

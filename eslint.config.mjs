@@ -64,4 +64,22 @@ export default [
     files: ["apps/web/src/**/*.{tsx,jsx}", "packages/ts/*/src/**/*.{tsx,jsx}"],
     rules: { "calos/no-hardcoded-ui-text": "error" },
   },
+  {
+    files: ["packages/ts/ui-kit/src/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-globals": [
+        "error",
+        "location",
+        "history",
+        "navigator",
+        "fetch",
+        "localStorage",
+        "sessionStorage",
+        "indexedDB",
+        "XMLHttpRequest",
+        "WebSocket",
+        "eval",
+      ],
+    },
+  },
 ];

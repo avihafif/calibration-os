@@ -1,5 +1,15 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
+import type { Page } from "@playwright/test";
+
+async function openCompactSettings(page: Page) {
+  const disclosure = page.locator(".frame-settings-button");
+  if (
+    (await disclosure.isVisible()) &&
+    (await disclosure.getAttribute("aria-expanded")) === "false"
+  )
+    await disclosure.click();
+}
 
 test("English and Hebrew demonstration is keyboard-accessible and network-isolated", async ({
   page,
@@ -71,6 +81,10 @@ test("English and Hebrew demonstration is keyboard-accessible and network-isolat
   await expect(
     page.getByRole("link", { name: "Technical text" }),
   ).toBeFocused();
+  for (const name of ["Forms", "Data views", "Host status"]) {
+    await page.keyboard.press("Tab");
+    await expect(page.getByRole("link", { name })).toBeFocused();
+  }
   await page.keyboard.press("Tab");
   await expect(
     page.getByRole("button", { name: /Command palette/u }),
@@ -79,6 +93,7 @@ test("English and Hebrew demonstration is keyboard-accessible and network-isolat
   const selector = page.getByRole("combobox", { name: "Language" });
   await expect(selector).toBeFocused();
   await selector.selectOption("he");
+  await page.getByRole("link", { name: "טקסט טכני" }).click();
   expect(await page.locator("html").getAttribute("lang")).toBe("he");
   expect(await page.locator("html").getAttribute("dir")).toBe("rtl");
   await expect(page.getByRole("note")).toContainText("הדמיה בלבד");
@@ -162,6 +177,7 @@ test("AppFrame themes and locales retain protected tokens and responsive layout"
   for (const width of [320, 768, 1440]) {
     await page.setViewportSize({ width, height: 800 });
     for (const locale of ["en", "he"] as const) {
+      await openCompactSettings(page);
       await page.locator("#language").selectOption(locale);
       await expect(page.locator("html")).toHaveAttribute(
         "dir",
@@ -278,7 +294,7 @@ test("synthetic form is interactive, localized, accessible and fully local", asy
       });
     }
   });
-  await page.goto("/");
+  await page.goto("/#/forms");
   await page.setViewportSize({ width: 1440, height: 900 });
   for (const [locale, theme, labels] of [
     [
@@ -355,7 +371,7 @@ test("synthetic form is interactive, localized, accessible and fully local", asy
 test("form errors appear on blur and summary links move keyboard focus", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/#/forms");
   const decimal = page.getByRole("textbox", { name: "Decimal text sample" });
   await decimal.fill("1e3");
   await expect(decimal).not.toHaveAttribute("aria-invalid", "true");
@@ -393,7 +409,7 @@ test("form errors appear on blur and summary links move keyboard focus", async (
 test("Hebrew physical KeyK shortcut opens the command palette", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/#/forms");
   await page.locator("#language").selectOption("he");
   await page.evaluate(() =>
     window.dispatchEvent(
@@ -444,7 +460,7 @@ test("Hebrew physical KeyK shortcut opens the command palette", async ({
 test("the persistent live region changes only on submit, never while typing", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/#/forms");
   await page.evaluate(() => {
     const live = document.querySelector(".ui-form-announcement")!;
     const additions: string[] = [];
@@ -481,7 +497,7 @@ test("sticky safety marking does not overlap a focused form summary", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 768, height: 400 });
-  await page.goto("/");
+  await page.goto("/#/forms");
   await page.getByRole("button", { name: "Validate preview" }).click();
   const summary = page.locator(".ui-form-summary");
   await expect(summary).toBeFocused();
@@ -499,10 +515,11 @@ test("sticky safety marking does not overlap a focused form summary", async ({
 test("form error state is accessible in both directions, themes, widths and forced colors", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/#/forms");
   for (const width of [320, 768, 1440]) {
     await page.setViewportSize({ width, height: 800 });
     for (const locale of ["en", "he"] as const) {
+      await openCompactSettings(page);
       await page.locator("#language").selectOption(locale);
       for (const theme of ["light", "dark"] as const) {
         await page.locator("#theme").selectOption(theme);
@@ -580,7 +597,7 @@ test("form error state is accessible in both directions, themes, widths and forc
 test("pseudo-locales keep the error form within the viewport", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/#/forms");
   for (const locale of ["en-XA", "he-XB"] as const) {
     await page.locator("#language").selectOption(locale);
     for (const width of [320, 768, 1440]) {

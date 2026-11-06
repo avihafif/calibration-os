@@ -13,6 +13,7 @@ export type {
 export { baseLocale, directionForLocale } from "./locale";
 export type { SystemMessageKey } from "./messages";
 export { formatQuantity, formatUtcDate, isolateLtr } from "./format";
+export { matchesSearchQuery, normalizeSearchText } from "./search";
 
 export type ReviewStatus = "reviewed" | "needs_review";
 

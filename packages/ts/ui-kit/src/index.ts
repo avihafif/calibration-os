@@ -4,6 +4,20 @@ import "./frame.css";
 import "./data-views.css";
 
 export { AppFrame, type FrameNavigationItem } from "./AppFrame";
+export { PageHeader } from "./PageHeader";
+export type {
+  HostStatusView,
+  HostConnection,
+  HostSync,
+  HostJournal,
+  HostClock,
+  HostStorage,
+} from "./host-status";
+export {
+  HostStatusBar,
+  HostSummaryChip,
+  hostStatusSeverity,
+} from "./HostStatusView";
 export {
   ProtectedMarkings,
   WorkspaceErrorBoundary,
