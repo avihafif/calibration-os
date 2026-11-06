@@ -87,7 +87,7 @@ Unit symbols and Hebrew points are *correct* today and must stay unchanged: `µ 
 | ID | Decision | Recommended |
 |---|---|---|
 | N-D1 | Scope of R1: escape Co and Cn too (blank or tofu otherwise) | Yes |
-| N-D2 | R7: reject (not escape) non-ASCII or non-displayable text in `agentVersion` and `deploymentId` | Yes |
+| N-D2 | R7: reject (not escape) non-ASCII or non-displayable text in `agentVersion`, `deploymentId` and `timeZoneLabel` | Yes |
 | N-D3 | R8: add the "hidden characters shown" note in this PR | No (separate review of new strings) |
 | N-D4 | Assign `WP-1A-1d-N1` to Codex and name the independent reviewer | Owner decision, after this proposal is merged |
 | N-D5 | Two named policies, `technical` (R1, R2, R9) and `prose` (today's set plus the tag block U+E0000–E007F) | Yes |

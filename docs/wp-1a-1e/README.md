@@ -9,6 +9,7 @@
 | [`HUMAN_APPROVALS.md`](HUMAN_APPROVALS.md) | Every approval a human must give (workflow edit, gate edit, router, Edge source), decisions with defaults, and the proposed workflow job as text |
 | [`CODEX_HANDOFF.md`](CODEX_HANDOFF.md) | The prompt to paste when the owner assigns the package |
 | [`ERRATA.md`](ERRATA.md) | Errata 1: corrections from the independent reviews of PR #26 and PR #28, with the old and new text of each |
+| [`SEQUENCE_AND_A2.md`](SEQUENCE_AND_A2.md) | Release sequencing, file-ownership matrix, re-review protocol for PR #28, and WP-1A-1e-A2 acceptance criteria and handoff prompt |
 
 The implementing PR adds its own `EVIDENCE.md` here; it does not edit these files except to correct an error it can show.
 

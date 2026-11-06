@@ -41,6 +41,7 @@ To be added to `.github/workflows/phase0a.yml` only after H-3, H-4 and H-5 are a
 ```yaml
   frontend-browser-windows-edge:
     runs-on: windows-latest
+    if: github.event_name == 'pull_request' # D-E9 default; drop this line only if the owner chooses push as well
     timeout-minutes: 20
     permissions:
       contents: read
