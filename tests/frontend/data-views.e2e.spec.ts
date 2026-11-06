@@ -342,3 +342,102 @@ test("every state panel has localized text and accessible semantics in both them
     await expect(page.locator(`.data-demo .ui-state-${state}`)).toBeVisible();
   }
 });
+
+/** @req DV-05, FR-UI-02, NFR-11: N1 display-only Unicode protection. */
+test("synthetic technical identifiers remain visible, selectable and space-faithful", async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  await page.goto("/#/data");
+  const rawHidden = "UI-HIDDEN-\u200B-A";
+  const hiddenRow = page.locator(`tr[data-row-id="${rawHidden}"]`);
+  const visibleId = hiddenRow.locator("th bdi");
+  for (const locale of ["en", "he"] as const) {
+    await selectDisplay(page, "#language", locale);
+    await expect(page.locator("html")).toHaveAttribute(
+      "dir",
+      locale === "he" ? "rtl" : "ltr",
+    );
+    for (const theme of ["light", "dark"] as const) {
+      await selectDisplay(page, "#theme", theme);
+      for (const width of [320, 768, 1440]) {
+        await page.setViewportSize({ width, height: 900 });
+        await expect(visibleId).toHaveText("UI-HIDDEN-⟦U+200B⟧-A");
+        expect(await hiddenRow.getAttribute("data-row-id")).toBe(rawHidden);
+        await expect(
+          page.locator('tr[data-row-id="UI-HIDDEN-\uFEFF-B"] th bdi'),
+        ).toHaveText("UI-HIDDEN-⟦U+FEFF⟧-B");
+        await expect(
+          page.locator('tr[data-row-id="UI-HIDDEN-\u{E0061}-C"] th bdi'),
+        ).toHaveText("UI-HIDDEN-⟦U+E0061⟧-C");
+        await expect(
+          page.locator('tr[data-row-id="UI-LITERAL-⟦U+200B⟧"] th bdi'),
+        ).toHaveText("UI-LITERAL-⟦U+27E6⟧U+200B⟦U+27E7⟧");
+        const selected = await visibleId.evaluate((element) => {
+          const range = document.createRange();
+          range.selectNodeContents(element);
+          const selection = window.getSelection();
+          selection?.removeAllRanges();
+          selection?.addRange(range);
+          const value = selection?.toString();
+          selection?.removeAllRanges();
+          return value;
+        });
+        expect(selected).toBe("UI-HIDDEN-⟦U+200B⟧-A");
+        const spaces = await page.evaluate(() => {
+          const ids = ["UI A B", "UI A  B", " UI A B"];
+          return ids.map((id) => {
+            const row = Array.from(
+              document.querySelectorAll<HTMLTableRowElement>("tr[data-row-id]"),
+            ).find((item) => item.getAttribute("data-row-id") === id);
+            const element = row?.querySelector<HTMLElement>("th bdi");
+            if (!element) throw new Error("N1_SYNTHETIC_SPACE_ROW_MISSING");
+            return {
+              width: element.getBoundingClientRect().width,
+              whiteSpace: getComputedStyle(element).whiteSpace,
+              text: element.textContent,
+            };
+          });
+        });
+        expect(spaces.map((item) => item.text)).toEqual([
+          "UI A B",
+          "UI A  B",
+          " UI A B",
+        ]);
+        expect(spaces.map((item) => item.whiteSpace)).toEqual([
+          "pre-wrap",
+          "pre-wrap",
+          "pre-wrap",
+        ]);
+        expect(spaces[1]!.width).toBeGreaterThan(spaces[0]!.width);
+        expect(spaces[2]!.width).toBeGreaterThan(spaces[0]!.width);
+        const geometry = await page.evaluate(() => ({
+          page: document.documentElement.scrollWidth,
+          viewport: innerWidth,
+          longLineCount: document
+            .querySelector<HTMLElement>('tr[data-row-id^="UI-AAA"] th bdi')
+            ?.getClientRects().length,
+        }));
+        expect(geometry.page).toBeLessThanOrEqual(geometry.viewport);
+        if (width === 320) expect(geometry.longLineCount).toBeGreaterThan(1);
+        const axe = await new AxeBuilder({ page })
+          .include(".data-demo")
+          .analyze();
+        expect(axe.violations, `${locale} ${theme} ${width}`).toEqual([]);
+        if (width !== 768 && (locale === "en") === (theme === "light"))
+          await page.locator(".data-demo").screenshot({
+            path: `artifacts/screenshots/n1-${locale}-${theme}-${width}.png`,
+          });
+      }
+    }
+  }
+  await page.emulateMedia({ forcedColors: "active" });
+  await expect(visibleId).toHaveText("UI-HIDDEN-⟦U+200B⟧-A");
+  expect(
+    await visibleId.evaluate((element) => getComputedStyle(element).whiteSpace),
+  ).toBe("pre-wrap");
+  const forcedAxe = await new AxeBuilder({ page })
+    .include(".data-demo")
+    .analyze();
+  expect(forcedAxe.violations).toEqual([]);
+});

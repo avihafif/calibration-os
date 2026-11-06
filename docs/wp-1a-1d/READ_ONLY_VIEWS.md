@@ -17,6 +17,32 @@ This PR adds generic display components to `@calos/ui-kit` and a **Test-only, sy
 
 `DisplayText` shows the full value and uses a `bdi dir="ltr"` for technical values. Ordinary free text uses `dir="auto"`. Bidi controls, NUL and lone surrogates are shown as `⟦U+XXXX⟧`; the caller's original row and pointer strings remain unchanged. Values do not become individual tab stops. The UI Kit has a source-scan gate against `Number`, `parseFloat` and `parseInt`; an `exact-decimal` column requires a caller comparator at compile time. `text` sorting never opts into numeric collation implicitly. The kit does not implement metrological comparison.
 
+## N1 display hardening follow-up
+
+The issue #35 implementation adds a pinned Unicode 17.0 classifier in
+`@calos/i18n`. `DisplayText technical` uses a strict, reversible escape for
+controls, default-ignorable characters, private-use and unassigned points,
+non-ASCII separators, and the literal notation delimiters `⟦` and `⟧`.
+Technical text retains ASCII spacing with `white-space: pre-wrap` and wraps
+long identifiers without truncation. Classification is display-only: row IDs,
+sorting values and pointer callbacks remain byte-for-byte/code-point-for-code-point
+unchanged. `formatQuantity` unit text and `isolateLtr` reject the same hidden
+characters while preserving their existing error codes and exact decimals.
+
+The separate `prose` policy retains the existing pseudo-locale brackets and
+escapes the tag block in addition to the previous controls. It is only for
+trusted authored UI messages, labels and descriptions. An untrusted identifier
+must use `technical`; callers must not interpolate raw technical values into
+prose callback labels. The generic `FindingsList.navigateLabel` callback can
+currently do that, so its caller contract remains a review item before real
+external findings are displayed. The Test-only demo action now renders its
+synthetic identifier through `DisplayText technical` instead of raw JSX.
+
+The [N1 evidence report](N1_EVIDENCE.md) maps N1-01–16 to tests, records the
+Unicode/version measurements and identifies unresolved accessible-name and
+screen-reader limits. This follow-up does not add a host adapter or an
+operational data path.
+
 `DisplayFinding` is local to `ui-kit` and is not an API, schema or generated public type. A separate owner-reviewed contract PR would need to establish parity with `calos_metadata.findings.Finding`, message-key policy and Python/TypeScript vectors. This UI PR does not select those decisions or expose a host adapter.
 
 ## Independent-review closure plan

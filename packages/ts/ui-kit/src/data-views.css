@@ -102,6 +102,10 @@
 .ui-display-text bdi {
   unicode-bidi: isolate;
 }
+.ui-display-text bdi[dir="ltr"] {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
 .ui-detail-list {
   display: grid;
   gap: var(--space-2);
@@ -226,6 +230,19 @@
   }
 }
 @media (forced-colors: active) {
+  /* The system may force light surfaces while an app's dark theme is active. */
+  .ui-data-views,
+  .ui-data-views * {
+    color: CanvasText;
+  }
+  .ui-data-views.ui-data-views p,
+  .ui-data-views.ui-data-views dt {
+    color: CanvasText;
+  }
+  .ui-data-views.ui-data-views select {
+    color: ButtonText;
+    background: ButtonFace;
+  }
   .ui-table-scroll,
   .ui-data-table th,
   .ui-data-table td,

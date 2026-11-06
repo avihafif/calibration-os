@@ -1,5 +1,9 @@
 import { type ReactNode } from "react";
-import type { SupportedLocale } from "@calos/i18n";
+import {
+  findNonDisplayableCodePoints,
+  type DisplayTextPolicy,
+  type SupportedLocale,
+} from "@calos/i18n";
 
 export type SortDirection = "ascending" | "descending";
 export type SortState = Readonly<{
@@ -57,19 +61,18 @@ export function sortDisplayRows<Row>(
     .map(({ row }) => row);
 }
 
-/** @req DV-05: make control characters visible without changing the source value. */
-export function safeDisplayText(value: string): string {
+/** @req DV-05, FR-UI-02: one display-boundary escape; raw values stay intact. */
+export function safeDisplayText(
+  value: string,
+  policy: DisplayTextPolicy = "prose",
+): string {
   let visible = "";
+  const hidden = new Set(findNonDisplayableCodePoints(value, policy));
   for (const scalar of value) {
     const point = scalar.codePointAt(0)!;
     if (
-      point <= 0x1f ||
-      (point >= 0x7f && point <= 0x9f) ||
-      point === 0x61c ||
-      (point >= 0x200e && point <= 0x200f) ||
-      (point >= 0x202a && point <= 0x202e) ||
-      (point >= 0x2066 && point <= 0x2069) ||
-      (point >= 0xd800 && point <= 0xdfff)
+      hidden.has(point) ||
+      (policy === "technical" && (point === 0x27e6 || point === 0x27e7))
     ) {
       visible += `⟦U+${point.toString(16).toUpperCase().padStart(4, "0")}⟧`;
     } else {
@@ -87,7 +90,7 @@ export function DisplayText({
   value: string;
   technical?: boolean;
 }) {
-  const visible = safeDisplayText(value);
+  const visible = safeDisplayText(value, technical ? "technical" : "prose");
   return (
     <span className="ui-display-text">
       {technical ? (

@@ -208,6 +208,16 @@ operational view. The `FindingsList` accepts a local display shape; a shared
 Finding contract and finding-key namespace remain separate decisions. See
 [`docs/wp-1a-1d/READ_ONLY_VIEWS.md`](wp-1a-1d/READ_ONLY_VIEWS.md).
 
+**WP-1A-1d-N1 status (issue #35 implementation PR):** the pinned Unicode
+classifier and separate trusted-prose/strict-technical display policies are
+trusted platform **DEV** primitives. They make hidden characters and literal
+escape delimiters visible in technical data without changing raw identifiers,
+sorting keys or callback values. The Test-only data-view demonstration and
+Production Rehearsal fixture exclusion remain separate. This does not add a
+configuration kind, external host input, metrology logic, an operational
+data view or a Production capability; see
+[`N1_EVIDENCE.md`](wp-1a-1d/N1_EVIDENCE.md).
+
 **WP-1A-1e-A status:** exact hash routing, localized navigation/search, F6
 region navigation, a responsive shell, and a UI-side fake `HostStatusView` are
 trusted-platform **DEV** primitives. They do not interpret authored metadata,

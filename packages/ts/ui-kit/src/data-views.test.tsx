@@ -1,7 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { createSystemI18n, type SupportedLocale } from "@calos/i18n";
+import {
+  createSystemI18n,
+  findNonDisplayableCodePoints,
+  formatQuantity,
+  type SupportedLocale,
+} from "@calos/i18n";
 import {
   DataTable,
   DetailList,
@@ -488,5 +493,180 @@ describe("FindingsList", () => {
       screen.getByRole("button", { name: "Go DUP /a⟦U+202E⟧b" }),
     );
     expect(onNavigate).toHaveBeenCalledWith(rawPointer);
+  });
+});
+
+function decodeTechnicalForTest(value: string): string {
+  return value.replace(/⟦U\+([0-9A-F]{4,6})⟧/gu, (_match, hex: string) =>
+    String.fromCodePoint(Number.parseInt(hex, 16)),
+  );
+}
+
+/** @req DV-05, FR-UI-02, NFR-11: display-only N1 technical policy. */
+describe("N1 technical display", () => {
+  it("escapes every classified scalar, bracket delimiter and lone surrogate", () => {
+    const forbiddenOutput =
+      /[\p{Cc}\p{Cf}\p{Cs}\p{Co}\p{Cn}\p{Default_Ignorable_Code_Point}\p{Zl}\p{Zp}\p{Zs}]/u;
+    for (let point = 0; point <= 0x10ffff; point += 1) {
+      const scalar = String.fromCodePoint(point);
+      const hidden =
+        findNonDisplayableCodePoints(scalar).length > 0 ||
+        point === 0x27e6 ||
+        point === 0x27e7;
+      const expected = hidden
+        ? `⟦U+${point.toString(16).toUpperCase().padStart(4, "0")}⟧`
+        : scalar;
+      const actual = safeDisplayText(scalar, "technical");
+      if (actual !== expected)
+        throw new Error(`TECHNICAL_SWEEP_MISMATCH: U+${point.toString(16)}`);
+      if (point !== 0x20 && forbiddenOutput.test(actual))
+        throw new Error(`TECHNICAL_OUTPUT_HIDDEN: U+${point.toString(16)}`);
+    }
+    for (const lone of ["\ud800", "\udbff", "\udc00", "\udfff"])
+      expect(safeDisplayText(lone, "technical")).toBe(
+        `⟦U+${lone.codePointAt(0)!.toString(16).toUpperCase()}⟧`,
+      );
+  }, 120_000);
+
+  it("is reversible and injective for 100,000 seeded hostile strings", () => {
+    let seed = 0x35a11d;
+    const next = () => {
+      seed ^= seed << 13;
+      seed ^= seed >>> 17;
+      seed ^= seed << 5;
+      return seed >>> 0;
+    };
+    const pool = [
+      "A",
+      "B",
+      "U+",
+      "0",
+      "F",
+      "⟦",
+      "⟧",
+      " ",
+      "\u200b",
+      "\ufeff",
+      "\u{E0061}",
+      "\u202e",
+      "\ud800",
+      "\udc00",
+      "e\u0301",
+      "😀",
+      "\ufe0f",
+    ];
+    const seen = new Map<string, string>();
+    for (let sample = 0; sample < 100_000; sample += 1) {
+      let raw = "";
+      const length = next() % 10;
+      for (let index = 0; index < length; index += 1)
+        raw += pool[next() % pool.length];
+      const rendered = safeDisplayText(raw, "technical");
+      if (decodeTechnicalForTest(rendered) !== raw)
+        throw new Error(`TECHNICAL_DECODE_MISMATCH: ${sample}`);
+      const prior = seen.get(rendered);
+      if (prior !== undefined && prior !== raw)
+        throw new Error(`TECHNICAL_COLLISION: ${sample}`);
+      seen.set(rendered, raw);
+    }
+    expect(seen.size).toBeGreaterThan(1);
+  }, 120_000);
+
+  it("separates hidden values from literal notation and never double-escapes", () => {
+    const hidden = safeDisplayText("A\u200bB", "technical");
+    const literal = safeDisplayText("A⟦U+200B⟧B", "technical");
+    expect(hidden).toBe("A⟦U+200B⟧B");
+    expect(literal).toBe("A⟦U+27E6⟧U+200B⟦U+27E7⟧B");
+    expect(literal).not.toBe(hidden);
+    expect(safeDisplayText(hidden, "technical")).not.toBe(hidden);
+    expect(decodeTechnicalForTest(literal)).toBe("A⟦U+200B⟧B");
+    expect(safeDisplayText("⟦pseudo ··⟧", "prose")).toBe("⟦pseudo ··⟧");
+    expect(safeDisplayText("A\u{E0061}B", "prose")).toBe("A⟦U+E0061⟧B");
+  });
+
+  it("preserves good metrology symbols, Hebrew marks, whitespace and exact decimals", () => {
+    for (const value of [
+      "µ Ω Ω ° ± × − kΩ 10.00 mV",
+      "בְּדִיקָה֑",
+      "ASCII !? /_ 123",
+      "é",
+      "e\u0301",
+      "A B",
+      "A  B",
+      " A B",
+    ]) {
+      expect(safeDisplayText(value, "technical")).toBe(value);
+      expect(safeDisplayText(value, "prose")).toBe(value);
+    }
+    expect(formatQuantity("10.00", "mV", "en")).toBe("10.00 mV");
+    expect(formatQuantity("1.5", "Ω", "en")).toBe("1.5 Ω");
+    expect(formatQuantity("1.5", "Ω", "he")).toBe("1.5 Ω");
+    for (const identity of ["agent-1.0", "test-deployment", "Asia/Jerusalem"])
+      expect(safeDisplayText(identity, "technical")).toBe(identity);
+    expect(safeDisplayText("A".repeat(10_000) + "\u200b", "technical")).toBe(
+      "A".repeat(10_000) + "⟦U+200B⟧",
+    );
+  });
+
+  it("passes raw row IDs, sort values and finding pointers through callbacks", async () => {
+    const raw = "UI-\u200b\ufeff\u{E0061}";
+    const compare = vi.fn((left: string, right: string) =>
+      left.localeCompare(right),
+    );
+    const row = { id: raw };
+    const other = { id: "UI-plain" };
+    const column: DataColumn<typeof row> = {
+      id: "id",
+      header: "ID",
+      sortKind: "text",
+      sortValue: (item) => item.id,
+      compare,
+      render: (item) => <DisplayText value={item.id} technical />,
+    };
+    sortDisplayRows([row, other], column, "ascending", "he");
+    expect(compare.mock.calls.flat()).toContain(raw);
+    expect(compare.mock.calls.flat()).toContain(other.id);
+    const rowId = vi.fn((item: typeof row) => item.id);
+    const { container } = render(
+      <DataTable
+        caption={t("views.table")}
+        scrollLabel={t("views.scroll")}
+        columns={[column]}
+        rows={[row]}
+        rowId={rowId}
+      />,
+    );
+    expect(rowId.mock.calls[0]?.[0]).toBe(row);
+    expect(
+      container.querySelector("tbody tr")?.getAttribute("data-row-id"),
+    ).toBe(raw);
+    expect(container.querySelector("tbody bdi")?.textContent).toBe(
+      "UI-⟦U+200B⟧⟦U+FEFF⟧⟦U+E0061⟧",
+    );
+    cleanup();
+    const onNavigate = vi.fn();
+    render(
+      <FindingsList
+        findings={[
+          {
+            code: raw,
+            severity: "error",
+            stage: "local",
+            pointer: { value: raw },
+            message: { key: "synthetic" },
+          },
+        ]}
+        severityLabel={() => "Error"}
+        stageLabel={() => "Local"}
+        formatMessage={() => "Synthetic"}
+        navigateLabel={() => "Inspect"}
+        onNavigate={onNavigate}
+      />,
+    );
+    expect(screen.getAllByText("UI-⟦U+200B⟧⟦U+FEFF⟧⟦U+E0061⟧")).toHaveLength(2);
+    await userEvent
+      .setup()
+      .click(screen.getByRole("button", { name: "Inspect" }));
+    expect(onNavigate).toHaveBeenCalledWith(raw);
   });
 });
