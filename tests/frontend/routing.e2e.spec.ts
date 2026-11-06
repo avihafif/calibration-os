@@ -69,6 +69,38 @@ test("Back and Forward close an open palette and focus the routed heading", asyn
     .getByRole("navigation", { name: "Primary navigation" })
     .getByRole("link", { name: "Technical text" })
     .click();
+  await expect(page).toHaveURL(/#\/technical$/u);
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Technical text" }),
+  ).toBeFocused();
+  for (let cycle = 0; cycle < 3; cycle += 1) {
+    await page.keyboard.press("Control+k");
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await page.evaluate(() => history.back());
+    await expect(page).toHaveURL(/#\/overview$/u);
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Overview" }),
+    ).toBeFocused();
+    await expect(
+      page.getByRole("link", { name: "Overview", exact: true }),
+    ).toHaveAttribute("aria-current", "page");
+    await page.keyboard.press("Control+k");
+    await page.evaluate(() => history.forward());
+    await expect(page).toHaveURL(/#\/technical$/u);
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Technical text" }),
+    ).toBeFocused();
+    await expect(page).toHaveTitle(/SIMULATION ONLY · Technical text/u);
+  }
+});
+
+test("rapid history reversal closes a palette before the intermediate route renders", async ({
+  page,
+}) => {
+  await page.goto("/#/overview");
+  await page.evaluate(() => history.pushState(null, "", "#/technical"));
   await page.keyboard.press("Control+k");
   await expect(page.getByRole("dialog")).toBeVisible();
   await page.evaluate(() => history.back());
@@ -80,14 +112,6 @@ test("Back and Forward close an open palette and focus the routed heading", asyn
   await expect(
     page.getByRole("link", { name: "Overview", exact: true }),
   ).toHaveAttribute("aria-current", "page");
-  await page.keyboard.press("Control+k");
-  await page.evaluate(() => history.forward());
-  await expect(page).toHaveURL(/#\/technical$/u);
-  await expect(page.getByRole("dialog")).toHaveCount(0);
-  await expect(
-    page.getByRole("heading", { level: 1, name: "Technical text" }),
-  ).toBeFocused();
-  await expect(page).toHaveTitle(/SIMULATION ONLY · Technical text/u);
 });
 
 test("pseudo-locales keep the mobile topbar compact with full-size controls", async ({

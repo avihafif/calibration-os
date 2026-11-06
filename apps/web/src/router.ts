@@ -22,7 +22,13 @@ function subscribeHash(listener: () => void): () => void {
     listener();
   };
   window.addEventListener("hashchange", onHashChange);
-  return () => window.removeEventListener("hashchange", onHashChange);
+  // History traversal may signal popstate before hashchange (or only popstate
+  // in some browser timing paths). Both notifications use the same snapshot.
+  window.addEventListener("popstate", onHashChange);
+  return () => {
+    window.removeEventListener("hashchange", onHashChange);
+    window.removeEventListener("popstate", onHashChange);
+  };
 }
 
 function canonicalizeEmptyHash(): void {

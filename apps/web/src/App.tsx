@@ -62,6 +62,27 @@ export function App({ workspace }: { workspace?: ReactNode }) {
   const previousRoute = useRef<string | null>(null);
 
   useEffect(() => {
+    // History traversal still needs heading focus when two rapid transitions
+    // collapse to the same rendered route id.
+    let frame: number | undefined;
+    const onNavigation = () => {
+      if (frame !== undefined) window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        headingRef.current?.focus();
+        window.scrollTo(0, 0);
+        frame = undefined;
+      });
+    };
+    window.addEventListener("hashchange", onNavigation);
+    window.addEventListener("popstate", onNavigation);
+    return () => {
+      window.removeEventListener("hashchange", onNavigation);
+      window.removeEventListener("popstate", onNavigation);
+      if (frame !== undefined) window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  useEffect(() => {
     document.documentElement.lang = locale;
     document.documentElement.dir = i18n.direction;
     document.title = `${environmentKind === "test" ? "TEST" : "PRODUCTION REHEARSAL"} · SIMULATION ONLY · ${title} · ${t("app.title")}`;

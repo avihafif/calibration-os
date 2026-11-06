@@ -61,6 +61,36 @@ informed the corrections below; it approves no operational gate.
 | C-4 | Canonicalizes empty hashes on every `hashchange` with `history.replaceState`; defers route-heading focus one animation frame so AppFrame can close the palette and remove `inert` first. | `routing.e2e.spec.ts` tests `#` and `#/`, history length, Back, palette closure, focused headings, title and active navigation. |
 | en-XA mobile | Mobile topbar retains the 44 px menu/settings targets and fits the command button beside settings through wrapped text and compact gaps. | `routing.e2e.spec.ts` checks en-XA/he-XB at 320×568: topbar ≤180 px, no horizontal page overflow, controls ≥44 px. Diagnostic measurement on en-XA was 157 px after the change versus 237 px before. |
 
+### Linux CI history failure and follow-up
+
+At `c535b86`, the [Phase 0A Linux browser job](https://github.com/avihafif/calibration-os/actions/runs/42179691565)
+failed in `routing.e2e.spec.ts`: Back changed the URL to `#/overview`, but
+the palette remained open. The other four jobs and the separate design check
+passed. A repeated local Chromium run of the then-current test reproduced
+the failure in four of its first five attempts; it was stopped after
+reproduction. This is a state transition race:
+the palette can open after a route URL changes but before React processes its
+`hashchange`; a quick Back then returns to the last rendered `activeId`, so
+AppFrame's `[activeId]` effect never fires. `popstate` delivery also varies in
+timing relative to `hashchange`.
+
+The correction subscribes the hash router to both history notifications,
+closes AppFrame transient UI on each navigation event regardless of
+`activeId`, and schedules heading focus on those events even when rapid
+transitions collapse to one rendered route. The existing Back/Forward
+assertions remain: URL, closed dialog, focused heading, `aria-current`, and
+title. The test additionally waits for the first route to render before
+opening the palette, checks three Back/Forward cycles, and adds a separate
+rapid `pushState`/Back case. A new AppFrame unit test exercises a `popstate`
+with unchanged `activeId`. The Vitest config now includes existing
+`apps/web/src/**/*.test.ts` files, which had accidentally been excluded;
+their router, route and host-port tests now execute. No timeout, skip or
+explicit polling was added. The 20 targeted local browser repetitions passed.
+
+This Windows host has neither Docker nor WSL. The failing Actions job is the
+reproduction under the requested Linux Chromium CI conditions; the final
+commit must pass a fresh Linux Actions run before independent review.
+
 **Focus timing investigation.** The earlier assertion sampled immediately after a
 keyboard event, while Chromium's native focus scrolling and the sticky
 marking's ResizeObserver offset can settle across paint frames. The review
@@ -71,11 +101,16 @@ asserts **zero**. There is no retry or five-second tolerance. Ten repeated
 browser runs passed. The precise scheduling trigger on Claude's machine
 remains unproven; a fresh independent run should test it there.
 
-**Changes to existing tests.** This correction changes the existing
+**Changes to existing tests.** The first correction changes the existing
 `i18n.e2e.spec.ts` KeyV assertion back to `toBeVisible()` and changes only
 the timing before each zero-overlap assertion in the existing
-`data-views.e2e.spec.ts` focus test. No other existing-test assertion was
-removed, inverted or relaxed. The earlier PR implementation changed route
+`data-views.e2e.spec.ts` focus test. The Linux CI follow-up extends the
+new `routing.e2e.spec.ts` Back/Forward test with a rendered-route precondition
+and three cycles, and adds the rapid-history case. It adds a `popstate` unit
+assertion to `AppFrame.test.tsx` and a router notification assertion to
+`router.test.ts`. `vitest.config.mjs` now executes that previously excluded
+router test and two other pre-existing `.test.ts` suites. No existing-test
+assertion was removed, inverted or relaxed. The earlier PR implementation changed route
 entry URLs to `/#/data` and `/#/forms`, introduced `selectDisplay` for mobile
 settings, and adjusted form tab order for the new shell; those remain in the
 PR and are not represented as new baseline behavior. The new routing and
@@ -94,11 +129,12 @@ instrument or metrology code changed.
 | `pnpm test:ts-boundary` | 90 negative probes passed |
 | `pnpm test:design-tokens` | 24 contrast pairs passed |
 | `pnpm test:schema-vectors` | 3 digests, 3 manifest groups, 2 safe-grammar groups passed |
-| `pnpm test:frontend` | 9 files, 102 tests passed; 0 failed |
+| `pnpm test:frontend` | 12 files, 130 tests passed; 0 failed, including the newly included existing `.test.ts` suites |
 | `pnpm build:web` + bundle gate, Test | Passed, one JS script; all three runtime sentinels present |
 | `pnpm build:web` + bundle gate, Production Rehearsal | Passed, one JS script; all three runtime sentinels absent |
-| Fresh Test `pnpm build:web` then `pnpm test:e2e` | 27/27 passed, including the new routing, focus and pseudo-locale cases; 0 failed |
+| Fresh Test `pnpm build:web` then `pnpm test:e2e` | 28/28 passed, including the new rapid-history case; 0 failed |
 | `pnpm exec playwright test tests/frontend/data-views.e2e.spec.ts --grep 'keyboard focus clears' --repeat-each=10` | 10/10 passed |
+| `pnpm exec playwright test tests/frontend/routing.e2e.spec.ts --grep 'Back and Forward close\|rapid history reversal' --repeat-each=10` | 20/20 passed |
 | `python tools/check.py` via existing Python 3.12.16 venv and current-checkout `PYTHONPATH` | 35 core + 14 security passed; no skips |
 | Ruff check and format | Passed; 39 Python files formatted |
 | mypy strict | 18 source files passed |

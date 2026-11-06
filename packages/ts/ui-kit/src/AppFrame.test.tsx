@@ -101,6 +101,14 @@ describe("AppFrame region keyboard model", () => {
     expect(document.activeElement).toBe(query);
   });
 
+  it("closes transient UI on history traversal even when activeId is unchanged", () => {
+    mount();
+    fireEvent.click(screen.getByRole("button", { name: /Command palette/u }));
+    expect(screen.getByRole("dialog")).toBeTruthy();
+    act(() => window.dispatchEvent(new PopStateEvent("popstate")));
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
   it.each([
     { key: "ל", code: "KeyK", ctrlKey: true },
     { key: "ל", code: "KeyK", metaKey: true },

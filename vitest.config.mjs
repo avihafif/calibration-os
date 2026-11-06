@@ -6,6 +6,7 @@ export default defineConfig({
     include: [
       "packages/ts/i18n/src/**/*.test.ts",
       "packages/ts/ui-kit/src/**/*.test.tsx",
+      "apps/web/src/**/*.test.ts",
       "apps/web/src/**/*.test.tsx",
     ],
     pool: "forks",

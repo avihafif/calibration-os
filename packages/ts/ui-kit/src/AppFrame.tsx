@@ -72,6 +72,21 @@ export function AppFrame({
     setQuery("");
   }, [activeId]);
   useEffect(() => {
+    // A fast Back/Forward can return to the same activeId before React renders
+    // the intervening route. History events must still close transient UI.
+    const onNavigation = () => {
+      setDrawerOpen(false);
+      setPaletteOpen(false);
+      setQuery("");
+    };
+    window.addEventListener("hashchange", onNavigation);
+    window.addEventListener("popstate", onNavigation);
+    return () => {
+      window.removeEventListener("hashchange", onNavigation);
+      window.removeEventListener("popstate", onNavigation);
+    };
+  }, []);
+  useEffect(() => {
     const marking = appRef.current?.querySelector<HTMLElement>(
       "[data-frame-badges]",
     );
