@@ -1,9 +1,9 @@
 # WP-1A-1e-A implementation evidence
 
-Status: **corrected review candidate with explicit H-4 and N-1 exclusions**. This is a
-frontend-only simulation milestone, not a host integration or an operational
-calibration capability. Claude is the independent reviewer; human GitHub
-approval and merge remain separate.
+Status: **PR #28 merged at `7b0bbd9`; P28-14 follow-up on
+`codex/p28-14-skip-focus` awaits review.** This is a frontend-only simulation
+milestone, not a host integration or operational calibration capability. The
+follow-up does not merge or approve any governance gate.
 
 ## Entry and T0 baseline
 
@@ -91,6 +91,50 @@ This Windows host has neither Docker nor WSL. The failing Actions job is the
 reproduction under the requested Linux Chromium CI conditions; the final
 commit must pass a fresh Linux Actions run before independent review.
 
+### P28-14 — skip-link focus under Linux Chromium
+
+PR #28 was merged by the repository owner before this correction was ready;
+the fix is a separate branch from the new `main`, linked to issue #31. The
+original PR cannot accept further commits.
+
+The [independent re-review](https://github.com/avihafif/calibration-os/pull/28#issuecomment-6682827580)
+and [issue #31](https://github.com/avihafif/calibration-os/issues/31) record a
+first-attempt Linux `push` failure at `7b0bbd9`: after Enter on the skip link,
+`main` did not retain focus. The pull-request run passed, and the failed push
+job passed only on a rerun. That history is not counted as first-pass green.
+This Windows host has no WSL or Docker, so the original Linux event trace is
+unavailable. The existing CI logs did not include a focus snapshot.
+
+A local adversarial browser probe at the original head reproduced the focus
+loss deterministically by delivering a delayed same-route `hashchange` after
+the skip link focused `main`. Its ordered trace showed:
+
+1. `popstate` at `#/technical` with the rendered route still `#/overview`;
+2. focus entering the Technical heading, then the skip link;
+3. Enter/click with hash `#/technical`, history length 3, rendered route
+   `#/technical`, no dialog or inert backdrop;
+4. focus entering `MAIN#content`;
+5. a later `hashchange` for the same `#/technical`, followed by focus entering
+   `H1` and the unchanged strict `main`-focus assertion failing.
+
+The route-focus code had two independent animation-frame requests: the
+history-event handler and the `[activeId]` effect. A focus request could
+therefore remain after the heading first appeared focused and override a
+subsequent skip action. The correction leaves one cancellable route-focus
+request; skip activation cancels it and suppresses delayed notifications for
+that same hash. A later navigation to a different hash clears the suppression
+and focuses that route's heading. `AppFrame` invokes the host callback before
+focusing `main`. No route, hash, history or security policy is bypassed.
+
+`routing.e2e.spec.ts` keeps its exact `toBeFocused()` assertion and adds an
+on-failure, bounded event trace: event order, active element, hash, history
+length, rendered route, heading, dialog and inert state are printed to CI
+logs and attached as JSON. It also tests rapid navigation, delayed same-route
+notification, skip focus, then Back/Forward heading focus. A unit test checks
+the callback order. Four focused browser cases passed **32/32** repeated local
+runs; the full local browser suite passed **29/29**. A fresh first-attempt
+Linux `push` and `pull_request` run on the new SHA is required before closure.
+
 **Focus timing investigation.** The earlier assertion sampled immediately after a
 keyboard event, while Chromium's native focus scrolling and the sticky
 marking's ResizeObserver offset can settle across paint frames. The review
@@ -110,7 +154,13 @@ and three cycles, and adds the rapid-history case. It adds a `popstate` unit
 assertion to `AppFrame.test.tsx` and a router notification assertion to
 `router.test.ts`. `vitest.config.mjs` now executes that previously excluded
 router test and two other pre-existing `.test.ts` suites. No existing-test
-assertion was removed, inverted or relaxed. The earlier PR implementation changed route
+assertion was removed, inverted or relaxed. The P28-14 correction wraps the
+existing skip-link assertion only to emit diagnostics on failure and adds a
+separate rapid-navigation test. Two existing network-isolation tests in
+`i18n.e2e.spec.ts` now derive their **single allowed origin** from Playwright's
+configured `baseURL`, which is the same `127.0.0.1:4184` in CI and permits
+an isolated local preview port; the allowed paths and negative assertions
+are unchanged. The earlier PR implementation changed route
 entry URLs to `/#/data` and `/#/forms`, introduced `selectDisplay` for mobile
 settings, and adjusted form tab order for the new shell; those remain in the
 PR and are not represented as new baseline behavior. The new routing and
@@ -129,12 +179,13 @@ instrument or metrology code changed.
 | `pnpm test:ts-boundary` | 90 negative probes passed |
 | `pnpm test:design-tokens` | 24 contrast pairs passed |
 | `pnpm test:schema-vectors` | 3 digests, 3 manifest groups, 2 safe-grammar groups passed |
-| `pnpm test:frontend` | 12 files, 130 tests passed; 0 failed, including the newly included existing `.test.ts` suites |
+| `pnpm test:frontend` | 12 files, 131 tests passed; 0 failed, including the newly included existing `.test.ts` suites |
 | `pnpm build:web` + bundle gate, Test | Passed, one JS script; all three runtime sentinels present |
 | `pnpm build:web` + bundle gate, Production Rehearsal | Passed, one JS script; all three runtime sentinels absent |
-| Fresh Test `pnpm build:web` then `pnpm test:e2e` | 28/28 passed, including the new rapid-history case; 0 failed |
+| Fresh Test `pnpm build:web` then `pnpm exec playwright test --config playwright.local.config.ts` | 29/29 passed with a temporary, untracked port-5184 config because another worktree owns 4184; 0 failed. CI uses the committed default config. |
 | `pnpm exec playwright test tests/frontend/data-views.e2e.spec.ts --grep 'keyboard focus clears' --repeat-each=10` | 10/10 passed |
 | `pnpm exec playwright test tests/frontend/routing.e2e.spec.ts --grep 'Back and Forward close\|rapid history reversal' --repeat-each=10` | 20/20 passed |
+| Focused skip/history browser tests, eight repetitions each | 32/32 passed |
 | `python tools/check.py` via existing Python 3.12.16 venv and current-checkout `PYTHONPATH` | 35 core + 14 security passed; no skips |
 | Ruff check and format | Passed; 39 Python files formatted |
 | mypy strict | 18 source files passed |
@@ -166,10 +217,12 @@ browser-chrome F6 behavior still need manual checks.
 
 ## Open decisions, deviations and remaining work
 
-1. **H-4 / RO-09.** The owner must approve the exact relative-URL change to
+1. **H-4b / RO-09.** The owner must approve the exact relative-URL change to
    `apps/web/vite.config.mjs`, `apps/web/index.html` and the strictly stronger
-   `tools/check_frontend_bundle.mjs` check. The bundle gate was **not edited**.
-   Until then this build is not proven to mount under a sub-path.
+   `tools/check_frontend_bundle.mjs` check. The additive H-4a host-sentinel
+   gate edit was [approved separately](https://github.com/avihafif/calibration-os/pull/28#issuecomment-6682954322);
+   no relative-URL assertion was changed. This build is not proven to mount
+   under a sub-path.
 2. **T4 HostStatus follow-up.** PR #27 merged the N-1 *proposal*, not its
    implementation. The accepted [Errata 1](ERRATA.md) clarify that ASCII
    identifier validation (HS-02), unknown-by-default behaviour and HS-09

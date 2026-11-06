@@ -60,17 +60,23 @@ export function App({ workspace }: { workspace?: ReactNode }) {
   const title = t(currentRoute?.titleKey ?? "route.notFound");
   const headingRef = useRef<HTMLHeadingElement>(null);
   const previousRoute = useRef<string | null>(null);
+  const routeFocusFrame = useRef<number | null>(null);
+  const skipFocusHash = useRef<string | null>(null);
 
   useEffect(() => {
     // History traversal still needs heading focus when two rapid transitions
     // collapse to the same rendered route id.
-    let frame: number | undefined;
     const onNavigation = () => {
-      if (frame !== undefined) window.cancelAnimationFrame(frame);
-      frame = window.requestAnimationFrame(() => {
+      // A delayed notification for the route whose skip link was activated
+      // must not take focus back from main.
+      if (skipFocusHash.current === window.location.hash) return;
+      skipFocusHash.current = null;
+      if (routeFocusFrame.current !== null)
+        window.cancelAnimationFrame(routeFocusFrame.current);
+      routeFocusFrame.current = window.requestAnimationFrame(() => {
         headingRef.current?.focus();
         window.scrollTo(0, 0);
-        frame = undefined;
+        routeFocusFrame.current = null;
       });
     };
     window.addEventListener("hashchange", onNavigation);
@@ -78,7 +84,8 @@ export function App({ workspace }: { workspace?: ReactNode }) {
     return () => {
       window.removeEventListener("hashchange", onNavigation);
       window.removeEventListener("popstate", onNavigation);
-      if (frame !== undefined) window.cancelAnimationFrame(frame);
+      if (routeFocusFrame.current !== null)
+        window.cancelAnimationFrame(routeFocusFrame.current);
     };
   }, []);
 
@@ -93,12 +100,6 @@ export function App({ workspace }: { workspace?: ReactNode }) {
     if (previousRoute.current !== null && previousRoute.current !== routeId) {
       window.scrollTo(0, 0);
       setSampleCount(2);
-      // Allow AppFrame to close an open palette and remove its inert backdrop.
-      const frame = window.requestAnimationFrame(() =>
-        headingRef.current?.focus(),
-      );
-      previousRoute.current = routeId;
-      return () => window.cancelAnimationFrame(frame);
     }
     previousRoute.current = routeId;
   }, [activeId]);
@@ -119,6 +120,13 @@ export function App({ workspace }: { workspace?: ReactNode }) {
       navigation={navigation}
       activeId={activeId}
       skipHref={window.location.hash || "#/overview"}
+      onSkipToContent={() => {
+        skipFocusHash.current = window.location.hash;
+        if (routeFocusFrame.current !== null) {
+          window.cancelAnimationFrame(routeFocusFrame.current);
+          routeFocusFrame.current = null;
+        }
+      }}
       hostStatus={hostStatus}
       onSameRoute={() => {
         headingRef.current?.focus();

@@ -13,12 +13,15 @@ async function openCompactSettings(page: Page) {
 
 test("English and Hebrew demonstration is keyboard-accessible and network-isolated", async ({
   page,
+  baseURL,
 }) => {
+  if (!baseURL) throw new Error("BROWSER_BASE_URL_REQUIRED");
+  const localOrigin = new URL(baseURL).origin;
   const violations: string[] = [];
   await page.route("**/*", async (route) => {
     const url = new URL(route.request().url());
     if (
-      url.origin !== "http://127.0.0.1:4184" ||
+      url.origin !== localOrigin ||
       !(
         url.pathname === "/" ||
         url.pathname === "/favicon.ico" ||
@@ -259,15 +262,18 @@ test("mobile navigation and command palette work by keyboard", async ({
 
 test("synthetic form is interactive, localized, accessible and fully local", async ({
   page,
+  baseURL,
 }) => {
+  if (!baseURL) throw new Error("BROWSER_BASE_URL_REQUIRED");
+  const localOrigin = new URL(baseURL).origin;
   await page.context().grantPermissions(["clipboard-read", "clipboard-write"], {
-    origin: "http://127.0.0.1:4184",
+    origin: localOrigin,
   });
   const unexpectedRequests: string[] = [];
   await page.route("**/*", async (route) => {
     const url = new URL(route.request().url());
     if (
-      url.origin !== "http://127.0.0.1:4184" ||
+      url.origin !== localOrigin ||
       !(
         url.pathname === "/" ||
         url.pathname === "/favicon.ico" ||
