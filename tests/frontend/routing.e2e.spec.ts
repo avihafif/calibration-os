@@ -39,6 +39,84 @@ test("routes are bilingual, history-aware and focus the page heading", async ({
   await expect(page).toHaveTitle(/SIMULATION ONLY · טקסט טכני/u);
 });
 
+test("empty hashes canonicalize after navigation without adding history", async ({
+  page,
+}) => {
+  await page.goto("/#/technical");
+  for (const hash of ["#", "#/"]) {
+    await page.goto("/#/technical");
+    const before = await page.evaluate(() => history.length);
+    const afterAssignment = await page.evaluate((next) => {
+      location.hash = next;
+      return history.length;
+    }, hash);
+    await expect(page).toHaveURL(/#\/overview$/u);
+    expect(await page.evaluate(() => history.length)).toBe(afterAssignment);
+    await expect(page.getByRole("heading", { level: 1 })).toBeFocused();
+    if (afterAssignment > before) {
+      await page.evaluate(() => history.back());
+      await expect(page).toHaveURL(/#\/technical$/u);
+      await expect(page.getByRole("heading", { level: 1 })).toBeFocused();
+    }
+  }
+});
+
+test("Back and Forward close an open palette and focus the routed heading", async ({
+  page,
+}) => {
+  await page.goto("/#/overview");
+  await page
+    .getByRole("navigation", { name: "Primary navigation" })
+    .getByRole("link", { name: "Technical text" })
+    .click();
+  await page.keyboard.press("Control+k");
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await page.evaluate(() => history.back());
+  await expect(page).toHaveURL(/#\/overview$/u);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Overview" }),
+  ).toBeFocused();
+  await expect(
+    page.getByRole("link", { name: "Overview", exact: true }),
+  ).toHaveAttribute("aria-current", "page");
+  await page.keyboard.press("Control+k");
+  await page.evaluate(() => history.forward());
+  await expect(page).toHaveURL(/#\/technical$/u);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Technical text" }),
+  ).toBeFocused();
+  await expect(page).toHaveTitle(/SIMULATION ONLY · Technical text/u);
+});
+
+test("pseudo-locales keep the mobile topbar compact with full-size controls", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 568 });
+  await page.goto("/#/overview");
+  for (const locale of ["en-XA", "he-XB"] as const) {
+    await page.locator(".frame-settings-button").click();
+    await page.locator("#language").selectOption(locale);
+    await page.locator(".frame-settings-button").click();
+    const geometry = await page.evaluate(() => ({
+      topbar: document.querySelector(".frame-topbar")!.getBoundingClientRect()
+        .height,
+      page: document.documentElement.scrollWidth,
+      viewport: innerWidth,
+      targets: Array.from(
+        document.querySelectorAll<HTMLElement>(
+          ".frame-command, .frame-menu-button, .frame-settings-button",
+        ),
+      ).map((element) => element.getBoundingClientRect().height),
+    }));
+    expect(geometry.topbar, locale).toBeLessThanOrEqual(180);
+    expect(geometry.page, locale).toBeLessThanOrEqual(geometry.viewport);
+    for (const height of geometry.targets)
+      expect(height).toBeGreaterThanOrEqual(44);
+  }
+});
+
 test("unknown and Test-only routes fail closed without losing protected markings", async ({
   page,
 }) => {

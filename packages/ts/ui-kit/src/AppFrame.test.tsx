@@ -38,6 +38,16 @@ function pressF6(init: KeyboardEventInit = {}): KeyboardEvent {
   return event;
 }
 
+function pressPalette(init: KeyboardEventInit): KeyboardEvent {
+  const event = new KeyboardEvent("keydown", {
+    bubbles: true,
+    cancelable: true,
+    ...init,
+  });
+  act(() => window.dispatchEvent(event));
+  return event;
+}
+
 /** @req FR-UI-02, P1A-AC-05: Region cycling never activates a control. */
 describe("AppFrame region keyboard model", () => {
   it("moves forward and backward through named region containers", () => {
@@ -89,5 +99,24 @@ describe("AppFrame region keyboard model", () => {
     expect(document.activeElement).toBe(query);
     expect(pressF6().defaultPrevented).toBe(false);
     expect(document.activeElement).toBe(query);
+  });
+
+  it.each([
+    { key: "ל", code: "KeyK", ctrlKey: true },
+    { key: "ל", code: "KeyK", metaKey: true },
+    { key: "k", code: "KeyV", ctrlKey: true },
+    { key: "K", code: "KeyV", metaKey: true },
+  ])("opens by physical or character layout: %j", (shortcut) => {
+    mount();
+    expect(pressPalette(shortcut).defaultPrevented).toBe(true);
+    expect(screen.getByRole("dialog")).toBeTruthy();
+  });
+
+  it("does not open without Ctrl or Cmd", () => {
+    mount();
+    expect(pressPalette({ key: "k", code: "KeyK" }).defaultPrevented).toBe(
+      false,
+    );
+    expect(screen.queryByRole("dialog")).toBeNull();
   });
 });

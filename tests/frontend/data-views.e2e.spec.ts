@@ -268,9 +268,15 @@ test("keyboard focus clears the protected marking at short viewport heights", as
               Math.max(marking.top, focus.top),
           );
         });
-      await expect
-        .poll(overlap, { message: `${locale} ${width} Shift+Tab ${index}` })
-        .toBe(0);
+      // Native focus scrolling and ResizeObserver settle on the next paint.
+      // Assert after two bounded frames; never poll until a failure disappears.
+      await page.evaluate(
+        () =>
+          new Promise<void>((resolve) =>
+            requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+          ),
+      );
+      expect(await overlap(), `${locale} ${width} Shift+Tab ${index}`).toBe(0);
       await page.keyboard.press("Shift+Tab");
     }
     await page.keyboard.press("Tab");

@@ -25,19 +25,21 @@ if (
 const scripts = readdirSync(assetDir).filter((name) => name.endsWith(".js"));
 const testFormSentinel = "CALOS_SYNTHETIC_FORM_DEMO_ONLY";
 const testDataSentinel = "CALOS_SYNTHETIC_DATA_VIEWS_ONLY";
-function assertNoTestForm(source) {
+const testHostSentinel = "CALOS_SYNTHETIC_HOST_STATUS_ONLY";
+function assertNoTestDemos(source) {
   if (
     source.includes(testFormSentinel) ||
     source.includes(testDataSentinel) ||
+    source.includes(testHostSentinel) ||
     /preview-name|preview-decimal|preview-confirm/u.test(source)
   ) {
     throw new Error("TEST_FORM_IN_PRODUCTION_REHEARSAL_BUNDLE");
   }
 }
-for (const sentinel of [testFormSentinel, testDataSentinel]) {
+for (const sentinel of [testFormSentinel, testDataSentinel, testHostSentinel]) {
   let negativeProbeRejected = false;
   try {
-    assertNoTestForm(`isolated-probe:${sentinel}`);
+    assertNoTestDemos(`isolated-probe:${sentinel}`);
   } catch (error) {
     negativeProbeRejected =
       error instanceof Error &&
@@ -53,6 +55,7 @@ if (
 if (scripts.length === 0) throw new Error("WEB_BUNDLE_MISSING");
 let testFormFound = false;
 let testDataFound = false;
+let testHostFound = false;
 const forbidden = [
   /\beval\s*\(/u,
   /\bnew\s+Function\s*\(/u,
@@ -71,7 +74,8 @@ for (const script of scripts) {
   const source = readFileSync(resolve(assetDir, script), "utf8");
   if (source.includes(testFormSentinel)) testFormFound = true;
   if (source.includes(testDataSentinel)) testDataFound = true;
-  if (deployment === "production_rehearsal") assertNoTestForm(source);
+  if (source.includes(testHostSentinel)) testHostFound = true;
+  if (deployment === "production_rehearsal") assertNoTestDemos(source);
   for (const pattern of forbidden) {
     if (pattern.test(source))
       throw new Error(`FORBIDDEN_WEB_BUNDLE_CODE: ${script}: ${pattern}`);
@@ -81,6 +85,8 @@ if (deployment === "test" && !testFormFound)
   throw new Error("TEST_FORM_SENTINEL_MISSING_FROM_TEST_BUNDLE");
 if (deployment === "test" && !testDataFound)
   throw new Error("TEST_DATA_SENTINEL_MISSING_FROM_TEST_BUNDLE");
+if (deployment === "test" && !testHostFound)
+  throw new Error("TEST_HOST_SENTINEL_MISSING_FROM_TEST_BUNDLE");
 process.stdout.write(
   `Web bundle forbidden-code and fixture exclusion passed: ${scripts.length} script(s).\n`,
 );

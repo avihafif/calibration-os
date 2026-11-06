@@ -452,9 +452,9 @@ test("Hebrew physical KeyK shortcut opens the command palette", async ({
       }),
     ),
   );
-  await expect(page.getByRole("dialog", { name: "חלונית פקודות" })).toHaveCount(
-    0,
-  );
+  await expect(
+    page.getByRole("dialog", { name: "חלונית פקודות" }),
+  ).toBeVisible();
 });
 
 test("the persistent live region changes only on submit, never while typing", async ({

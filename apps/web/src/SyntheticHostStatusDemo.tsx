@@ -1,7 +1,6 @@
 import { createSystemI18n, type SupportedLocale } from "@calos/i18n";
 import { Card, HostSummaryChip, type HostStatusView } from "@calos/ui-kit";
 
-// CALOS_SYNTHETIC_HOST_STATUS_ONLY — never included in Production Rehearsal.
 const presets = {
   unknown: undefined,
   ok: {
@@ -68,7 +67,10 @@ export function SyntheticHostStatusDemo({
 }) {
   const t = createSystemI18n(locale).format;
   return (
-    <div className="host-demo">
+    <div
+      className="host-demo"
+      data-test-host-sentinel="CALOS_SYNTHETIC_HOST_STATUS_ONLY"
+    >
       <Card title={t("host.simulator.title")}>
         <p>{t("host.simulator.description")}</p>
         <label className="frame-tool">

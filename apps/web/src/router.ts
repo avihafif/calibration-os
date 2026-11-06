@@ -17,8 +17,21 @@ export function parseHash(hash: string, ids: ReadonlySet<string>): ParsedRoute {
 }
 
 function subscribeHash(listener: () => void): () => void {
-  window.addEventListener("hashchange", listener);
-  return () => window.removeEventListener("hashchange", listener);
+  const onHashChange = () => {
+    canonicalizeEmptyHash();
+    listener();
+  };
+  window.addEventListener("hashchange", onHashChange);
+  return () => window.removeEventListener("hashchange", onHashChange);
+}
+
+function canonicalizeEmptyHash(): void {
+  if (["", "#", "#/"].includes(window.location.hash))
+    window.history.replaceState(
+      null,
+      "",
+      `${window.location.pathname}${window.location.search}#/overview`,
+    );
 }
 
 function currentHash(): string {
@@ -33,17 +46,7 @@ export function useHashRoute(ids: ReadonlySet<string>): ParsedRoute {
     () => "#/overview",
   );
   useEffect(() => {
-    if (
-      window.location.hash === "" ||
-      window.location.hash === "#" ||
-      window.location.hash === "#/"
-    ) {
-      window.history.replaceState(
-        null,
-        "",
-        `${window.location.pathname}${window.location.search}#/overview`,
-      );
-    }
+    canonicalizeEmptyHash();
   }, []);
   const parsed = parseHash(hash, ids);
   return parsed.kind === "canonicalize"

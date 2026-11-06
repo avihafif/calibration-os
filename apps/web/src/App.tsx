@@ -70,9 +70,14 @@ export function App({ workspace }: { workspace?: ReactNode }) {
   useEffect(() => {
     const routeId = activeId ?? "not-found";
     if (previousRoute.current !== null && previousRoute.current !== routeId) {
-      headingRef.current?.focus();
       window.scrollTo(0, 0);
       setSampleCount(2);
+      // Allow AppFrame to close an open palette and remove its inert backdrop.
+      const frame = window.requestAnimationFrame(() =>
+        headingRef.current?.focus(),
+      );
+      previousRoute.current = routeId;
+      return () => window.cancelAnimationFrame(frame);
     }
     previousRoute.current = routeId;
   }, [activeId]);

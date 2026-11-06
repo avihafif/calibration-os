@@ -108,7 +108,10 @@ export function AppFrame({
   }, [locale]);
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
-      if ((event.ctrlKey || event.metaKey) && event.code === "KeyK") {
+      if (
+        (event.ctrlKey || event.metaKey) &&
+        (event.key.toLowerCase() === "k" || event.code === "KeyK")
+      ) {
         event.preventDefault();
         setPaletteOpen(true);
       } else if (

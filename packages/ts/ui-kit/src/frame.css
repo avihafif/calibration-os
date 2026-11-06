@@ -326,18 +326,26 @@ html {
 @media (max-width: 43.75rem) {
   .frame-topbar {
     align-items: start;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
   }
   .frame-tools {
     inline-size: 100%;
     margin-inline-start: 0;
+    flex-wrap: nowrap;
+    gap: var(--space-2);
   }
   .frame-command {
     order: 0;
+    flex: 1 1 0;
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
   }
   .frame-settings-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    flex: 0 0 var(--control-target-size);
   }
   .frame-settings-controls {
     display: none;
