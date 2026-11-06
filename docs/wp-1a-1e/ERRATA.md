@@ -61,5 +61,5 @@
 |---|---|---|
 | E-27 | `SEQUENCE_AND_A2.md` §1 | PR #28 is merged; new step 1a for the P28-14 fix (issue #31, PR #32), before N1 and A2. |
 | E-28 | `SEQUENCE_AND_A2.md` §4 | Re-reviews read the full diff between consecutive heads, not a path-filtered one. |
-| E-29 | `SEQUENCE_AND_A2.md` A2-01, A2-03, A2-05, A2-10 and allowed paths | Calendar validity for `wallUtc`; a fixed reason precedence for the disabled action; the existing live-region unit assertions may change only as listed; A2-10 reflects that the host-sentinel gate is already in `main`; `data-views.css` is allowed for A2 only if the scroll region is capped (D-A2-3). |
+| E-29 | `SEQUENCE_AND_A2.md` A2-01, A2-03, A2-05, A2-10 and allowed paths | Calendar validity for `wallUtc`; a fixed reason precedence for the disabled action (highest HS-04 severity first); the existing live-region unit assertions may change only as listed; A2-10 reflects that the host-sentinel gate is already in `main`; `data-views.css` is allowed for A2 only if the scroll region is capped (D-A2-3). |
 | E-30 | `N1_ACCEPTANCE_CRITERIA.md` N1-13 | Probe count baseline is 90, not 80. |
