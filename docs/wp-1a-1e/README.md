@@ -8,6 +8,7 @@
 | [`TASKS_AND_TESTS.md`](TASKS_AND_TESTS.md) | PR split, tasks T0–T10 with allowed paths, test inventory, normative tables, manual checklist, evidence template |
 | [`HUMAN_APPROVALS.md`](HUMAN_APPROVALS.md) | Every approval a human must give (workflow edit, gate edit, router, Edge source), decisions with defaults, and the proposed workflow job as text |
 | [`CODEX_HANDOFF.md`](CODEX_HANDOFF.md) | The prompt to paste when the owner assigns the package |
+| [`ERRATA.md`](ERRATA.md) | Errata 1: corrections from the independent reviews of PR #26 and PR #28, with the old and new text of each |
 
 The implementing PR adds its own `EVIDENCE.md` here; it does not edit these files except to correct an error it can show.
 
@@ -16,7 +17,7 @@ The implementing PR adds its own `EVIDENCE.md` here; it does not edit these file
 | Question | Recommendation |
 |---|---|
 | Adopt this specification as the basis for WP-1A-1e? | **GO**, after the owner answers or accepts the defaults in `HUMAN_APPROVALS.md` §2. |
-| Assign WP-1A-1e to Codex? | **Conditional GO**: only after WP-1A-1d (PR #25) is human-approved and merged by the owner. The independent review of PR #25 found no open Blocker or High finding at `207599a`; the owner's approval and merge are still required. |
+| Assign WP-1A-1e to Codex? | **Conditional GO**: WP-1A-1d (PR #25) was merged at `24548d8`. Apply [`ERRATA.md`](ERRATA.md) first; assignment (H-1) and the named independent reviewer remain the owner's decisions. |
 | Edit the Windows/Edge workflow? | **NO-GO until H-3** (and H-5) are given in the PR thread. The code PR (A) does not depend on it. |
 | Edit the bundle gate for relative asset URLs? | **NO-GO until H-4**. Without it, drop the sub-path requirement (RO-09) and record the deviation. |
 | Add `react-router`? | **NO-GO** by default; the in-house router needs no dependency. |
