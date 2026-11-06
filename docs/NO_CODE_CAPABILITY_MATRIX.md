@@ -200,6 +200,14 @@ Rehearsal. This does not implement a metadata-driven form renderer or change
 the classifications in rows 4.1–4.5; see
 [`docs/wp-1a-1c/FORM_HARDENING.md`](wp-1a-1c/FORM_HARDENING.md).
 
+**WP-1A-1d read-only views status:** generic `DataTable`, `DetailList`,
+`StatePanel` and `FindingsList` are trusted platform **DEV** primitives for
+display only. The Test-only demonstration uses synthetic UI labels. It does not
+render authored metadata, interpret schemas, persist records or add an
+operational view. The `FindingsList` accepts a local display shape; a shared
+Finding contract and finding-key namespace remain separate decisions. See
+[`docs/wp-1a-1d/READ_ONLY_VIEWS.md`](wp-1a-1d/READ_ONLY_VIEWS.md).
+
 ## 7. Summary
 
 | Class | Count (this version) | Comment |

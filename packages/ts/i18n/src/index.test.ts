@@ -52,6 +52,9 @@ describe("compiled system localization", () => {
           createSystemI18n(locale).format(key, {
             count: 2,
             identifier: "demo-id_42",
+            header: "demo-header",
+            code: "demo-code",
+            pointer: "/demo",
           }),
         ).toBeTruthy();
       }

@@ -37,6 +37,7 @@ export function AppFrame({
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [activeId, setActiveId] = useState(navigation[0]?.id ?? "");
+  const appRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLButtonElement>(null);
   const navRef = useRef<HTMLElement>(null);
   const visibleNavigation = navigation.filter((item) =>
@@ -48,6 +49,33 @@ export function AppFrame({
   useEffect(() => {
     if (drawerOpen) navRef.current?.querySelector<HTMLElement>("a")?.focus();
   }, [drawerOpen]);
+  useEffect(() => {
+    const marking = appRef.current?.querySelector<HTMLElement>(
+      "[data-frame-badges]",
+    );
+    if (!marking) return;
+    const root = document.documentElement;
+    const updateOffset = () => {
+      root.style.setProperty(
+        "--calos-protected-marking-height",
+        `${Math.ceil(marking.getBoundingClientRect().height)}px`,
+      );
+    };
+    updateOffset();
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", updateOffset);
+      return () => {
+        window.removeEventListener("resize", updateOffset);
+        root.style.removeProperty("--calos-protected-marking-height");
+      };
+    }
+    const observer = new ResizeObserver(updateOffset);
+    observer.observe(marking);
+    return () => {
+      observer.disconnect();
+      root.style.removeProperty("--calos-protected-marking-height");
+    };
+  }, [locale]);
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
       if (
@@ -74,6 +102,7 @@ export function AppFrame({
 
   return (
     <div
+      ref={appRef}
       className="calos-app"
       data-theme={theme}
       lang={locale}

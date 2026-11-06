@@ -1,6 +1,7 @@
 import "./tokens.css";
 import "./components.css";
 import "./frame.css";
+import "./data-views.css";
 
 export { AppFrame, type FrameNavigationItem } from "./AppFrame";
 export {
@@ -30,3 +31,19 @@ export {
   type FormFinding,
   isExactDecimalText,
 } from "./form-controls";
+export {
+  DataTable,
+  DetailList,
+  DisplayText,
+  StatePanel,
+  FindingsList,
+  sortDisplayRows,
+} from "./data-views";
+export type {
+  DataColumn,
+  SortState,
+  SortDirection,
+  DetailItem,
+  PanelState,
+  DisplayFinding,
+} from "./data-views";

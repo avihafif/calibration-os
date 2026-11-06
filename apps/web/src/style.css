@@ -65,6 +65,52 @@ body {
   max-inline-size: 51.25rem;
   margin-block-start: var(--space-8);
 }
+.data-demo {
+  margin-block-start: var(--space-8);
+  min-inline-size: 0;
+}
+.data-demo > p {
+  color: var(--text-muted);
+}
+.data-demo-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin-block: var(--space-4);
+}
+.data-demo-detail {
+  min-inline-size: 0;
+}
+.data-demo-state {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+.data-demo-state > * {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+.data-demo-state > label {
+  font-weight: 650;
+}
+.data-demo-state > select {
+  inline-size: 100%;
+  min-block-size: var(--control-target-size);
+  max-inline-size: 100%;
+  padding: var(--space-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+@media (max-width: 43.75rem) {
+  .data-demo-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 .form-demo-description {
   margin-block: 0 var(--space-4);
   color: var(--text-muted);

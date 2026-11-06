@@ -1,3 +1,19 @@
+.calos-app {
+  scroll-padding-block-start: calc(
+    var(--calos-protected-marking-height, 0px) + var(--space-2)
+  );
+}
+html {
+  scroll-padding-block-start: calc(
+    var(--calos-protected-marking-height, 0px) + var(--space-2)
+  );
+}
+.calos-app
+  :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  scroll-margin-block-start: calc(
+    var(--calos-protected-marking-height, 0px) + var(--space-2)
+  );
+}
 .frame-skip {
   position: absolute;
   inset-block-start: -4rem;
