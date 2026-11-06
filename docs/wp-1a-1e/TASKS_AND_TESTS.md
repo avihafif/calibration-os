@@ -11,6 +11,8 @@ The owner may choose one PR (decision D-E2 in [`HUMAN_APPROVALS.md`](HUMAN_APPRO
 | **A** | `WP-1A-1e-a: hash routing, host-status contract and shell hardening` | T0, T1, T2, T3, T4, T5, T6a (relative base, sub-path), T9a | D-E1 (router), D-E3 / H-4 (gate edit for the relative stylesheet link), independent review, human GitHub approval |
 | **B** | `WP-1A-1e-b: strict-CSP verification, Windows/Edge harness, forced-colors and scaling` | T6b, T7, T8, T9b, T10 | H-3 (exact workflow diff), H-5 (Edge source), H-6 (visual-baseline policy), independent review, human GitHub approval |
 
+**Rehearsal verification (D-E8).** `vite preview` serves one `dist`, and the existing job builds only the Test web build, so no e2e test can see the Rehearsal build. Default: verify RO-02, SR-03 and CS-05 for Rehearsal with unit tests, the bundle gate (sentinels) and a documented local measurement (build with `VITE_ENVIRONMENT_KIND=production_rehearsal`, serve it, check the route table, the status bar and `scrollHeight - innerHeight` at 1440×900, 1024×768 and 768×1024). A third Playwright config with a Rehearsal build step is part of PR B's workflow diff only if the owner chooses it (D-E8).
+
 ```
 T0 ─► T1 ─► T3 ─┐
  │      └──► T4 ─┼─► T5 ─► (A done) ─► T6b ─► T7 ─► T8 ─► T9b ─► T10 (B done)
@@ -24,8 +26,8 @@ T0 ─► T1 ─► T3 ─┐
 Every task lists its allowed paths. Paths not listed are forbidden (see also `SPECIFICATION.md` AB-05, AB-06, AB-07). The common allowed set is: `packages/ts/ui-kit/src/**`, `packages/ts/i18n/src/**`, `apps/web/src/**`, `tests/frontend/**`, `docs/wp-1a-1e/**`, `docs/NO_CODE_CAPABILITY_MATRIX.md`.
 
 ### T0 — Preconditions and baseline (S)
-1. Confirm WP-1A-1d (PR #25) is merged to `main`; branch from `main`. If it is not merged, **stop**.
-2. Confirm the [needs PR #25] facts exist: `safeDisplayText` and `DisplayText` in `ui-kit`, `--calos-protected-marking-height` set by `AppFrame`, `SyntheticDataViewsDemo` with sentinel `CALOS_SYNTHETIC_DATA_VIEWS_ONLY`, and the focus-versus-marking test.
+1. Confirm WP-1A-1d (PR #25, merged at `24548d8`) is in `main`; branch from the current `main`. If `main` does not contain it, **stop**.
+2. Confirm the PR #25 facts exist: `safeDisplayText` and `DisplayText` in `ui-kit`, `--calos-protected-marking-height` set by `AppFrame`, `SyntheticDataViewsDemo` with sentinel `CALOS_SYNTHETIC_DATA_VIEWS_ONLY`, and the focus-versus-marking test.
 3. Re-run the baseline measurements in `SPECIFICATION.md` §3 (CSP, sub-path, Edge, target sizes, top-bar height, short-page scroll) and record the numbers in `EVIDENCE.md`. Note any difference from this document; if a baseline figure moved, say so rather than adapting silently.
 4. Run the full gate list from `docs/wp-1a-1b/UI_KIT.md` and record counts.
 
@@ -34,7 +36,7 @@ Exit: `EVIDENCE.md` section "Baseline" with commands, versions and counts.
 ### T1 — Search normalisation and messages (S) — PS-01…PS-04, PS-06 data part
 Files: `packages/ts/i18n/src/search.ts`, `search.test.ts`, `index.ts` export, `messages.ts`, `index.test.ts` (extend the placeholder-argument list).
 1. `normalizeSearchText` and `matchesSearchQuery` exactly as PS-01/PS-02. No `Intl.Collator` (it cannot do substring search; see baseline).
-2. Vector table from §4.3 below as a data-driven test, plus a seeded property test (normalisation is idempotent; never throws; output length ≤ input length × 3).
+2. Vector table from §4.3 below as a data-driven test, plus a seeded property test (normalisation is idempotent; never throws; output length ≤ input length × 18, because NFKD of U+FDFA gives 18 code points; with the 256-character query cap the work is bounded by 4 608 characters).
 3. Messages he/en for: `route.forms`, `route.data`, `route.host`, `route.notFound`, `route.notFoundBody`, `route.notFoundLink`, `shell.regionTopbar`, `shell.regionWorkspace`, `shell.regionStatus`, `shell.f6Hint`, `shell.searchResults` (ICU plural), and every `host.*` key listed in §4.2. Hebrew goes through the existing review-status mechanism and stays `needs_review`; pseudo-locales continue to be generated.
 
 ### T2 — Router, route table and pages (M) — RO-01…RO-12
@@ -43,7 +45,7 @@ Files: `apps/web/src/router.ts`, `routes.tsx`, `pages/*.tsx`, `App.tsx`, `main.t
 2. `buildRoutes(kind)` returns the table in §4.1. Test-only pages are registered inside an `environmentKind === "test"` branch.
 3. Split `App.tsx` into pages. `PageHeader` renders the `h1` with `tabIndex={-1}` and forwards a ref. Title and focus effects run only after the first route change (RO-04, RO-05). Boundary keyed by route id (RO-11).
 4. `AppFrame`: remove local `activeId`; skip link handler (RO-06); clicking the current route's link focuses the `h1` (RO-05).
-5. Update `App.test.tsx` tab-order expectations; add `router.test.ts`, `routes.test.ts`, `tests/frontend/routing.e2e.spec.ts`.
+5. Update `App.test.tsx` tab-order expectations; add `router.test.ts`, `routes.test.ts`, `tests/frontend/routing.e2e.spec.ts`. Add every new e2e spec to the explicit file list of the root `check:browser-types` script (scripts-only edit); do the same for `playwright.edge.config.ts` in T7.
 
 ### T3 — AppFrame behaviours: F6, landmarks, palette (M) — KB-01…KB-07, PS-05, PS-06, RO-12, SR-07
 Files: `AppFrame.tsx`, `frame.css`, `primitives.tsx` only if the palette needs it; tests.
@@ -57,7 +59,8 @@ Files: `packages/ts/ui-kit/src/host-status.ts(x)`, `HostStatusBar`/`HostStatusCh
 1. Types per specification §4.3; port, `normalizeHostStatus`, fake, unavailable port, `useHostStatus`.
 2. Components render the severity table (HS-04) with text, SVG icon and shape (§4.2 table below); one persistent polite status region (HS-06); alert banner for errors; environment mismatch (HS-07); host time (HS-08); `ActionWithReason` and the demo action (HS-09).
 3. `host` page: simulator controls and one card per state, Test only, sentinel `CALOS_SYNTHETIC_HOST_STATUS_ONLY` (HS-10). Rehearsal wiring uses the unavailable port.
-4. Lint probes (AB-08) and bundle-gate sentinel with a negative probe.
+4. Lint probes (AB-08) and bundle-gate sentinel with a negative probe. The sentinel is a runtime string literal, never a comment (HS-10).
+5. Dependencies inside T4: the normaliser (HS-02, with the ASCII rule), `ActionWithReason` (HS-09), the default-unknown behaviour and the unit and e2e tests need neither N-1 nor H-4. Only the bundle-gate edit needs H-4, and displaying non-ASCII technical text needs N-1. If T4 is delivered in two PRs, the first must not leave HS-02, HS-09 or HS-10 unrecorded.
 
 ### T5 — Responsive shell (S–M) — SR-01…SR-06, SR-08
 Files: `frame.css`, `components.css`, `AppFrame.tsx`, `apps/web/src/style.css`, tests.
@@ -147,7 +150,7 @@ Keep the existing tests unchanged except as listed in `SPECIFICATION.md` §5.
 | `overview` | `shell.overview` | yes | yes | heading, notification, review note |
 | `technical` | `shell.technical` | yes | yes | the existing technical card |
 | `forms` | `route.forms` | yes | no | `SyntheticFormDemo` |
-| `data` | `route.data` | yes | no | `SyntheticDataViewsDemo` **[needs PR #25]** |
+| `data` | `route.data` | yes | no | `SyntheticDataViewsDemo` **(PR #25, merged)** |
 | `host` | `route.host` | yes | no | host-status simulator and state cards |
 
 ### 4.2 Host-status presentation (normative)
@@ -175,7 +178,8 @@ Message keys (each he/en; Hebrew `needs_review`): `host.summary.{ok,notice,warni
 | `café` | `cafe` | yes |
 | `file` | `ﬁle` | yes |
 | `ABC` | `ＡＢＣ` | yes |
-| `CalOS (בדיקה) v1.2` | `בדיקה v1` | yes |
+| `CalOS (בדיקה) v1.2` | `בדיקה) v1` | yes |
+| `CalOS (בדיקה) v1.2` | `בדיקה v1` | **no**: PS-02 is a literal substring match and the parenthesis separates the words (token-based matching would be a separate product decision) |
 | `Overview` | `ov‎er` | yes |
 | any | `\u0000` only, or only niqqud | matches all |
 | any | 10 000-character query | no throw, bounded time |
@@ -191,4 +195,4 @@ Real Edge, normal window and `--app` mode, plus Chrome: does the page receive `F
 
 ## 6. Evidence template (`EVIDENCE.md`)
 
-Baseline numbers (T0) · criterion-to-test table (ID → file → test name → layer) · commands run with counts · Chrome and Edge versions · Windows job log link (after H-3) · screenshots: each route en/he × light/dark × 320/768/1440, each host-status state en/he, forced colors, scaling matrix · CSP run output (violations 0, negative controls firing) · list of **not verified** items · deviations from the specification and why.
+Baseline numbers (T0) · criterion-to-test table (ID → file → test name → layer) · commands run with counts · Chrome and Edge versions · Windows job log link (after H-3) · screenshots: each route en/he × light/dark × 320/768/1440, each host-status state en/he, forced colors, scaling matrix · CSP run output (violations 0, negative controls firing) · list of **not verified** items · deviations from the specification and why · every edit to an existing test and its reason.

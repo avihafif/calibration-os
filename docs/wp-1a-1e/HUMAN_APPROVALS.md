@@ -9,7 +9,7 @@ Nothing in this PR or in the specification grants any of these. Agents (includin
 | H-1 | **Assign WP-1A-1e** to Codex (manual) and name the independent reviewer | Product owner | any code | Requires WP-1A-1d (PR #25) merged first; the owner, not an agent, merges. |
 | H-2 | **Router choice** D-E1: in-house hash router (default) or `react-router@8.5.0` | Architecture owner, Security reviewer | T2 | The in-house default needs no approval beyond H-1. The library option changes `package.json` and `pnpm-lock.yaml`, needs the ADR-0026 evidence re-run at install time (audit, OSV, SBOM, licence, library-mode constraints, lint forbidding `ScrollRestoration`, loaders, actions, `<Form>`, `useFetcher`) and a reviewer who checks the lockfile diff. |
 | **H-3** | **Workflow edit: `.github/workflows/phase0a.yml`** adds one `windows-latest` + Edge Playwright job | Product owner (workflows are governance-controlled) | the workflow commit | Approve the **exact diff** in §3. No other workflow line may change. Whether the job becomes a *required* status check is a repository setting only the owner can change; that is a separate decision. |
-| H-4 | **Bundle-gate edit** `tools/check_frontend_bundle.mjs`: relative stylesheet link, failure on root-absolute `src`/`href`, third sentinel, inline-script/style scan | Architecture owner | the gate commit | AGENTS.md §8 requires a human before a CI gate is weakened. The edit is intended to be strictly stronger, but it replaces the literal `href="/status.css"` check, so the owner confirms it is not a weakening. If declined, record the deviation from OF-02 and drop RO-09. |
+| H-4 | **Bundle-gate edit** `tools/check_frontend_bundle.mjs`: relative stylesheet link, failure on root-absolute `src`/`href`, third sentinel, inline-script/style scan | Architecture owner | the gate commit | AGENTS.md §8 requires a human before a CI gate is weakened. The edit is intended to be strictly stronger, but it replaces the literal `href="/status.css"` check, so the owner confirms it is not a weakening. If declined, record the deviation from OF-02 and drop RO-09. The owner may split it: **H-4a** the additive checks (third sentinel with presence and absence checks, inline-script and inline-style scan), which only strengthen the gate; **H-4b** the replacement of the literal `href="/status.css"` check by the relative-link assertion. |
 | H-5 | **Edge acquisition**: use the preinstalled Edge on `windows-latest` only | Security reviewer | the workflow commit | `playwright install msedge` downloads a second browser and is **not** covered by ADR-0026 §5 (which allows the pinned Chromium download only). The job must fail if Edge is missing rather than download it. |
 | H-6 | **Visual-baseline policy**: no pixel-baseline assertions in this package | Architecture owner | EVIDENCE sign-off | Default recommended; a future Linux-only baseline policy would be a separate docs decision. |
 | H-7 | Independent review (not the author's agent) and **human GitHub approval** for each PR | Owner, reviewer | merge | Agent reviews are not approvals. |
@@ -31,6 +31,8 @@ If the owner does not answer, the recommended option is the working assumption a
 | D-E5 | Route set | overview, technical, forms, data, host | exactly the three routes in 05 §4 | Drops `technical` and `host`; host-status states would need another home |
 | D-E6 | F6 target | Region container | First focusable child | Faster entry, risk of unintended activation; needs a different KB-02 |
 | D-E7 | Host simulator route | Test-only `#/host` page | Controls on an existing page | Same sentinel rules apply |
+| D-E8 | Production Rehearsal verification | Unit tests, bundle gate and a documented local measurement (PR A) | A Rehearsal build step and a third Playwright config in the approved workflow diff (extends H-3) | Larger H-3 diff; RO-02, SR-03 and CS-05 become CI-enforced for Rehearsal |
+| D-E9 | Windows job trigger | `pull_request` only | `push` and `pull_request` (the file's current triggers) | The job runs twice per commit |
 
 ## 3. Proposed workflow job (text only; **not applied** by this PR and **unverified** on a runner)
 
@@ -39,10 +41,13 @@ To be added to `.github/workflows/phase0a.yml` only after H-3, H-4 and H-5 are a
 ```yaml
   frontend-browser-windows-edge:
     runs-on: windows-latest
+    timeout-minutes: 20
     permissions:
       contents: read
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: pnpm/action-setup@v4
         with:
           version: 11.25.0
@@ -52,12 +57,14 @@ To be added to `.github/workflows/phase0a.yml` only after H-3, H-4 and H-5 are a
           cache: pnpm
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: pnpm build:web
-      - name: Require the preinstalled Microsoft Edge and print its version
+      - name: Require the preinstalled Microsoft Edge; print its version and the runner image version
         shell: pwsh
         run: |
-          $edge = Join-Path ${env:ProgramFiles(x86)} 'Microsoft\Edge\Application\msedge.exe'
-          if (-not (Test-Path $edge)) { throw 'EDGE_NOT_PREINSTALLED' }
-          (Get-Item $edge).VersionInfo.ProductVersion
+          $roots = @(${env:ProgramFiles(x86)}, ${env:ProgramFiles}, ${env:LOCALAPPDATA}) | Where-Object { $_ }
+          $edge = $roots | ForEach-Object { Join-Path $_ 'Microsoft\Edge\Application\msedge.exe' } | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $edge) { throw 'EDGE_NOT_PREINSTALLED' }
+          "Runner image version: $env:ImageVersion"
+          "Edge: $edge $((Get-Item $edge).VersionInfo.ProductVersion)"
       - run: pnpm test:e2e:edge
       - name: Upload Windows/Edge screenshots
         if: always()
@@ -67,6 +74,8 @@ To be added to `.github/workflows/phase0a.yml` only after H-3, H-4 and H-5 are a
           path: artifacts/screenshots/
           if-no-files-found: warn
 ```
+
+Errata 1 changes to the text above: `timeout-minutes: 20` (a hung browser must not run for the six-hour default), `persist-credentials: false` on checkout, an Edge search over the same roots Playwright uses with the runner image version logged, and a trigger decision (D-E9: the job has no `on:` of its own, so it inherits the file's `push` and `pull_request` triggers and would run twice per commit). Action versions stay tag-pinned like the existing jobs; SHA pinning is a repository-wide governance decision outside this package.
 
 Open points the first run must settle: whether Edge is preinstalled at that path on the current runner image, whether the pnpm cache behaves on Windows, and the total run time against the 10-minute target. Do not run Prettier's full-tree check on this job: Windows checkouts convert line endings, and the Linux `typescript` job remains the authoritative format gate.
 
