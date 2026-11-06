@@ -37,7 +37,7 @@ approval and merge remain separate.
 | RO-10–RO-12 | Existing network/storage isolation browser test, route axe matrix; route-local form/data state unmounts | Implemented; real screen-reader check remains manual |
 | KB-01–KB-03, KB-05–KB-07 | `AppFrame.test.tsx`, F6 browser test, restored Hebrew `KeyK` and character-`k` assertions | Implemented; browser accelerator precedence is not proven |
 | KB-04 | Real Edge normal/app mode and Chrome manual check | **Not run** |
-| PS-01–PS-06 | `search.test.ts` vectors and seeded idempotence test; Hebrew palette browser test | Implemented, with punctuation-vector conflict below |
+| PS-01–PS-06 | `search.test.ts` vectors and seeded idempotence test; Hebrew palette browser test | Implemented; merged Errata 1 clarifies the punctuation vector |
 | SR-01–SR-05, SR-08 | 60 route screenshots, per-route 44 px shell-target and horizontal-overflow assertions, 12 host screenshots, 320/768/1440 and pseudo-locale tests, bounded-frame focus overlap regression | Locally tested; Rehearsal short-page geometry not run |
 | SR-06 | Status-bar height CSS variable and responsive sticky rule | Implemented; focused footer-overlap sweep not run |
 | HS-01, HS-03–HS-04 | UI-side types; fake and unavailable injected ports; unit severity table and browser preset checks | Fake/local only; no real host adapter |
@@ -50,8 +50,8 @@ approval and merge remain separate.
 ## Independent-review correction record
 
 The [PR #28 independent review](https://github.com/avihafif/calibration-os/pull/28#issuecomment-6678865755)
-was a conditional NO-GO at `f018993`. The unmerged [PR #29 errata](https://github.com/avihafif/calibration-os/pull/29)
-informed the corrections below; this PR does not ratify that proposal.
+was a conditional NO-GO at `f018993`. The merged [PR #29 errata](https://github.com/avihafif/calibration-os/pull/29)
+informed the corrections below; it approves no operational gate.
 
 | Finding | Correction | Regression evidence |
 |---|---|---|
@@ -144,11 +144,10 @@ browser-chrome F6 behavior still need manual checks.
    non-ASCII technical text still depends on N-1 implementation. The runtime
    sentinel and Test/Rehearsal gate are complete; H-4 still blocks relative
    URL work.
-3. **Specification search-vector inconsistency.** PS-01 mandates NFKD folding
-   and PS-02 mandates normalized `includes`, which cannot match query
-   `בדיקה v1` across the literal `)` in `CalOS (בדיקה) v1.2` from the
-   §4.3 vector table. The implementation follows PS-01/02 exactly; the
-   punctuation-spanning example needs an architecture clarification.
+3. **Search vector.** Merged Errata 1 resolves the former punctuation-vector
+   inconsistency: `בדיקה) v1` matches the literal substring and
+   `בדיקה v1` does not. The implementation follows PS-01/02; token-based
+   matching would require a separate product decision.
 4. **PR B and external deployment.** Strict-CSP browser harness, Windows/Edge
    CI, forced-colors/scaling matrix and workflow changes are not in PR A.
    H-3/H-5 approvals remain required; no workflow was modified. The Station
