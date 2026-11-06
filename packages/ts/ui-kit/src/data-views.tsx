@@ -375,12 +375,14 @@ export function FindingsList({
     resolve: (value: string) => string,
   ): string {
     try {
-      const label = resolve(value);
-      if (label.trim()) return label;
+      // The resolver may echo its input into localized prose. Give it only
+      // display-safe technical text, while retaining the raw grouping key.
+      const label = resolve(safeDisplayText(value, "technical"));
+      if (label.trim()) return safeDisplayText(label, "prose");
     } catch {
-      // Preserve the visible source identifier if host localization is missing.
+      // A missing localization falls back to the technical source identifier.
     }
-    return value;
+    return safeDisplayText(value, "technical");
   }
   function groupLabel(group: FindingGroup): string {
     const known =
@@ -391,18 +393,28 @@ export function FindingsList({
     const severity = resolvedLabel(normalized, (value) =>
       severityLabel(value as DisplayFinding["severity"]),
     );
-    const unknown = known ? "" : ` · ${safeDisplayText(group.severity)}`;
+    const unknown = known
+      ? ""
+      : ` · ${safeDisplayText(group.severity, "technical")}`;
     const stage = resolvedLabel(group.stage, stageLabel);
-    return `${safeDisplayText(severity)}${unknown} · ${safeDisplayText(stage)}`;
+    return `${severity}${unknown} · ${stage}`;
   }
   function messageText(finding: DisplayFinding): string {
     try {
-      const rendered = formatMessage(finding.message);
-      if (rendered.trim()) return rendered;
+      // Message keys and interpolation parameters are technical values. A
+      // formatter may echo any of them, including into a pseudo-locale string.
+      const rendered = formatMessage({
+        key: safeDisplayText(finding.message.key, "technical"),
+        params: finding.message.params?.map(({ name, value }) => ({
+          name: safeDisplayText(name, "technical"),
+          value: safeDisplayText(value, "technical"),
+        })),
+      });
+      if (rendered.trim()) return safeDisplayText(rendered, "prose");
     } catch {
       // A missing host translation is shown by its stable key for this row.
     }
-    return finding.message.key || finding.code;
+    return safeDisplayText(finding.message.key || finding.code, "technical");
   }
   return (
     <div className="ui-findings-list">
@@ -428,7 +440,7 @@ export function FindingsList({
                   ])}
                 >
                   <DisplayText value={finding.code} technical />
-                  <span>{safeDisplayText(messageText(finding))}</span>
+                  <span>{messageText(finding)}</span>
                   <DisplayText value={finding.pointer.value} technical />
                   <button
                     type="button"
@@ -436,7 +448,11 @@ export function FindingsList({
                     onClick={() => onNavigate(finding.pointer.value)}
                   >
                     {safeDisplayText(
-                      navigateLabel(finding.code, finding.pointer.value),
+                      navigateLabel(
+                        safeDisplayText(finding.code, "technical"),
+                        safeDisplayText(finding.pointer.value, "technical"),
+                      ),
+                      "prose",
                     )}
                   </button>
                 </li>

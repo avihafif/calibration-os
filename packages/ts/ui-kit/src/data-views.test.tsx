@@ -494,6 +494,157 @@ describe("FindingsList", () => {
     );
     expect(onNavigate).toHaveBeenCalledWith(rawPointer);
   });
+
+  it.each(["\u200b", "\ufeff", "\u{E0020}", "⟦U+200B⟧"])(
+    "strictly escapes technical fallbacks and navigation names containing %s",
+    async (hostile) => {
+      const code = `C${hostile}X`;
+      const pointer = `/p${hostile}q`;
+      const key = `key${hostile}end`;
+      const stage = `stage${hostile}end`;
+      const unknownSeverity = `odd${hostile}end`;
+      const expectedCode = safeDisplayText(code, "technical");
+      const expectedPointer = safeDisplayText(pointer, "technical");
+      const onNavigate = vi.fn();
+      const navigateLabel = vi.fn(
+        (visibleCode: string, visiblePointer: string) =>
+          `Go ${visibleCode} ${visiblePointer}`,
+      );
+      const { container } = render(
+        <FindingsList
+          findings={[
+            {
+              code,
+              severity: unknownSeverity as "error",
+              stage,
+              pointer: { value: pointer },
+              message: { key },
+            },
+            {
+              code,
+              severity: "error",
+              stage: "local",
+              pointer: { value: "/missing" },
+              message: { key: "" },
+            },
+          ]}
+          severityLabel={() => "Error"}
+          stageLabel={() => {
+            throw new Error("untranslated stage");
+          }}
+          formatMessage={() => {
+            throw new Error("untranslated message");
+          }}
+          navigateLabel={navigateLabel}
+          onNavigate={onNavigate}
+        />,
+      );
+      const groups = container.querySelectorAll(".ui-findings-group");
+      expect(groups[0]?.querySelector("h3")?.textContent).toBe(
+        `Error · ${safeDisplayText(unknownSeverity, "technical")} · ${safeDisplayText(stage, "technical")}`,
+      );
+      expect(groups[0]?.querySelector("li > span")?.textContent).toBe(
+        expectedCode,
+      );
+      expect(
+        groups[0]?.querySelector("li > span:nth-of-type(2)")?.textContent,
+      ).toBe(safeDisplayText(key, "technical"));
+      expect(
+        groups[0]?.querySelector("li > span:nth-of-type(3)")?.textContent,
+      ).toBe(expectedPointer);
+      expect(
+        groups[1]?.querySelector("li > span:nth-of-type(2)")?.textContent,
+      ).toBe(expectedCode);
+      expect(navigateLabel).toHaveBeenCalledWith(expectedCode, expectedPointer);
+      const button = screen.getByRole("button", {
+        name: `Go ${expectedCode} ${expectedPointer}`,
+      });
+      expect(button.textContent).toBe(`Go ${expectedCode} ${expectedPointer}`);
+      expect(button.hasAttribute("aria-label")).toBe(false);
+      for (const raw of [code, pointer, key, stage, unknownSeverity]) {
+        expect(groups[0]?.textContent).not.toContain(raw);
+      }
+      await userEvent.setup().click(button);
+      expect(onNavigate).toHaveBeenCalledWith(pointer);
+    },
+  );
+
+  it.each(["\u200b", "\ufeff", "\u{E0020}", "⟦U+200B⟧"])(
+    "sanitizes formatter inputs while preserving pseudo-locale prose containing %s",
+    (hostile) => {
+      const code = `C${hostile}X`;
+      const pointer = `/p${hostile}q`;
+      const key = `key${hostile}end`;
+      const name = `name${hostile}end`;
+      const value = `value${hostile}end`;
+      const stage = `stage${hostile}end`;
+      for (const locale of ["en-XA", "he-XB"] as const) {
+        const local = createSystemI18n(locale).format;
+        const formatMessage = vi.fn(
+          (message: {
+            key: string;
+            params?: { name: string; value: string }[];
+          }) =>
+            `${local("views.findingMessage")} ${message.key} ${message.params?.[0]?.name}=${message.params?.[0]?.value}`,
+        );
+        const stageLabel = vi.fn(
+          (safeStage: string) => `${local("views.stageLocal")} ${safeStage}`,
+        );
+        const { container, unmount } = render(
+          <FindingsList
+            findings={[
+              {
+                code,
+                severity: "error",
+                stage,
+                pointer: { value: pointer },
+                message: { key, params: [{ name, value }] },
+              },
+            ]}
+            severityLabel={() => local("views.severityError")}
+            stageLabel={stageLabel}
+            formatMessage={formatMessage}
+            navigateLabel={(safeCode, safePointer) =>
+              local("views.navigate", { code: safeCode, pointer: safePointer })
+            }
+            onNavigate={() => undefined}
+          />,
+        );
+        expect(formatMessage).toHaveBeenCalledWith({
+          key: safeDisplayText(key, "technical"),
+          params: [
+            {
+              name: safeDisplayText(name, "technical"),
+              value: safeDisplayText(value, "technical"),
+            },
+          ],
+        });
+        expect(stageLabel).toHaveBeenCalledWith(
+          safeDisplayText(stage, "technical"),
+        );
+        expect(container.querySelector("h3")?.textContent).toContain(
+          local("views.stageLocal"),
+        );
+        expect(
+          container.querySelector("li > span:nth-of-type(2)")?.textContent,
+        ).toBe(
+          `${local("views.findingMessage")} ${safeDisplayText(key, "technical")} ${safeDisplayText(name, "technical")}=${safeDisplayText(value, "technical")}`,
+        );
+        expect(
+          screen.getByRole("button", {
+            name: local("views.navigate", {
+              code: safeDisplayText(code, "technical"),
+              pointer: safeDisplayText(pointer, "technical"),
+            }),
+          }),
+        ).toBeTruthy();
+        for (const raw of [code, pointer, key, name, value, stage]) {
+          expect(container.textContent).not.toContain(raw);
+        }
+        unmount();
+      }
+    },
+  );
 });
 
 function decodeTechnicalForTest(value: string): string {

@@ -26,13 +26,13 @@ not an operational calibration or host-integration release.
 |---|---|---|
 | N1-01 | `technical-text.ts` contains one Unicode 17.0 pinned table (28 disjoint ranges, 4,224 points) and pure `findNonDisplayableCodePoints`; `ui-kit` imports from `i18n` only. | Implemented; 90 boundary probes pass |
 | N1-02 | `format.ts` uses the classifier, with its duplicate regular expression removed. `technical-text.test.ts` tests ten newly rejected hidden unit/isolate values and five unchanged accepted units; existing decimal, RLO, surrogate and length tests are unchanged. | Implemented |
-| N1-03 | `safeDisplayText(value, "technical" | "prose")` defaults to backward-compatible `prose`; `DisplayText technical`, finding codes and pointers use strict policy. Trusted authored messages, stage/severity labels and navigation labels use prose. The unchanged en-XA/he-XB FindingsList tests pass. | Implemented, with caller-label residual below |
+| N1-03 | `safeDisplayText(value, "technical" | "prose")` defaults to backward-compatible `prose`; `DisplayText technical`, finding codes and pointers use strict policy. FindingsList escapes technical inputs before formatter/label callbacks and strictly escapes identifier fallbacks; returned trusted prose, including en-XA/he-XB brackets, stays prose. | Implemented; P36-01 regression matrix added |
 | N1-04 | Full U+0000–U+10FFFF sweep compares the classifier against the pinned table plus runtime Cc/Co/Cn/Cs; a second sweep compares technical output and rejects any forbidden unescaped scalar. Four lone surrogates are explicit vectors. | Implemented; both sweeps pass |
 | N1-05 | Test-only decoder and a fixed-seed hostile pool prove `decode(technical(x)) === x` and no output collisions for 100,000 strings. Literal notation and a hidden U+200B render differently. | Implemented; 0 failures |
 | N1-06 | `data-views.test.tsx` asserts raw U+200B/U+FEFF/tag values reach `sortValue`/comparator, `rowId`/`data-row-id` and `onNavigate`, while rendered code/pointer text uses notation. | Implemented |
 | N1-07 | Unchanged-good corpus covers `µ Ω Ω ° ± × −`, `kΩ`, `10.00 mV`, Hebrew marks, ASCII, NFC/NFD and distinct ASCII-space runs in both policies. Existing `formatQuantity` tests remain unchanged and pass. | Implemented |
 | N1-08 | Technical `bdi` uses `white-space: pre-wrap` and `overflow-wrap: anywhere`. Chrome and Edge e2e compare the widths of `UI A B`, `UI A  B` and ` UI A B`, and check long identifiers and 320 px page reflow in en/he. | Implemented; Chrome and Edge pass |
-| N1-09 | Unit proves strict output is deliberately non-idempotent and the renderer applies it once. Sink review below records remaining caller-controlled accessible-name risks. | Implemented with recorded residual |
+| N1-09 | Unit proves strict output is deliberately non-idempotent and the renderer applies it once. FindingsList's accessible navigation name receives already escaped code/pointer parameters; `onNavigate` receives the raw pointer. Sink review below records separate caller-controlled labels. | Implemented; P36-01 regression matrix added |
 | N1-10 | One-direction tripwire throws `REVIEW_UNICODE_UPDATE` if the engine adds Cf/Default-Ignorable/Z points not in the table. Node, Chrome and Edge measurements below; Node 22 Unicode version was not measured locally. | Implemented; local tripwire passes |
 | N1-11 | Unit removes the ranges containing U+200B, U+FEFF and U+E0020 separately; each mutation makes the tripwire fail. | Implemented; 3/3 mutants rejected |
 | N1-12 | Test-only demo contains ZWSP, BOM, tag, literal-notation and spacing rows; the action renders identifiers through `DisplayText technical`. Chrome e2e checks visible/selectable notation, en/he × light/dark × 320/768/1440, axe, forced colors, raw row IDs and wrapping. Existing PR #25 tests are unchanged. | Implemented; browser matrix passes |
@@ -74,13 +74,19 @@ exact raw strings. No NFC/NFD normalization or confusable mapping occurs.
 - `DataTable` keeps `data-row-id` raw for stable identity; it is an attribute,
   not rendered text. Sorting and finding navigation callbacks receive raw
   values. These are intentional data paths, not display transformations.
-- `DataTable.scrollLabel`/`sortLabel` and `FindingsList.navigateLabel` are
-  caller-supplied accessible/visible prose. The latter can interpolate raw
-  code or pointer values before returning a label; `prose` is allowed only
-  for trusted authored UI content. The Test demo uses fixed synthetic finding
-  values. **Residual before real external findings:** the host must supply a
-  trusted localization contract that isolates or strictly escapes technical
-  interpolations. No such adapter or real finding path is authorized here.
+- `FindingsList` passes technically escaped code/pointer values into
+  `navigateLabel`; it passes technically escaped message key and parameter
+  names/values into `formatMessage`, and an escaped stage into `stageLabel`.
+  Returned localized text uses prose so pseudo-locale brackets survive.
+  Missing message keys and codes, failed stage labels and unknown severities
+  use the technical policy. `onNavigate` still receives the exact raw pointer.
+- `DataTable.scrollLabel`/`sortLabel` and all returned formatter/label strings
+  remain caller-supplied prose. A caller that independently retrieves raw
+  technical data from a closure and inserts it into a returned label can
+  bypass the sanitized arguments; any future host adapter must use its
+  supplied escaped arguments and a trusted localization contract. There is
+  no real external finding source in this PR. Raw `data-row-id` is retained
+  for identity and is not a visible or accessible label.
 - `isolateLtr` deliberately produces U+2066/U+2069 as a plain string for
   contexts without DOM `bdi`. Its output must not be passed through
   `DisplayText technical`; the unit test documents non-idempotence.
@@ -92,20 +98,33 @@ exact raw strings. No NFC/NFD normalization or confusable mapping occurs.
   the full data-view axe assertion remained in place and now passes in Chrome
   and Edge. No protected status color or marking was changed.
 
+## Supplementary PR #36 review findings
+
+| Finding | Disposition |
+|---|---|
+| P36-01 (Medium) | Corrected in `data-views.tsx`: all five technical inputs (code, pointer, message key, stage, unknown severity), plus message parameter names/values, are escaped at display/callback boundaries. Added four hostile vectors (ZWSP, BOM, tag, literal notation) across fallback text, resolved labels, pseudo-locale prose and button accessible names. Exact raw pointer callback is asserted. Full delta and CI require fresh independent review. |
+| P36-02 (Low) | Narrow-screen notation tokens may split under `overflow-wrap:anywhere`; selectable text remains exact. Readability enhancement is deferred, with 320 px reflow retained. |
+| P36-03 (Low) | The Test-demo-scoped forced-colors rule differs from the earlier “unchanged” wording. It was needed for the new axe matrix; protected markings were not changed. Owner acknowledgement and real Windows High Contrast review remain open. |
+| P36-04 (Low) | The first ui-kit sweep partly shares its classifier oracle; its second output sweep is independent. Three local mutations targeted a test helper copy. Claude separately mutated shipped sources and reported eight killed mutants, one defence-in-depth mutant surviving on Unicode 17.0. We do not claim the local helper mutations were shipped-source mutations. |
+| P36-05 (Info) | Blank-looking glyphs outside the approved categories (for example U+2800, U+FFFC, U+FFFD and U+1D159) are not addressed. N1 does not close confusables or all look-alikes. |
+| P36-06 (Info) | Existing HostStatus raw `timeZoneLabel`/`wallUtc` display and missing R7 intake belong to WP-1A-1e-A2; no host path is changed here. |
+| P36-07 (Info) | Node 22.22.2's Unicode level remains unmeasured. Its one-direction tripwire passed in prior CI; rerun required on the corrected SHA. |
+
 ## Local verification (Windows, 2026-11-06)
 
 | Command/check | Actual result |
 |---|---|
 | `pnpm install --frozen-lockfile --ignore-scripts --offline` | 228 locked components reused; no lockfile change |
 | `pnpm check:ts`, `pnpm check:browser-types`, `pnpm lint:ts`, changed-file Prettier | Passed |
-| `pnpm test:frontend` | **14 files, 150 tests passed**, including both full sweeps, 100,000 seeded strings and 3 mutant rejections |
+| Full-tree Windows `pnpm format:ts:check` | 54 untouched baseline files flagged for CRLF; the two changed TypeScript files pass targeted Prettier. Linux CI is the full-tree formatting gate; no baseline files were reformatted. |
+| `pnpm test:frontend` | **14 files, 158 tests passed**, including eight P36-01 hostile-vector cases, both full sweeps, 100,000 seeded strings and 3 mutant rejections |
 | `pnpm test:e2e` (Chrome) | **37/37 passed**; the new N1 matrix passed all 12 en/he × theme × width combinations and forced-colors axe |
 | Focused N1 matrix in Edge | **1/1 passed**, same 12 combinations and forced-colors axe |
 | `pnpm test:ts-boundary`, `pnpm lint:logical-css`, `pnpm test:design-tokens`, `pnpm test:schema-vectors` | 90 negative probes, logical CSS, 24 contrast pairs and R-4 vectors passed |
 | Test build + `node tools/check_frontend_bundle.mjs` | Passed; synthetic demo present only in Test |
 | Production Rehearsal build + same bundle gate | Passed; all three Test-only sentinels absent |
-| Python `tools/check.py` with existing Python 3.12 venv and current-source `PYTHONPATH` | **35 core + 14 security tests passed**; codegen, source-boundary, static Compose isolation and tracked-source secret checks passed |
-| Ruff, strict mypy, import-linter | Passed; 39 formatted files, 18 typed source files and 4 import contracts |
+| Python `tools/check.py` with existing locked venv and current-source `PYTHONPATH` | **35 core + 14 security tests passed**; codegen, source-boundary, static Compose isolation and tracked-source secret checks passed |
+| Ruff, strict mypy, import-linter | Passed; 39 formatted files, 16 typed source files and 4 import contracts |
 | `pnpm audit` | No known vulnerabilities |
 | CycloneDX + licence/OSV checker | 228 components, approved licences, **0 OSV advisories** |
 
