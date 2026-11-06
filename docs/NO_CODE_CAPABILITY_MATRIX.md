@@ -208,6 +208,17 @@ operational view. The `FindingsList` accepts a local display shape; a shared
 Finding contract and finding-key namespace remain separate decisions. See
 [`docs/wp-1a-1d/READ_ONLY_VIEWS.md`](wp-1a-1d/READ_ONLY_VIEWS.md).
 
+**WP-1A-1e-A status:** exact hash routing, localized navigation/search, F6
+region navigation, a responsive shell, and a UI-side fake `HostStatusView` are
+trusted-platform **DEV** primitives. They do not interpret authored metadata,
+define a configuration kind, connect to a host or enable an operational action.
+Search folding is limited to palette labels and keywords; it never defines
+identifier equality or sorting. The fake host-status port accepts local
+synthetic snapshots only. Untrusted host input normalization and real
+deployment-identifier validation remain blocked pending N-1 review (PR #27).
+Relative sub-path assets remain blocked on H-4; see
+[`WP-1A-1e-A evidence`](wp-1a-1e/EVIDENCE.md). Matrix row counts are unchanged.
+
 ## 7. Summary
 
 | Class | Count (this version) | Comment |
