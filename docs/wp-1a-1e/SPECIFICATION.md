@@ -210,7 +210,7 @@ CSS custom properties set from script (`documentElement.style.setProperty`, as `
 | AB-03 | Must | `apps/web/src/host/` contains types, the normaliser, the fake and the unavailable port only. No adapter, no `fetch`. | review, lint |
 | AB-04 | Must | No dependency or lockfile change (unless D-E1 = `react-router`, which then needs the ADR-0026 evidence re-run and human approval). | `git diff` of `package.json` dependency fields and `pnpm-lock.yaml` |
 | AB-05 | Must | No change under `schemas/`, `catalog/`, `packages/py/`, `apps/api/`, `apps/station-agent/`, `deploy/`, `docs/adr/`, governance and Gate A0 documents, and no `@calos/domain-types` export. | diff review |
-| AB-06 | Must | **Protected markings untouched:** `ProtectedFrame.tsx`, the marking CSS rules in `frame.css`, `apps/web/public/status.css`, and the `<aside id="static-markings">` block. The only allowed edit near them is the stylesheet `href` in `index.html` (RO-09); a test compares the block byte for byte. | test, review |
+| AB-06 | Must | **Protected markings untouched:** `ProtectedFrame.tsx`, the marking CSS rules in `frame.css`, `apps/web/public/status.css`, and the `<aside id="static-markings">` block. The only allowed edit near them is the stylesheet `href` in `index.html` (RO-09); a gate test compares the block and `status.css` with recorded SHA-256 digests after CRLF to LF normalisation (RO-09). | test, review |
 | AB-07 | Must | `.github/**` is not modified until H-3 is approved, and then only `phase0a.yml` gains the one job in `HUMAN_APPROVALS.md` §3. | diff review |
 | AB-08 | Must | Additive lint and boundary probes (each with a negative probe, counts reported): forbid `navigator.onLine`, `history.pushState`, `Date.now`, zero-argument `new Date()` in `ui-kit` and `apps/web`; forbid `location`, `history` in `ui-kit`. Never loosen an existing probe or contract. | `pnpm test:ts-boundary` |
 | AB-09 | Must | Capability Matrix rows for routing, host status and palette search as trusted-platform **DEV** primitives; no building-block or editor claim. Requirement tags `@req` on code and tests (FR-UI-02, P1A-AC-05/09, OF-02/04/05/06/07/09, RU-01/02/03/04, RT-01…08, SB-01…06). | review |
@@ -230,7 +230,7 @@ Existing tests that must stay green and unchanged: network isolation; Hebrew `Ke
 | Host message relabelling a marking | environment mismatch is an error and never alters markings (HS-07) |
 | `F6` intercepted by the browser | manual check in Edge and Chrome (KB-04); stop and report rather than pick another key |
 | Layout churn from the status bar | SR-02/03/06 measured; protected markings untouched |
-| `base: "./"` breaking the static no-JS fallback | RO-09 byte-compare of the static markings and gate; no-JS test stays |
+| `base: "./"` breaking the static no-JS fallback | RO-09 digest comparison of the static markings (CRLF-normalised) and gate; no-JS test stays |
 | Scope too large for one PR | recommended split A/B in `TASKS_AND_TESTS.md` §1 |
 
 ## 7. Stop conditions (Codex stops and reports)

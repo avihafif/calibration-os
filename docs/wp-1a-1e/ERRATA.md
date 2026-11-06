@@ -43,4 +43,14 @@
 * No requirement was relaxed. `SR-02` (top bar height at 320 px, 180 px for the pseudo-locales) is left as written; PR #28 measures 237 px in `en-XA`, which the PR #28 review reports as a finding. Whether to relax the figure or fix the layout is a design decision for the owner.
 * No ADR, workflow, gate, schema, dependency, Gate A0 or governance file is touched, and no approval (H-1 to H-9) is given or implied.
 * `docs/wp-1a-1e/EVIDENCE.md` belongs to the implementation PR and is not edited here.
-* The N-1 proposal (PR #27) is still open. E-04 refers to it by PR number; its rule R7 takes effect only when the owner accepts it.
+* The N-1 proposal (PR #27) was merged as a proposal; decisions N-D1 to N-D7 are still the owner's to record. E-04 states the R7 rule inside HS-02 itself, so HS-02 does not depend on that record; recording N-D2 confirms it.
+
+## 4. Errata 2 (post-merge review of Errata 1 and PR #27)
+
+| ID | Where | Change |
+|---|---|---|
+| E-22 | `HUMAN_APPROVALS.md` §3 | D-E9's default (`pull_request` only) was not expressed in the proposed job. The job text now has `if: github.event_name == 'pull_request'`; the workflow's `on:` is shared by all jobs, so only an `if` can restrict one job. |
+| E-23 | `SPECIFICATION.md` AB-06, §6 | Both still said "byte for byte" after E-06 changed RO-09 to CRLF-normalised SHA-256 digests; wording now matches. |
+| E-24 | `wp-1a-1d/N1_ACCEPTANCE_CRITERIA.md` §3, §4 | Stale statements corrected (the HS-02 sentence was fixed by E-04, PR #28 exists, the recommended order is superseded by [`SEQUENCE_AND_A2.md`](SEQUENCE_AND_A2.md)). Criteria N1-01 to N1-16 are unchanged. |
+| E-25 | `wp-1a-1d/N1_INVISIBLE_UNICODE_REMEDIATION_PROPOSAL.md` N-D2 | The row omitted `timeZoneLabel`, which rule R7 and HS-02 include. |
+| E-26 | `SEQUENCE_AND_A2.md` (new) | Release sequencing, a file-ownership matrix that keeps branches from overlapping, the re-review protocol for PR #28, and acceptance criteria and a handoff prompt for WP-1A-1e-A2. |
