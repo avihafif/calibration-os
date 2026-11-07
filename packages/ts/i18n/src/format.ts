@@ -1,10 +1,9 @@
 import type { SupportedLocale } from "./locale";
 import { baseLocale } from "./locale";
+import { findNonDisplayableCodePoints } from "./technical-text";
 
 const decimalPattern = /^-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?$/u;
 const utcPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/u;
-const forbiddenTechnicalControls =
-  /[\u0000-\u001f\u007f-\u009f\u061c\u200e-\u200f\u202a-\u202e\u2066-\u2069]/u;
 
 /** Reject spoofing controls and bound display work before creating an LTR island. */
 function assertTechnicalText(
@@ -14,20 +13,8 @@ function assertTechnicalText(
 ): void {
   if (value.length === 0 || value.length > maxCodePoints * 2)
     throw new Error(code);
-  if (forbiddenTechnicalControls.test(value)) throw new Error(code);
-  let count = 0;
-  for (let index = 0; index < value.length; index += 1) {
-    const point = value.charCodeAt(index);
-    if (point >= 0xd800 && point <= 0xdbff) {
-      const next = value.charCodeAt(index + 1);
-      if (!(next >= 0xdc00 && next <= 0xdfff)) throw new Error(code);
-      index += 1;
-    } else if (point >= 0xdc00 && point <= 0xdfff) {
-      throw new Error(code);
-    }
-    count += 1;
-    if (count > maxCodePoints) throw new Error(code);
-  }
+  if (findNonDisplayableCodePoints(value).length > 0) throw new Error(code);
+  if (Array.from(value).length > maxCodePoints) throw new Error(code);
 }
 
 /** @req FR-UI-02: display only. Never converts a decimal to a binary float. */

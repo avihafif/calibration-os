@@ -38,6 +38,13 @@ export function SyntheticDataViewsDemo({
     { id: "UI-בדיקה-3", label: t("views.third"), version: "v3" },
     { id: `${longSyntheticPrefix}-A`, label: t("views.first"), version: "v4" },
     { id: `${longSyntheticPrefix}-B`, label: t("views.second"), version: "v5" },
+    { id: "UI-HIDDEN-\u200B-A", label: t("views.first"), version: "v6" },
+    { id: "UI-HIDDEN-\uFEFF-B", label: t("views.second"), version: "v7" },
+    { id: "UI-HIDDEN-\u{E0061}-C", label: t("views.third"), version: "v8" },
+    { id: "UI-LITERAL-⟦U+200B⟧", label: t("views.first"), version: "v9" },
+    { id: "UI A B", label: t("views.second"), version: "v10" },
+    { id: "UI A  B", label: t("views.third"), version: "v11" },
+    { id: " UI A B", label: t("views.first"), version: "v12" },
   ];
   const columns: readonly DataColumn<Entry>[] = [
     {
@@ -73,7 +80,7 @@ export function SyntheticDataViewsDemo({
           }}
         >
           {t("views.action", { identifier: "" })}
-          <bdi dir="ltr">{row.id}</bdi>
+          <DisplayText value={row.id} technical />
         </button>
       ),
     },
@@ -119,7 +126,7 @@ export function SyntheticDataViewsDemo({
   ];
   return (
     <section
-      className="data-demo"
+      className="data-demo ui-data-views"
       aria-label={t("views.title")}
       data-demo={sentinel}
     >

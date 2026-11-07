@@ -1,5 +1,9 @@
 import { type ReactNode } from "react";
-import type { SupportedLocale } from "@calos/i18n";
+import {
+  findNonDisplayableCodePoints,
+  type DisplayTextPolicy,
+  type SupportedLocale,
+} from "@calos/i18n";
 
 export type SortDirection = "ascending" | "descending";
 export type SortState = Readonly<{
@@ -57,19 +61,18 @@ export function sortDisplayRows<Row>(
     .map(({ row }) => row);
 }
 
-/** @req DV-05: make control characters visible without changing the source value. */
-export function safeDisplayText(value: string): string {
+/** @req DV-05, FR-UI-02: one display-boundary escape; raw values stay intact. */
+export function safeDisplayText(
+  value: string,
+  policy: DisplayTextPolicy = "prose",
+): string {
   let visible = "";
+  const hidden = new Set(findNonDisplayableCodePoints(value, policy));
   for (const scalar of value) {
     const point = scalar.codePointAt(0)!;
     if (
-      point <= 0x1f ||
-      (point >= 0x7f && point <= 0x9f) ||
-      point === 0x61c ||
-      (point >= 0x200e && point <= 0x200f) ||
-      (point >= 0x202a && point <= 0x202e) ||
-      (point >= 0x2066 && point <= 0x2069) ||
-      (point >= 0xd800 && point <= 0xdfff)
+      hidden.has(point) ||
+      (policy === "technical" && (point === 0x27e6 || point === 0x27e7))
     ) {
       visible += `⟦U+${point.toString(16).toUpperCase().padStart(4, "0")}⟧`;
     } else {
@@ -87,7 +90,7 @@ export function DisplayText({
   value: string;
   technical?: boolean;
 }) {
-  const visible = safeDisplayText(value);
+  const visible = safeDisplayText(value, technical ? "technical" : "prose");
   return (
     <span className="ui-display-text">
       {technical ? (
@@ -372,12 +375,14 @@ export function FindingsList({
     resolve: (value: string) => string,
   ): string {
     try {
-      const label = resolve(value);
-      if (label.trim()) return label;
+      // The resolver may echo its input into localized prose. Give it only
+      // display-safe technical text, while retaining the raw grouping key.
+      const label = resolve(safeDisplayText(value, "technical"));
+      if (label.trim()) return safeDisplayText(label, "prose");
     } catch {
-      // Preserve the visible source identifier if host localization is missing.
+      // A missing localization falls back to the technical source identifier.
     }
-    return value;
+    return safeDisplayText(value, "technical");
   }
   function groupLabel(group: FindingGroup): string {
     const known =
@@ -388,18 +393,28 @@ export function FindingsList({
     const severity = resolvedLabel(normalized, (value) =>
       severityLabel(value as DisplayFinding["severity"]),
     );
-    const unknown = known ? "" : ` · ${safeDisplayText(group.severity)}`;
+    const unknown = known
+      ? ""
+      : ` · ${safeDisplayText(group.severity, "technical")}`;
     const stage = resolvedLabel(group.stage, stageLabel);
-    return `${safeDisplayText(severity)}${unknown} · ${safeDisplayText(stage)}`;
+    return `${severity}${unknown} · ${stage}`;
   }
   function messageText(finding: DisplayFinding): string {
     try {
-      const rendered = formatMessage(finding.message);
-      if (rendered.trim()) return rendered;
+      // Message keys and interpolation parameters are technical values. A
+      // formatter may echo any of them, including into a pseudo-locale string.
+      const rendered = formatMessage({
+        key: safeDisplayText(finding.message.key, "technical"),
+        params: finding.message.params?.map(({ name, value }) => ({
+          name: safeDisplayText(name, "technical"),
+          value: safeDisplayText(value, "technical"),
+        })),
+      });
+      if (rendered.trim()) return safeDisplayText(rendered, "prose");
     } catch {
       // A missing host translation is shown by its stable key for this row.
     }
-    return finding.message.key || finding.code;
+    return safeDisplayText(finding.message.key || finding.code, "technical");
   }
   return (
     <div className="ui-findings-list">
@@ -425,7 +440,7 @@ export function FindingsList({
                   ])}
                 >
                   <DisplayText value={finding.code} technical />
-                  <span>{safeDisplayText(messageText(finding))}</span>
+                  <span>{messageText(finding)}</span>
                   <DisplayText value={finding.pointer.value} technical />
                   <button
                     type="button"
@@ -433,7 +448,11 @@ export function FindingsList({
                     onClick={() => onNavigate(finding.pointer.value)}
                   >
                     {safeDisplayText(
-                      navigateLabel(finding.code, finding.pointer.value),
+                      navigateLabel(
+                        safeDisplayText(finding.code, "technical"),
+                        safeDisplayText(finding.pointer.value, "technical"),
+                      ),
+                      "prose",
                     )}
                   </button>
                 </li>
