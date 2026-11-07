@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" width="1200" height="760" role="img" aria-labelledby="t d">
+  <title id="t">Demo V1 wireframe: Operations dashboard (Hebrew, RTL, dark)</title>
+  <desc id="d">Mirrored composition. Hebrew strings are illustrative placeholders and remain needs_review. Identifiers and values stay left-to-right.</desc>
+  <style>
+    text { font-family: "Segoe UI", "Arial Hebrew", Arial, sans-serif; fill: #e8ecf2; font-size: 14px; }
+    .m { fill: #a3afc2; } .b { font-weight: 700; } .h1 { font-size: 26px; font-weight: 700; } .h2 { font-size: 16px; font-weight: 700; }
+    .big { font-size: 34px; font-weight: 700; } .sm { font-size: 12px; } .on { fill: #0b1220; font-weight: 700; font-size: 12px; }
+    .card { fill: #161c25; stroke: #2b3544; } .ctl { fill: #161c25; stroke: #6b7a90; } .e { text-anchor: end; } .ltr { direction: ltr; unicode-bidi: isolate; font-family: Consolas, monospace; }
+  </style>
+  <rect width="1200" height="760" fill="#0e131a"/>
+  <rect x="0" y="0" width="1200" height="30" fill="#2a2142"/>
+  <text x="600" y="20" text-anchor="middle" class="b" style="fill:#c4a8ff">◆ סביבת בדיקה · הדמיה בלבד · לא כיול · לא תפעולי</text>
+  <rect x="0" y="30" width="1200" height="48" fill="#161c25" stroke="#2b3544"/>
+  <text x="1180" y="61" class="h2 e">CalOS</text>
+  <rect x="1058" y="42" width="52" height="24" rx="4" fill="#6cc4ee"/><text x="1084" y="59" text-anchor="middle" class="on">בדיקה</text>
+  <rect x="946" y="42" width="104" height="24" rx="4" fill="#c4a8ff"/><text x="998" y="59" text-anchor="middle" class="on">הדמיה</text>
+  <rect x="200" y="42" width="140" height="24" rx="4" class="ctl"/><text x="270" y="59" text-anchor="middle" class="sm">מארח: מדומה · לא ידוע</text>
+  <rect x="104" y="42" width="84" height="24" rx="4" class="ctl"/><text x="146" y="59" text-anchor="middle" class="sm">עב | EN</text>
+  <rect x="20" y="42" width="74" height="24" rx="4" class="ctl"/><text x="57" y="59" text-anchor="middle" class="sm">◐ ערכת נושא</text>
+  <!-- side navigation on the inline-start (right) side -->
+  <rect x="990" y="78" width="210" height="642" fill="#161c25" stroke="#2b3544"/>
+  <g class="sm e">
+    <text x="1180" y="108">סקירה</text><text x="1180" y="136">טקסט טכני</text><text x="1180" y="164">טפסים</text><text x="1180" y="192">תצוגות נתונים</text><text x="1180" y="220">מצב מארח</text>
+    <text x="1180" y="256" class="m b">הדגמה · סינתטי</text>
+    <rect x="998" y="270" width="194" height="32" rx="4" fill="#0f2b3a"/><text x="1180" y="291" class="b" style="fill:#6cc4ee">לוח בקרה ▣</text>
+    <text x="1180" y="324">הזמנות עבודה ▤</text><text x="1180" y="352">הגדרת משימה ▥</text><text x="1180" y="380">קונסולת הרצה ▶</text><text x="1180" y="408">תוצאות ודוח ▧</text>
+  </g>
+  <text x="964" y="122" class="h1 e">לוח בקרה תפעולי</text>
+  <rect x="568" y="104" width="112" height="26" rx="13" fill="#2a2142"/><text x="624" y="122" text-anchor="middle" class="sm b ltr" style="fill:#c4a8ff">synthetic_demo</text>
+  <text x="964" y="148" class="m sm e">כל הנתונים סינתטיים ומחושבים בלשונית זו בלבד. רענון מאפס הכול.</text>
+  <!-- KPI tiles mirrored -->
+  <g class="e">
+    <rect x="740" y="168" width="224" height="104" rx="8" class="card"/><text x="948" y="196" class="m sm e">הזמנות עבודה פתוחות</text><text x="948" y="238" class="big e ltr">8</text><text x="948" y="260" class="m sm e">▲ 3 התקבלו · 2 מוכנות</text>
+    <rect x="502" y="168" width="224" height="104" rx="8" class="card"/><text x="710" y="196" class="m sm e">מכשירים זמינים</text><text x="710" y="238" class="big e ltr">5 / 8</text><text x="710" y="260" class="m sm e">⚠ 1 דורש תשומת לב</text>
+    <rect x="264" y="168" width="224" height="104" rx="8" class="card"/><text x="472" y="196" class="m sm e">משימות מוכנות להדמיה</text><text x="472" y="238" class="big e ltr">2</text><text x="472" y="260" class="m sm e">✔ בדיקות מקדימות תקינות</text>
+    <rect x="26" y="168" width="224" height="104" rx="8" class="card"/><text x="234" y="196" class="m sm e">הרצות מדומות (בהפעלה זו)</text><text x="234" y="238" class="big e ltr">0</text><text x="234" y="260" class="m sm e">● עדיין אין</text>
+  </g>
+  <rect x="494" y="292" width="470" height="300" rx="8" class="card"/>
+  <text x="948" y="322" class="h2 e">הזמנות עבודה לפי סטטוס</text>
+  <g class="sm">
+    <text x="948" y="356" class="e">התקבלה</text><rect x="718" y="344" width="200" height="14" rx="3" fill="#1e2632"/><rect x="798" y="344" width="120" height="14" rx="3" fill="#6cc4ee"/><text x="700" y="356" class="b ltr">3</text>
+    <text x="948" y="392" class="e">מוכנה</text><rect x="718" y="380" width="200" height="14" rx="3" fill="#1e2632"/><rect x="838" y="380" width="80" height="14" rx="3" fill="#6cc4ee"/><text x="700" y="392" class="b ltr">2</text>
+    <text x="948" y="428" class="e">בהדמיה</text><rect x="718" y="416" width="200" height="14" rx="3" fill="#1e2632"/><rect x="878" y="416" width="40" height="14" rx="3" fill="#c4a8ff"/><text x="700" y="428" class="b ltr">1</text>
+    <text x="948" y="464" class="e">דוח הדגמה מוכן</text><rect x="718" y="452" width="200" height="14" rx="3" fill="#1e2632"/><rect x="838" y="452" width="80" height="14" rx="3" fill="#5fd39a"/><text x="700" y="464" class="b ltr">2</text>
+    <text x="948" y="500" class="m e">לכל פס יש מספר ותווית כטקסט; תצוגת טבלה במרחק לחיצה.</text>
+    <rect x="798" y="526" width="150" height="34" rx="4" class="ctl"/><text x="873" y="548" text-anchor="middle" class="sm">הצג כטבלה</text>
+  </g>
+  <rect x="26" y="292" width="452" height="124" rx="8" class="card"/>
+  <text x="462" y="322" class="h2 e">התחילו את מסלול ההדגמה</text>
+  <text x="462" y="346" class="m sm e">בחרו הזמנת עבודה סינתטית, הגדירו משימה, הריצו הדמיה מתוסרטת,</text><text x="462" y="364" class="m sm e">וקראו את דוח ההדגמה עם סימן המים.</text>
+  <rect x="272" y="376" width="190" height="32" rx="4" fill="#8ab0ff"/><text x="367" y="397" text-anchor="middle" class="on">← פתחו הזמנות עבודה</text>
+  <rect x="26" y="432" width="452" height="160" rx="8" class="card"/>
+  <text x="462" y="462" class="h2 e">פעילות (בהפעלה זו)</text>
+  <text x="462" y="490" class="m sm e">עדיין אין. אירועי הרצות מדומות יופיעו כאן.</text>
+  <text x="462" y="512" class="m sm e">יומן: מדומה, לא נשמר.</text>
+  <rect x="0" y="720" width="1200" height="40" fill="#161c25" stroke="#2b3544"/>
+  <text x="1180" y="745" class="sm m e">סביבת בדיקה · ללא פעולות תפעוליות · הטקסט בעברית דורש בדיקה</text>
+</svg>

@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" width="1200" height="760" role="img" aria-labelledby="t d">
+  <title id="t">Demo V1 wireframe: Results and demonstration report (English, light)</title>
+  <desc id="d">Composition only. The report is a non-official demonstration sheet with a permanent, non-removable watermark. No signature, certificate number, accreditation mark or traceability statement.</desc>
+  <style>
+    text { font-family: "Segoe UI", Arial, sans-serif; fill: #121821; font-size: 14px; }
+    .m { fill: #475467; } .b { font-weight: 700; } .h1 { font-size: 26px; font-weight: 700; } .h2 { font-size: 16px; font-weight: 700; }
+    .sm { font-size: 12px; } .on { fill: #ffffff; font-weight: 700; font-size: 12px; } .mono { font-family: Consolas, "Courier New", monospace; }
+    .card { fill: #ffffff; stroke: #d5dbe5; } .ctl { fill: #ffffff; stroke: #7a899e; } .wm { fill: #6d28d9; opacity: .2; font-size: 30px; font-weight: 700; }
+  </style>
+  <rect width="1200" height="760" fill="#f5f7fa"/>
+  <rect x="0" y="0" width="1200" height="30" fill="#f0e9fc"/>
+  <text x="600" y="20" text-anchor="middle" class="b" style="fill:#6d28d9">◆ TEST · SIMULATION ONLY · NOT A CALIBRATION · NON-OPERATIONAL</text>
+  <rect x="0" y="30" width="1200" height="48" fill="#ffffff" stroke="#d5dbe5"/>
+  <text x="20" y="61" class="h2">CalOS</text>
+  <rect x="90" y="42" width="52" height="24" rx="4" fill="#0a5f8c"/><text x="116" y="59" text-anchor="middle" class="on">TEST</text>
+  <rect x="150" y="42" width="104" height="24" rx="4" fill="#6d28d9"/><text x="202" y="59" text-anchor="middle" class="on">SIMULATION</text>
+  <text x="236" y="112" class="h1">Results and demonstration report</text>
+  <!-- segmented control + actions -->
+  <rect x="236" y="130" width="320" height="38" rx="6" class="ctl"/>
+  <rect x="238" y="132" width="156" height="34" rx="4" fill="#e4f1f8"/><text x="316" y="154" text-anchor="middle" class="b sm" style="fill:#0a5f8c">Results</text>
+  <text x="476" y="154" text-anchor="middle" class="sm">Demonstration report</text>
+  <rect x="236" y="184" width="270" height="170" rx="8" class="card"/>
+  <text x="252" y="212" class="h2">Run summary</text>
+  <text x="252" y="238" class="sm">Run <tspan class="mono">SIM-RUN-0001</tspan> · completed (scripted)</text>
+  <text x="252" y="260" class="sm">Points: 3 · scripted readings: 9</text>
+  <text x="252" y="282" class="sm">Limit check: not evaluated</text>
+  <text x="252" y="304" class="sm">Conformity: not evaluated — no decision rule defined</text>
+  <rect x="252" y="318" width="120" height="26" rx="4" class="ctl"/><text x="312" y="336" text-anchor="middle" class="sm">Reset demo…</text>
+  <rect x="236" y="370" width="270" height="116" rx="8" fill="#fbf0dc" stroke="#8f4a00"/>
+  <text x="252" y="396" class="b sm" style="fill:#8f4a00">⚠ Not approvable</text>
+  <text x="252" y="418" class="sm">Simulation results cannot be approved,</text><text x="252" y="436" class="sm">signed, issued or exported as a record.</text>
+  <rect x="252" y="450" width="190" height="26" rx="4" fill="#edf1f6" stroke="#7a899e"/><text x="347" y="468" text-anchor="middle" class="sm m">Record actions: unavailable</text>
+  <!-- paper (clipped; the watermark cannot spill outside the sheet) -->
+  <defs><clipPath id="sheet"><rect x="540" y="130" width="560" height="580"/></clipPath></defs>
+  <g transform="translate(60 0)" clip-path="url(#sheet)">
+  <rect x="540" y="130" width="560" height="580" fill="#ffffff" stroke="#7a899e"/>
+  <g transform="translate(820 420) rotate(-28)">
+    <text class="wm" text-anchor="middle" y="-120">SIMULATION ONLY — NOT A CALIBRATION</text>
+    <text class="wm" text-anchor="middle" y="0">SIMULATION ONLY — NOT A CALIBRATION</text>
+    <text class="wm" text-anchor="middle" y="120">SIMULATION ONLY — NOT A CALIBRATION</text>
+  </g>
+  <rect x="540" y="130" width="560" height="44" fill="#f0e9fc"/>
+  <text x="820" y="158" text-anchor="middle" class="b" style="fill:#6d28d9">DEMONSTRATION REPORT — NOT A CALIBRATION CERTIFICATE</text>
+  <g class="sm">
+    <text x="564" y="204" class="m">Document</text><text x="664" y="204" class="mono">DEMO-RPT-0001</text>
+    <text x="564" y="226" class="m">Customer</text><text x="664" y="226">Synthetic customer 001 (not a real organisation)</text>
+    <text x="564" y="248" class="m">Instrument</text><text x="664" y="248"><tspan class="mono">SYN-AST-003</tspan> · synthetic instrument class A</text>
+    <text x="564" y="270" class="m">Procedure</text><text x="664" y="270"><tspan class="mono">SYN-PROC-001 v1.0.0</tspan> · synthetic descriptor</text>
+    <text x="564" y="292" class="m">Data</text><text x="664" y="292">Scripted demonstration values · provenance <tspan class="mono">synthetic_demo</tspan></text>
+  </g>
+  <rect x="560" y="316" width="520" height="24" fill="#edf1f6"/>
+  <g class="sm b"><text x="572" y="332">Point</text><text x="660" y="332">Readings (su)</text><text x="860" y="332">Limit check</text></g>
+  <g class="sm mono"><text x="572" y="362">A</text><text x="660" y="362">11.0012 · 11.0009 · 11.0011</text><text x="572" y="388">B</text><text x="660" y="388">12.3398 · 12.3401 · 12.3399</text><text x="572" y="414">C</text><text x="660" y="414">13.6602 · 13.6600 · 13.6603</text></g>
+  <g class="sm"><text x="860" y="362">Not evaluated</text><text x="860" y="388">Not evaluated</text><text x="860" y="414">Not evaluated</text></g>
+  <g class="sm m">
+    <text x="564" y="470">Conformity: not evaluated. No uncertainty statement.</text>
+    <text x="564" y="492">No traceability claim. No signature. No accreditation mark.</text>
+    <text x="564" y="514">No certificate number. Not for any record or decision.</text>
+  </g>
+  <rect x="540" y="670" width="560" height="40" fill="#f0e9fc"/>
+  <text x="820" y="695" text-anchor="middle" class="sm b" style="fill:#6d28d9">SIMULATED DATA — NOT A CALIBRATION · DEMONSTRATION ONLY</text>
+  </g>
+  <rect x="0" y="720" width="1200" height="40" fill="#ffffff" stroke="#d5dbe5"/>
+  <text x="20" y="745" class="sm m">Test workspace · no operational actions · Print/PDF is outside the first slice</text>
+</svg>
