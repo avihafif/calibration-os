@@ -6,6 +6,7 @@
 | Assignment | [Issue #37](https://github.com/avihafif/calibration-os/issues/37) (owner direction approved 2026-11-06: plan the demo in parallel with the closure of PR #36, without weakening any gate). |
 | Baseline | `main` at `763593d` (2026-11-06). [PR #36](https://github.com/avihafif/calibration-os/pull/36) (WP-1A-1d-N1, Unicode display policies; draft, head `8fe0f95` when this was written) is **not** in `main`; this plan neither modifies nor depends on its branch, only on its *merge* (section 14). |
 | Owner decisions | Defaults of DV-DEC-01 to DV-DEC-09 accepted by the owner on 2026-11-07 (section 18.1). The document itself still authorises no code and starts no work package. |
+| Revision 2026-11-07 (b) | Corrected after the WP-DV1-0 review (draft PR #39): scenario step counting (11 counted steps plus an implicit end marker), serial id format `SYN-SER-nnn`, the banned wording "no approved rule" (now "no decision rule defined") and the wireframe control labelled "Approve" (now "Record actions: unavailable"), the `MI-xx` placeholder (now MI-07), the digest wording in the report wireframe, a fifth work-order status (On hold), the sample table rows, the start-rule precedence (DV-FN-04) and the Vitest discovery note. Scope (S1), decisions and constraints are unchanged. |
 | Written by | The same agent family (Claude) that wrote the N-1 proposal, the WP-1A-1e specification and the PR reviews. A human or a different reviewer should weigh this plan (H-7); it is not an independent audit of anything. |
 | Related | [`AGENTS.md`](../../AGENTS.md) · [NO_CODE_ARCHITECTURE](../NO_CODE_ARCHITECTURE.md) · [UI_UX_SPEC](../UI_UX_SPEC.md) · [CAPABILITY_MATRIX](../NO_CODE_CAPABILITY_MATRIX.md) · [Gate A0](../PHASE1A_GATE_A0.md) · [PHASE1A plan](../PHASE1A_IMPLEMENTATION_PLAN.md) · [SEQUENCE_AND_A2](../wp-1a-1e/SEQUENCE_AND_A2.md) · [HUMAN_APPROVALS](../wp-1a-1e/HUMAN_APPROVALS.md) · [design system](../phase1a/01_DESIGN_SYSTEM.md) · [design prototypes](../../design/README.md) |
 | Wireframes | [`wireframes/`](wireframes/): dashboard (en, light) · dashboard (he, RTL, dark) · run console · results and report. Composition only; every number and Hebrew string in them is a placeholder. |
@@ -108,14 +109,14 @@ Verified against `main` at `763593d`.
 | Formatting | `formatQuantity`, `formatUtcDate`, `isolateLtr`, ICU system bundles (en, he, en-XA, he-XB), `messageReviewStatus` (Hebrew is `needs_review`) | Values, dates, plurals, pseudo-locale tests |
 | Host status | Fake, memory-only `HostStatusView` and bar (A2 will harden it) | Shown unchanged ("simulated host status") |
 | Tokens | Approved light and dark semantic tokens, protected `--sim`, `--deployment-test`, `--focus`; system font stack; 24 contrast pairs gate | No new colours (section 7) |
-| Tests and gates | Vitest (jsdom), Playwright with axe (en/he, light/dark, 320/768/1440, forced colors, network isolation), boundary lint (90 probes), logical-CSS lint, design-token gate, bundle gate with Test-only sentinels | Reused; extended additively (section 16) |
+| Tests and gates | Vitest (jsdom), Playwright with axe (en/he, light/dark, 320/768/1440, forced colors, network isolation), boundary lint (90 negative probes as recorded in `docs/wp-1a-1e/EVIDENCE.md`; each PR re-measures), logical-CSS lint, design-token gate, bundle gate with Test-only sentinels | Reused; extended additively (section 16) |
 | Design references | `design/phase1a-prototype` (Builder), `design/procedure-designer-prototype` (procedure outline, simulation lab, `su` convention, `MI-nn` markers), six procedure-designer screenshots | **Visual and behavioural reference only.** Never copied (design/README, Codex handoff §6). |
 
 **Gaps** the demo needs that `ui-kit` lacks: KPI tile, status meter list, segmented control, step list, event log, and a read-only outline. They are listed with their accessibility behaviour in section 7.3.
 
 **Constraints discovered while reading the code** that shape the plan:
 
-- Vitest discovers `packages/ts/i18n/src/**/*.test.ts` and `packages/ts/ui-kit/src/**/*.test.tsx` only. A new `ui-kit` test named `*.test.ts` would silently not run (the failure mode behind A2-15). New `ui-kit` tests are `.test.tsx`.
+- Vitest (`vitest.config.mjs`) discovers `packages/ts/i18n/src/**/*.test.ts`, `packages/ts/ui-kit/src/**/*.test.tsx`, and `apps/web/src/**/*.test.ts` and `*.test.tsx`. A new `ui-kit` test named `*.test.ts` would silently not run (the failure mode behind A2-15). New `ui-kit` tests are `.test.tsx`; `apps/web` demo tests may be either.
 - ESLint forbids network, storage, `Date.now`, zero-argument `new Date()`, `innerHTML`, `eval`, `import.meta.glob` and `URL` construction, and `calos/no-hardcoded-ui-text` applies to `apps/web` and package `.tsx` files. Timers and `Math.random` are not lint-banned, but DV-G-07 bans them anyway in S1.
 - `matchesSearchQuery` is documented as palette-only ("never use for identifiers or equality"). Record filtering uses a demo-local, documented helper unless the owner widens that helper's scope (DV-RISK-15).
 - `check:browser-types` lists each Playwright spec by name: a new spec needs a one-line `package.json` edit (shared with A2/B).
@@ -183,7 +184,7 @@ Persona: P3 Lab Manager. Purpose: orientation and the invitation to start.
 | Block | Content | Source |
 |---|---|---|
 | KPI tiles (4) | Open work orders; instruments available of total; jobs ready to simulate; simulated runs in this session | Derived from the in-memory store; a completed run changes the numbers without reload |
-| Status meters | Work orders by status: Received, Ready, In simulation, Demo report ready, each bar with its label and number as text | `StatusMeterList` (semantic list, not colour only) with "Show as table" toggle |
+| Status meters | Work orders by status: Received, Ready, In simulation, Demo report ready, On hold (five statuses, so that ten work orders can be "open" at seed and none is "in simulation" before a run), each bar with its label and number as text | `StatusMeterList` (semantic list, not colour only) with "Show as table" toggle |
 | Next step | "Start the demonstration path" button to `demo-work` | Link button |
 | Activity | Session events (job created, run started, run completed or aborted, demo reset) | Store event list; empty state text when none |
 
@@ -195,11 +196,11 @@ Persona: P3 then P1. Layout: filter row, `DataTable`, two detail cards.
 
 ```
 ┌ Work orders ───────────────────────────────────────────  [synthetic_demo] ┐
-│ Search [____________]   Status [ All ▾ ]            8 of 8 shown            │
+│ Search [____________]   Status [ All ▾ ]          10 of 10 shown            │
 │ ┌ DataTable (sortable, keyboard scroll region, sticky first column) ─────┐ │
 │ │ ID          Customer            Instrument     Priority  Status  Detail │ │
 │ │ SYN-WO-001  Synthetic cust. 001 SYN-AST-003    Normal    Ready   [Select]│ │
-│ │ SYN-WO-002  Synthetic cust. 002 SYN-AST-005    High      Received[Select]│ │
+│ │ SYN-WO-002  Synthetic cust. 002 SYN-AST-004    High      Ready   [Select]│ │
 │ └────────────────────────────────────────────────────────────────────────┘ │
 │ ┌ Customer ───────────────┐ ┌ Instrument ───────────────────────────────┐ │
 │ │ DetailList: id, name,   │ │ DetailList: id, class, serial, status,    │ │
@@ -209,7 +210,7 @@ Persona: P3 then P1. Layout: filter row, `DataTable`, two detail cards.
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-Reuse: `DataTable`, `DetailList`, `Select`, `TextField`, `Button`, `StatePanel` (no-results). Selecting a row is a button in a column (the existing pattern); the selected row id moves focus to the detail card. Sorting is locale-aware; the filter is a documented demo-local substring match. S2 adds the Customers segment and a "New synthetic work order" form (local validation, in memory, labelled as a UI sample, not the schema-driven form of class B).
+The table also has a synthetic due-slot column (a slot number, never a date). Reuse: `DataTable`, `DetailList`, `Select`, `TextField`, `Button`, `StatePanel` (no-results). Selecting a row is a button in a column (the existing pattern); the selected row id moves focus to the detail card. Sorting is locale-aware; the filter is a documented demo-local substring match. S2 adds the Customers segment and a "New synthetic work order" form (local validation, in memory, labelled as a UI sample, not the schema-driven form of class B).
 
 ### 6.3 Instrument and asset registry (`demo-assets`, S2)
 
@@ -225,7 +226,7 @@ Persona: P1. This is UI_UX_SPEC §7.3 reduced to what can be shown honestly.
 │ 2 Procedure    (•) SYN-PROC-001 v1.0.0   Compatible ✔                      │
 │                ( ) SYN-PROC-002 v0.9.0   Incompatible ✖ (reason, disabled) │
 │ 3 Standards    Role "reference" → simulated substitute (synthetic)          │
-│                Validity: Input required (MI-xx) ⚠                           │
+│                Validity: Input required (MI-07) ⚠                           │
 │ 4 Preflight    FindingsList: error / warning / info groups                   │
 │ 5 Mode         ◆ Simulation: results are scripted and are not a calibration │
 │ [ Start simulation ]  disabled while any error finding exists, with reason   │
@@ -239,6 +240,7 @@ Persona: P1. This is UI_UX_SPEC §7.3 reduced to what can be shown honestly.
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
+- Any work order can be reviewed here; **Start simulation** requires status Ready and shows a single visible reason in the order given in DV-FN-04 (details in `CONTENT_DECK.md` section 6).
 - Compatibility, preflight and standards outcomes are **scripted data** in the fixture, not evaluated rules. One deliberately blocked pairing demonstrates disabled-with-reason (the ARIA pattern A2 introduces as `ActionWithReason`; until A2 merges, a demo-local equivalent with the same semantics is used).
 - Preflight reuses `FindingsList` with severity groups. Findings are display shapes only; no shared Finding contract is claimed (that decision is open).
 - Step type names (`flow.foreach`, `driver.call`, `measure.acquire`, `evaluate.limits`) are the documented catalog names, shown as **illustrative** with a visible note; the descriptor is not validated against a schema and no driver operation exists.
@@ -267,7 +269,7 @@ Behaviour is in section 9. No timers drive progress in S1, so there is nothing t
 
 ### 6.7 Results (`demo-report`, S1, segment 1)
 
-Table of scripted readings per point; summary ("Run completed (scripted)", number of points and readings); **Limit check: not evaluated** per row (text from a catalog key, never "pass"); **Conformity: not evaluated, no approved rule**; an aborted run shows "Incomplete (aborted)" and the report segment is unavailable with its reason. A visible "Not approvable" notice explains that simulation results cannot be approved, signed, issued or exported as a record, with a disabled control carrying the reason.
+Table of scripted readings per point; summary ("Run completed (scripted)", number of points and readings); **Limit check: not evaluated** per row (text from a catalog key, never "pass"); **Conformity: not evaluated, no decision rule defined (input required MI-08)**; an aborted run shows "Incomplete (aborted)" and the report segment is unavailable with its reason. A visible "Not approvable" notice explains that simulation results cannot be approved, signed, issued or exported as a record, with a disabled control carrying the reason.
 
 ### 6.8 Demonstration report (`demo-report`, S1, segment 2) · [wireframe](wireframes/04-report-en.svg)
 
@@ -330,7 +332,7 @@ Demo-local composites (not in `ui-kit`): `ReportSheet` and `Watermark` (they mus
 | DV-DATA-06 | **Numbers are scripted strings**, never computed: readings are decimal strings in the scenario script; counts are integers derived by counting records. No mean, deviation, rounding, interpolation or uncertainty in S1. (An exact-decimal helper for S2 is a separate owner decision, DV-DEC-06.) |
 | DV-DATA-07 | **No limits, tolerances, test-point values, ranges, intervals, standards or uncertainty.** Each is shown as `Input required` with an `MI-nn` marker from METROLOGY_REQUIREMENTS §12 (MI-03 test points, MI-04 limits, MI-16 settling, MI-08 decision rules). Optional synthetic `su` limits are DV-DEC-02 option B and need the owner's explicit authorship. |
 | DV-DATA-08 | **No dates or clock.** Due dates and run times are fixed synthetic strings rendered with `formatUtcDate` (a pure function) or shown as "simulated elapsed" counters derived from the step index. No `Date.now`, no `new Date()`. |
-| DV-DATA-09 | Volumes: S1 about 6 customers, 8 assets, 10 work orders, 3 procedures, 1 scenario of 11 steps; S2 about 14 assets, 20 work orders, 3 scenarios. |
+| DV-DATA-09 | Volumes: S1 about 6 customers, 8 assets, 10 work orders, 3 procedures, 1 scenario of 11 counted steps (plus an implicit end marker, see `FIXTURES_SPEC.md` section 6.1); S2 about 14 assets, 20 work orders, 3 scenarios. |
 | DV-DATA-10 | No fixture content in the Rehearsal bundle (DV-ISO-01). Fixture id prefixes and a content marker make this greppable. |
 
 ### 8.2 Localization rules (DV-L10N)
@@ -352,7 +354,7 @@ The console is a small, pure, deterministic state machine in `apps/web/src/demo/
 
 | Aspect | Rule |
 |---|---|
-| Script | A typed, frozen `ScenarioScript`: ordered steps with a kind (`note`, `operator-confirm`, `reading`, `end`), a message key, and for readings a decimal string and a point id. The same script always yields the same event sequence. |
+| Script | A typed, frozen `ScenarioScript`: 11 counted steps with a kind (`note`, `operator-confirm`, `reading`), a message key, and for readings a decimal string and a point id, followed by an implicit `end` marker that only emits the completion event and is not counted. The same script always yields the same event sequence. |
 | State | `idle → ready → running ⇄ waiting-operator → completed`, plus `aborted` from any running state; `reset` returns to `ready`. Pure reducer, no I/O. |
 | Advancing | **Step** advances one scripted step. **Run to end** advances until the next operator step or the end, synchronously. No timer, no polling, no `requestAnimationFrame` in S1. |
 | Time | "Simulated elapsed" is a counter derived from the step index. No wall clock. |
@@ -409,7 +411,7 @@ Registry (`demo-assets`), customers segment and the in-memory new-work-order for
 | Milestone | Content | Exit |
 |---|---|---|
 | M0 | This plan reviewed; decisions DV-DEC-01 to DV-DEC-09 recorded; reviewers named | Owner record |
-| M1 | Docs-only content deck, fixture specification and test plan (WP-DV1-0), in parallel with PR #36 | Merged docs |
+| M1 | Docs-only content deck, fixture specification and test plan (WP-DV1-0, draft PR #39), in parallel with PR #36 | Merged docs |
 | M2 | PR-1 pure model and fixtures (no UI) | Merged after review |
 | M3 | PR-2 widgets and messages | Merged after review |
 | M4 | PR-3 integration: routes, screens, gate, e2e, evidence | Merged after exact-SHA review with first-attempt green CI in both events |
@@ -518,7 +520,7 @@ All unit tests are `*.test.ts` (in `apps/web`) or `*.test.tsx` (in `ui-kit`) so 
 | DV-FN-01 | Test shows the five S1 routes in navigation and the command palette; Rehearsal shows none and the five hashes are Not Found; `#/overview` remains the default; existing route tests pass unedited | unit (`buildDemoRoutes`), e2e |
 | DV-FN-02 | Dashboard KPIs and status meters derive from the store; completing a run changes them without reload; empty and reset states are correct | unit, e2e |
 | DV-FN-03 | Work-order list sorts (locale-aware), filters by text and status, shows a no-results `StatePanel`; selecting a row fills the customer and instrument cards and moves focus to them | unit, e2e |
-| DV-FN-04 | Job set-up disables an incompatible procedure with a visible reason; preflight findings group by severity; "Start simulation" is disabled with a visible reason while an error finding exists | unit, e2e |
+| DV-FN-04 | Job set-up disables an incompatible procedure with a visible reason; preflight findings group by severity; "Start simulation" is disabled with one visible reason, chosen in this order: a run already exists for the work order, the work order is not Ready, no procedure chosen, a blocking finding exists, the simulation is not confirmed | unit, e2e |
 | DV-FN-05 | Procedure preview is read-only: no edit control exists; every metrology slot shows `Input required` with its `MI-nn`; "Edit in Builder" is unavailable with its reason | unit, e2e |
 | DV-FN-06 | The run advances only on user action; the same script always yields the same event list (golden vectors); the operator step blocks; Abort asks for confirmation and marks results incomplete; Reset returns to ready | unit (model), e2e |
 | DV-FN-07 | Results show only scripted `su` readings; limit check reads "not evaluated"; an aborted run shows "incomplete" and no report | unit, e2e |
@@ -680,10 +682,10 @@ Structure only; the values are authored and approved by the owner (DV-DEC-02, DV
 | Entity | Count | Fields (all synthetic) |
 |---|---|---|
 | Customer | 6 | `SYN-CUS-nnn`, `{en,he}` name, site label, contact "not provided" |
-| Asset | 8 | `SYN-AST-nnn`, `{en,he}` class label ("Synthetic instrument class A"), serial `SYN-nnn`, status (Available, In job (simulated), Needs attention, Out of service), scripted last event |
+| Asset | 8 | `SYN-AST-nnn`, `{en,he}` class label ("Synthetic instrument class A"), serial `SYN-SER-nnn`, status (Available, In job (simulated), Needs attention, Out of service), scripted last event |
 | Work order | 10 | `SYN-WO-nnn`, customer, asset, priority, status, fixed synthetic due label |
 | Procedure descriptor | 3 | `SYN-PROC-nnn`, version label, step tree (illustrative step types, `{en,he}` titles, `Input required` markers), compatibility flag per asset class, scripted incompatibility reason for one |
-| Scenario script | 1 | 11 steps: 1 note, 1 operator-confirm, 3 points × 3 scripted readings, 1 end |
+| Scenario script | 1 | 11 counted steps (1 note, 1 operator-confirm, 3 points × 3 scripted readings) plus an implicit end marker that only emits the completion event |
 | Report | generated | `DEMO-RPT-0001` from the completed run, never persisted |
 
 ## Appendix B. Lexicon guard (DV-SAFE-04)
@@ -699,7 +701,7 @@ The test scans rendered text (en and he) and the message bundles. Any occurrence
 | verified, official, ISO, IEC, NIST, 17025 | none |
 | any real unit symbol (V, A, Ω, Hz, °C, and so on) outside the `technical` example already in the shell | none in demo fixtures; `su` only |
 
-The Hebrew counterparts are supplied by the content deck for the linguist (H-8) and the test is extended with them; until then the Hebrew check covers the absence of the English words and of digits-plus-real-unit patterns, and says it is incomplete.
+The Hebrew counterparts are proposed in the content deck (`CONTENT_DECK.md` sections 12.3 and 13, all `needs_review`) for the linguist (H-8) and the test is extended with them once reviewed; until then the Hebrew check covers the absence of the English words and of digits-plus-real-unit patterns, and says it is incomplete.
 
 ## Appendix C. Assignment template for the first code WP (use only after section 18 is satisfied)
 

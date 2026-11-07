@@ -21,7 +21,7 @@
   <text x="256" y="156" class="b mono">SIM-RUN-0001</text>
   <text x="380" y="156" class="m sm">Synthetic procedure</text><text x="490" y="156" class="mono sm">SYN-PROC-001 v1.0.0</text>
   <rect x="256" y="170" width="132" height="26" rx="13" fill="#f0e9fc"/><text x="322" y="188" text-anchor="middle" class="sm b" style="fill:#6d28d9">● RUNNING (scripted)</text>
-  <text x="404" y="188" class="m sm">Simulated elapsed 00:00:04 · Step 5 of 11</text>
+  <text x="404" y="188" class="m sm">Simulated elapsed t+00:07 · Step 7 of 11</text>
   <g>
     <rect x="800" y="146" width="84" height="34" rx="4" fill="#1b4fd1"/><text x="842" y="168" text-anchor="middle" class="on">Step ▸</text>
     <rect x="892" y="146" width="108" height="34" rx="4" class="ctl"/><text x="946" y="168" text-anchor="middle" class="sm">Run to end</text>
@@ -67,7 +67,7 @@
   <text x="252" y="690" class="sm">Confirm that the synthetic setup note was read.</text>
   <rect x="640" y="660" width="100" height="34" rx="4" fill="#1b4fd1"/><text x="690" y="682" text-anchor="middle" class="on">Confirm</text>
   <rect x="772" y="644" width="408" height="68" rx="8" class="card"/>
-  <text x="788" y="668" class="h2">Event log</text><text x="788" y="690" class="sm mono">t+00:04  Point B · reading 2 recorded (scripted)</text>
+  <text x="788" y="668" class="h2">Event log</text><text x="788" y="690" class="sm mono">t+00:07  Point B · reading 2 recorded (scripted)</text>
   <rect x="0" y="720" width="1200" height="40" fill="#ffffff" stroke="#d5dbe5"/>
   <text x="20" y="745" class="sm m">Journal: simulated, not persisted · Safety: not applicable (no instrument) · Sync: not applicable</text>
 </svg>
