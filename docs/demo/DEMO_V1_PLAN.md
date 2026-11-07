@@ -5,6 +5,7 @@
 | Status | **Proposal, documentation only, for product-owner approval.** It is not an ADR and grants no approval. It authorises no code, workflow, dependency, schema, gate or governance change and starts nothing. Every package below is assigned only by the owner, manually. |
 | Assignment | [Issue #37](https://github.com/avihafif/calibration-os/issues/37) (owner direction approved 2026-11-06: plan the demo in parallel with the closure of PR #36, without weakening any gate). |
 | Baseline | `main` at `763593d` (2026-11-06). [PR #36](https://github.com/avihafif/calibration-os/pull/36) (WP-1A-1d-N1, Unicode display policies; draft, head `8fe0f95` when this was written) is **not** in `main`; this plan neither modifies nor depends on its branch, only on its *merge* (section 14). |
+| Owner decisions | Defaults of DV-DEC-01 to DV-DEC-09 accepted by the owner on 2026-11-07 (section 18.1). The document itself still authorises no code and starts no work package. |
 | Written by | The same agent family (Claude) that wrote the N-1 proposal, the WP-1A-1e specification and the PR reviews. A human or a different reviewer should weigh this plan (H-7); it is not an independent audit of anything. |
 | Related | [`AGENTS.md`](../../AGENTS.md) · [NO_CODE_ARCHITECTURE](../NO_CODE_ARCHITECTURE.md) · [UI_UX_SPEC](../UI_UX_SPEC.md) · [CAPABILITY_MATRIX](../NO_CODE_CAPABILITY_MATRIX.md) · [Gate A0](../PHASE1A_GATE_A0.md) · [PHASE1A plan](../PHASE1A_IMPLEMENTATION_PLAN.md) · [SEQUENCE_AND_A2](../wp-1a-1e/SEQUENCE_AND_A2.md) · [HUMAN_APPROVALS](../wp-1a-1e/HUMAN_APPROVALS.md) · [design system](../phase1a/01_DESIGN_SYSTEM.md) · [design prototypes](../../design/README.md) |
 | Wireframes | [`wireframes/`](wireframes/): dashboard (en, light) · dashboard (he, RTL, dark) · run console · results and report. Composition only; every number and Hebrew string in them is a placeholder. |
@@ -651,6 +652,22 @@ Nothing here is granted by this document. If the owner does not answer, the **re
 | (existing) | D-A2-1 to D-A2-3, H-4a for A2; H-3, H-5, H-6 for B | As in HUMAN_APPROVALS and SEQUENCE_AND_A2 | — | — |
 
 **Required before the first demo code PR:** this plan approved; DV-DEC-01 to DV-DEC-05 and DV-DEC-08 recorded; fixtures and content deck owner-approved (Hebrew still `needs_review`); N1 merged; A2 merged (P0); a named independent reviewer; the owner's explicit assignment of that WP (H-1 style).
+
+### 18.1 Decision record
+
+| | |
+|---|---|
+| Date | 2026-11-07 |
+| Source | The product owner's chat reply "yes, defaults" ("כן, ברירות מחדל") to the question of approving the defaults of DV-DEC-01 to DV-DEC-09. Transcribed here by the agent; the owner may mirror it on the PR #38 thread, which is where DV-DEC-01 asks for it to be recorded. |
+| Meaning | The **Recommended** option of each row in section 18 is the owner's decision: DV-DEC-01 (scoped class A exception), -02 (option A, scripted `su`, "not evaluated"), -03 (`SYN-`/`SIM-`/`DEMO-` naming), -04 (P0 strict sequence, WP-DV1-0 may start now), -05 (additive demo sentinel, in principle), -06 (S1: no timers or decimal helper), -07 (S1 on-screen only), -08 (English constant beside the localized text), -09 (reviewers named per WP before assignment). |
+
+What this record does **not** do:
+
+- **DV-DEC-01** is an exception for Demo V1 class A screens only. `AGENTS.md`, `NO_CODE_ARCHITECTURE` and every ADR are unchanged; a durable exception text, if the owner wants one, is a separate reviewed change.
+- **DV-DEC-05** approves the principle. The exact diff to `tools/check_frontend_bundle.mjs` is still an R5 change approved on its own PR (section 17), as with H-4a.
+- **DV-DEC-02 and -03**: the owner still authors or approves the fixture file and the content deck before any fixture is committed; Hebrew stays `needs_review`.
+- **DV-DEC-09**: no reviewer is named yet. A named independent reviewer and the owner's explicit assignment of each work package are still required before any code PR.
+- N1 and A2 are not merged or approved by this record; Gate A0, H-2 and the Builder remain open. Under P0 demo code still waits for N1 and A2.
 
 ## 19. Out of scope and non-claims
 
